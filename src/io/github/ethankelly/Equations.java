@@ -1,5 +1,7 @@
 package io.github.ethankelly;
 
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -142,7 +144,12 @@ public class Equations {
      * Unit testing for the {@code Equations} class and contained methods.
      * @param args the command-line arguments.
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
+        // Creating a File object that represents the disk file.
+        PrintStream o = new PrintStream("TriangleLollipopToast.txt");
+        // Assign o to output stream
+        System.setOut(o);
+
         char[] states = new char[]{'S', 'I'};
         System.out.println();
 
