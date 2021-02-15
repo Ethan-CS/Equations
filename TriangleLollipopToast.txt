@@ -6,6 +6,7 @@
 2: 1 1 0 
 
 Equations required for Triangle graph:
+
 [〈I2〉]
 [〈I1〉]
 [〈I0〉]
@@ -36,6 +37,7 @@ Numbers of equations of each size: [6, 6, 6]
 3: 1 0 1 0 
 
 Equations required for Lollipop graph:
+
 [〈I3〉]
 [〈I2〉]
 [〈I1〉]
@@ -74,7 +76,6 @@ Numbers of equations of each size: [8, 8, 10, 2]
 1: 1 0 1 0 
 2: 1 1 0 1 
 3: 1 0 1 0 
-
 
 Equations required for Toast graph:
 

@@ -16,18 +16,28 @@ import java.util.List;
  * states can be specified when running the model.
  */
 public class Equations {
+    private List<List<Vertex>> equations;
     private final Graph graph;
     private final char[] states;
 
     /**
      * Class constructor - assigns a graph and some array of states to a new Equations object.
      *
-     * @param graph the graph of which we are interested in equations.
+     * @param graph  the graph of which we are interested in equations.
      * @param states the states that a vertex can be in (e.g. SIP).
      */
     public Equations(Graph graph, char[] states) {
         this.graph = graph;
         this.states = states;
+        this.equations = this.generateTuples();
+    }
+
+    public List<List<Vertex>> getEquations() {
+        return equations;
+    }
+
+    public void setEquations(List<List<Vertex>> equations) {
+        this.equations = equations;
     }
 
     /**
@@ -142,12 +152,12 @@ public class Equations {
 
     /**
      * Unit testing for the {@code Equations} class and contained methods.
+     *
      * @param args the command-line arguments.
      */
     public static void main(String[] args) throws FileNotFoundException {
-        // Creating a File object that represents the disk file.
+        // Creating a File object that represents the disk file and assign to output stream
         PrintStream o = new PrintStream("TriangleLollipopToast.txt");
-        // Assign o to output stream
         System.setOut(o);
 
         char[] states = new char[]{'S', 'I'};
@@ -160,13 +170,10 @@ public class Equations {
         triangle.addEdge(2, 0);
         Equations triangleNE = new Equations(triangle, states);
 
-        System.out.println(" *** TRIANGLE GRAPH ***\n\n" + triangle);
-
-        System.out.println("Equations required for Triangle graph:");
-        List<List<Vertex>> triangleEquations = triangleNE.generateTuples();
-        triangleEquations.forEach(System.out::println);
+        System.out.println(" *** TRIANGLE GRAPH ***\n\n" + triangle + "\nEquations required for Triangle graph:\n");
+        triangleNE.getEquations().forEach(System.out::println);
         System.out.println("\nNumbers of equations of each size: "
-                + Arrays.toString(triangleNE.findNumbers(triangleEquations)) + "\n\n");
+                + Arrays.toString(triangleNE.findNumbers(triangleNE.getEquations())) + "\n\n");
 
         // LOLLIPOP
         Graph lollipop = new Graph(4);
@@ -176,13 +183,10 @@ public class Equations {
         lollipop.addEdge(2, 3);
         Equations lollipopNE = new Equations(lollipop, states);
 
-        System.out.println(" *** LOLLIPOP GRAPH ***\n\n" + lollipop);
-
-        System.out.println("Equations required for Lollipop graph:");
-        List<List<Vertex>> lollipopEquations = lollipopNE.generateTuples();
-        lollipopEquations.forEach(System.out::println);
+        System.out.println(" *** LOLLIPOP GRAPH ***\n\n" + lollipop + "\nEquations required for Lollipop graph:\n");
+        lollipopNE.getEquations().forEach(System.out::println);
         System.out.println("\nNumbers of equations of each size: "
-                + Arrays.toString(lollipopNE.findNumbers(lollipopEquations)) + "\n\n");
+                + Arrays.toString(lollipopNE.findNumbers(lollipopNE.getEquations())) + "\n\n");
 
         // TOAST
         Graph toast = new Graph(4);
@@ -193,14 +197,25 @@ public class Equations {
         toast.addEdge(2, 3);
         Equations toastNE = new Equations(toast, states);
 
-        System.out.println(" *** TOAST GRAPH ***\n\n" + toast);
-        System.out.println();
-
-        System.out.println("Equations required for Toast graph:\n");
-        List<List<Vertex>> toastEquations = toastNE.generateTuples();
-        toastEquations.forEach(System.out::println);
+        System.out.println(" *** TOAST GRAPH ***\n\n" + toast + "\nEquations required for Toast graph:\n");
+        toastNE.getEquations().forEach(System.out::println);
         System.out.println("\nNumbers of equations of each size: "
-                + Arrays.toString(toastNE.findNumbers(toastEquations)) + "\n\n");
+                + Arrays.toString(toastNE.findNumbers(toastNE.getEquations())) + "\n\n");
+
+        // Creating another File object that represents the disk file and assign to output stream
+        PrintStream er = new PrintStream("ErdosRenyiTest.txt");
+        System.setOut(er);
+
+        // ERDOS-RENYI
+        Graph erdosRenyi = GraphGenerator.erdosRenyi(5, 0.5);
+        Equations erdosRenyiNE = new Equations(erdosRenyi, states);
+
+        System.out.println(" *** ERDOS-RENYI GRAPH ***\n\n" + erdosRenyi
+                + "\nEquations required for Erdos-Renyi graph:\n");
+        erdosRenyiNE.getEquations().forEach(System.out::println);
+        System.out.println("\nNumbers of equations of each size: "
+                + Arrays.toString(erdosRenyiNE.findNumbers(erdosRenyiNE.getEquations())) + "\n\n");
+
     }
 
 }

@@ -15,7 +15,7 @@ public class Vertex implements Comparable<Vertex> {
     /**
      * Class constructor, assigning a state and location to a vertex instance object.
      *
-     * @param state the state for which we are interested in studying the probability of the vertex being in.
+     * @param state    the state for which we are interested in studying the probability of the vertex being in.
      * @param location the numerical index that represents the location of the vertex in the associated graph.
      */
     public Vertex(char state, int location) {
@@ -38,9 +38,9 @@ public class Vertex implements Comparable<Vertex> {
     }
 
     /**
-     * Given a list of vertices (some tuple), this method checks whether all of the states are the same. If they are the same, we do
-     * not have to consider the associated equation of the tuple in the final system of equations that describes our
-     * compartmental model.
+     * Given a list of vertices (some tuple), this method checks whether all of the states are the same. If they are the
+     * same, we do not have to consider the associated equation of the tuple in the final system of equations that
+     * describes our compartmental model.
      *
      * @param toCheck the tuple we wish to verify has at least two different states in its elements.
      * @return true if at least one vertex state is different to that of the others, false if they are all the same.
@@ -91,7 +91,7 @@ public class Vertex implements Comparable<Vertex> {
      * that describes our compartmental model and we can discount the given tuple/
      *
      * @param toCheck the tuple we wish to check constitutes some kind of path.
-     * @param g the graph in which the tuple exists.
+     * @param g       the graph in which the tuple exists.
      * @return true if the tuple forms a path in some way, false otherwise.
      */
     public static boolean areAllConnected(List<Vertex> toCheck, Graph g) {
