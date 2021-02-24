@@ -217,7 +217,7 @@ public class Tuple {
                                         .append(" I").append(j).append(Symbol.RANGLE.uni());
                             }
                         }
-                        eqn.append(" - ").append(Greek.GAMMA.uni()).
+                        eqn.append("- ").append(Greek.GAMMA.uni()).
                                 append(Symbol.LANGLE.uni()).append("I").append(vertex.getLocation()).append(Symbol.RANGLE.uni());
                     }
                     case 'P' -> {
