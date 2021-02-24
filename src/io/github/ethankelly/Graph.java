@@ -26,6 +26,7 @@ public class Graph {
     private int numVertices;
     private int numEdges;
     private boolean[][] adjMatrix;
+    private int[][] transmissionMatrix;
 
     /**
      * Class constructor.
@@ -35,6 +36,7 @@ public class Graph {
     public Graph(int numVertices) {
         this.numVertices = numVertices;
         this.adjMatrix = new boolean[numVertices][numVertices];
+        this.transmissionMatrix = new int[numVertices][numVertices];
     }
 
     /**
@@ -114,8 +116,12 @@ public class Graph {
      */
     public void addEdge(int i, int j) {
         boolean[][] adjMat = getAdjMatrix();
+        int[][] tMat = getTransmissionMatrix();
         adjMat[i][j] = true;
         adjMat[j][i] = true;
+        tMat[i][j] = 1;
+        tMat[j][i] = 1;
+        this.setTransmissionMatrix(tMat);
         this.setAdjMatrix(adjMat);
         this.setNumEdges(getNumEdges() + 1);
     }
@@ -128,9 +134,13 @@ public class Graph {
      */
     public void removeEdge(int i, int j) {
         boolean[][] adjMat = getAdjMatrix();
+        int[][] tMat = getTransmissionMatrix();
         adjMat[i][j] = false;
         adjMat[j][i] = false;
+        tMat[i][j] = 0;
+        tMat[j][i] = 0;
         this.setAdjMatrix(adjMat);
+        this.setTransmissionMatrix(tMat);
     }
 
     /**
@@ -225,5 +235,13 @@ public class Graph {
      */
     public void setNumEdges(int numEdges) {
         this.numEdges = numEdges;
+    }
+
+    public int[][] getTransmissionMatrix() {
+        return transmissionMatrix;
+    }
+
+    public void setTransmissionMatrix(int[][] transmissionMatrix) {
+        this.transmissionMatrix = transmissionMatrix;
     }
 }
