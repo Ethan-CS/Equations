@@ -20,12 +20,7 @@ public class Tuple {
     private final Graph graph;
     private final char[] states;
 
-    public static final String ALPHA = "\u03B1";
-    public static final String BETA = "\u03B2";
-    public static final String GAMMA = "\u03B3";
-    public static final String ZETA = "\u03B6";
-    public static final String LANGLE = "\u3008";
-    public static final String RANGLE = "\u3009";
+
 
     /**
      * Class constructor - assigns a graph and some array of states to a new Tuple object.
@@ -170,7 +165,7 @@ public class Tuple {
         return states;
     }
 
-    public List<String> generateEquation() {
+    public List<String> generateEquations() {
         List<String> equations = new ArrayList<>();
         char[] states = this.getStates();
         Arrays.sort(states);
@@ -194,21 +189,23 @@ public class Tuple {
             for (Vertex vertex : tuple) {
                 switch (Character.toUpperCase(vertex.getState())) {
                     case 'S' -> {
-                        if (Arrays.equals(states, sirp))
-                            if (eqn.length() > (tuple.toString() + " = ").length() && eqn.charAt(eqn.length() - 1) != '+')
-                                eqn.append("+ ");
-                            eqn.append(ALPHA).append(LANGLE).append("P").append(vertex.getLocation()).append(RANGLE);
+                        if (new String(states).contains("P")) {
+                            if (eqn.length() > (tuple.toString() + " = ").length()) eqn.append("+ ");
+                            eqn.append(Greek.ALPHA.uni()).append(Symbol.LANGLE.uni()).append("P")
+                                    .append(vertex.getLocation()).append(Symbol.RANGLE.uni());
+                        }
+
                         for (int j = 0; j < numVertices; j++) {
                             if (t[vertex.getLocation()][j] > 0) {
                                 eqn.append("- ");
                                 if (t[vertex.getLocation()][j] != 1) eqn.append(t[vertex.getLocation()][j]);
-                                eqn.append(BETA).append(LANGLE).append("S").append(vertex.getLocation())
-                                        .append(" I").append(j).append(RANGLE);
+                                eqn.append(Greek.BETA.uni()).append(Symbol.LANGLE.uni()).append("S").append(vertex.getLocation())
+                                        .append(" I").append(j).append(Symbol.RANGLE.uni());
                             }
                         }
                         if (Arrays.equals(states, sirp))
-                            eqn.append("- ").append(ZETA).append(LANGLE)
-                                    .append("S").append(vertex.getLocation()).append(RANGLE);
+                            eqn.append("- ").append(Greek.ZETA.uni()).append(Symbol.LANGLE.uni())
+                                    .append("S").append(vertex.getLocation()).append(Symbol.RANGLE.uni());
                     }
                     case 'I' -> {
                         for (int j = 0; j < numVertices; j++) {
@@ -216,19 +213,19 @@ public class Tuple {
                                 if (eqn.length() > (tuple.toString() + " = ").length() && eqn.charAt(eqn.length() - 1) != '+')
                                     eqn.append("+ ");
                                 if (t[vertex.getLocation()][j] != 1) eqn.append(t[vertex.getLocation()][j]);
-                                eqn.append(GAMMA).append(LANGLE).append("S").append(vertex.getLocation())
-                                        .append(" I").append(j).append(RANGLE);
+                                eqn.append(Greek.GAMMA.uni()).append(Symbol.LANGLE.uni()).append("S").append(vertex.getLocation())
+                                        .append(" I").append(j).append(Symbol.RANGLE.uni());
                             }
                         }
-                        eqn.append(" - ").append(GAMMA).
-                                append(LANGLE).append("I").append(vertex.getLocation()).append(RANGLE);
+                        eqn.append(" - ").append(Greek.GAMMA.uni()).
+                                append(Symbol.LANGLE.uni()).append("I").append(vertex.getLocation()).append(Symbol.RANGLE.uni());
                     }
                     case 'P' -> {
                         if (eqn.length() > (tuple.toString() + " = ").length() && eqn.charAt(eqn.length() - 1) != '+')
                             eqn.append("+ ");
-                        eqn.append(ZETA).append(LANGLE).append("S").append(vertex.getLocation())
-                                .append(RANGLE).append("- ").append(ALPHA).append(LANGLE)
-                                .append("P").append(vertex.getLocation()).append(RANGLE);
+                        eqn.append(Greek.ZETA.uni()).append(Symbol.LANGLE.uni()).append("S").append(vertex.getLocation())
+                                .append(Symbol.RANGLE.uni()).append("- ").append(Greek.ALPHA.uni()).append(Symbol.LANGLE.uni())
+                                .append("P").append(vertex.getLocation()).append(Symbol.RANGLE.uni());
                     }
                 }
             }
@@ -249,7 +246,6 @@ public class Tuple {
         System.setOut(o);
 
         char[] states = new char[]{'S', 'I', 'R', 'P'};
-        System.out.println();
 
         // TRIANGLE
         Graph triangle = new Graph(3);
@@ -258,11 +254,9 @@ public class Tuple {
         triangle.addEdge(2, 0);
         Tuple triangleNE = new Tuple(triangle, states);
 
-        System.out.println(" *** TRIANGLE GRAPH ***\n\n" + triangle + "\nEquations required for Triangle graph:\n");
-//        triangleNE.getTuples().forEach(System.out::println);
-        System.out.println("\nNumbers of equations of each size: "
-                + Arrays.toString(triangleNE.findNumbers(triangleNE.getTuples())) + "\n\n");
-        triangleNE.generateEquation().forEach(System.out::println);
+        System.out.println(" *** TRIANGLE GRAPH ***\n\n" + triangle + "Numbers of equations of each size: "
+                + Arrays.toString(triangleNE.findNumbers(triangleNE.getTuples())) + "\n");
+        triangleNE.generateEquations().forEach(System.out::println);
 
         // LOLLIPOP
         Graph lollipop = new Graph(4);
@@ -272,11 +266,9 @@ public class Tuple {
         lollipop.addEdge(2, 3);
         Tuple lollipopNE = new Tuple(lollipop, states);
 
-        System.out.println(" *** LOLLIPOP GRAPH ***\n\n" + lollipop + "\nEquations required for Lollipop graph:\n");
-//        lollipopNE.getTuples().forEach(System.out::println);
-        System.out.println("\nNumbers of equations of each size: "
-                + Arrays.toString(lollipopNE.findNumbers(lollipopNE.getTuples())) + "\n\n");
-        lollipopNE.generateEquation().forEach(System.out::println);
+        System.out.println("\n *** LOLLIPOP GRAPH ***\n\n" + lollipop + "Numbers of equations of each size: "
+                + Arrays.toString(lollipopNE.findNumbers(lollipopNE.getTuples())) + "\n");
+        lollipopNE.generateEquations().forEach(System.out::println);
 
         // TOAST
         Graph toast = new Graph(4);
@@ -287,11 +279,9 @@ public class Tuple {
         toast.addEdge(2, 3);
         Tuple toastNE = new Tuple(toast, states);
 
-        System.out.println(" *** TOAST GRAPH ***\n\n" + toast + "\nEquations required for Toast graph:\n");
-//        toastNE.getTuples().forEach(System.out::println);
-        System.out.println("\nNumbers of equations of each size: "
-                + Arrays.toString(toastNE.findNumbers(toastNE.getTuples())) + "\n\n");
-        toastNE.generateEquation().forEach(System.out::println);
+        System.out.println("\n *** TOAST GRAPH ***\n\n" + toast + "Numbers of equations of each size: "
+                + Arrays.toString(toastNE.findNumbers(toastNE.getTuples())) + "\n");
+        toastNE.generateEquations().forEach(System.out::println);
 
         // Creating another File object that represents the disk file and assign to output stream
         PrintStream er = new PrintStream("ErdosRenyiTest.txt");
@@ -301,12 +291,9 @@ public class Tuple {
         Graph erdosRenyi = GraphGenerator.erdosRenyi(5, 0.5);
         Tuple erdosRenyiNE = new Tuple(erdosRenyi, states);
 
-        System.out.println(" *** ERDOS-RENYI GRAPH ***\n\n" + erdosRenyi
-                + "\nEquations required for Erdos-Renyi graph:\n");
-        erdosRenyiNE.getTuples().forEach(System.out::println);
-        System.out.println("\nNumbers of equations of each size: "
-                + Arrays.toString(erdosRenyiNE.findNumbers(erdosRenyiNE.getTuples())) + "\n\n");
-
+        System.out.println(" *** ERDOS-RENYI GRAPH ***\n\n" + erdosRenyi + "Numbers of equations of each size: "
+                + Arrays.toString(erdosRenyiNE.findNumbers(erdosRenyiNE.getTuples())) + "\n");
+        erdosRenyiNE.generateEquations().forEach(System.out::println);
     }
 
 }
