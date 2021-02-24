@@ -170,7 +170,7 @@ public class Tuple {
         return states;
     }
 
-    public List<String> generateEquation() {
+    public List<String> generateEquations() {
         List<String> equations = new ArrayList<>();
         char[] states = this.getStates();
         Arrays.sort(states);
@@ -249,7 +249,6 @@ public class Tuple {
         System.setOut(o);
 
         char[] states = new char[]{'S', 'I', 'R', 'P'};
-        System.out.println();
 
         // TRIANGLE
         Graph triangle = new Graph(3);
@@ -258,11 +257,9 @@ public class Tuple {
         triangle.addEdge(2, 0);
         Tuple triangleNE = new Tuple(triangle, states);
 
-        System.out.println(" *** TRIANGLE GRAPH ***\n\n" + triangle + "\nEquations required for Triangle graph:\n");
-//        triangleNE.getTuples().forEach(System.out::println);
-        System.out.println("\nNumbers of equations of each size: "
-                + Arrays.toString(triangleNE.findNumbers(triangleNE.getTuples())) + "\n\n");
-        triangleNE.generateEquation().forEach(System.out::println);
+        System.out.println(" *** TRIANGLE GRAPH ***\n\n" + triangle + "Numbers of equations of each size: "
+                + Arrays.toString(triangleNE.findNumbers(triangleNE.getTuples())) + "\n");
+        triangleNE.generateEquations().forEach(System.out::println);
 
         // LOLLIPOP
         Graph lollipop = new Graph(4);
@@ -272,11 +269,9 @@ public class Tuple {
         lollipop.addEdge(2, 3);
         Tuple lollipopNE = new Tuple(lollipop, states);
 
-        System.out.println(" *** LOLLIPOP GRAPH ***\n\n" + lollipop + "\nEquations required for Lollipop graph:\n");
-//        lollipopNE.getTuples().forEach(System.out::println);
-        System.out.println("\nNumbers of equations of each size: "
-                + Arrays.toString(lollipopNE.findNumbers(lollipopNE.getTuples())) + "\n\n");
-        lollipopNE.generateEquation().forEach(System.out::println);
+        System.out.println("\n *** LOLLIPOP GRAPH ***\n\n" + lollipop + "Numbers of equations of each size: "
+                + Arrays.toString(lollipopNE.findNumbers(lollipopNE.getTuples())) + "\n");
+        lollipopNE.generateEquations().forEach(System.out::println);
 
         // TOAST
         Graph toast = new Graph(4);
@@ -287,11 +282,9 @@ public class Tuple {
         toast.addEdge(2, 3);
         Tuple toastNE = new Tuple(toast, states);
 
-        System.out.println(" *** TOAST GRAPH ***\n\n" + toast + "\nEquations required for Toast graph:\n");
-//        toastNE.getTuples().forEach(System.out::println);
-        System.out.println("\nNumbers of equations of each size: "
-                + Arrays.toString(toastNE.findNumbers(toastNE.getTuples())) + "\n\n");
-        toastNE.generateEquation().forEach(System.out::println);
+        System.out.println("\n *** TOAST GRAPH ***\n\n" + toast + "Numbers of equations of each size: "
+                + Arrays.toString(toastNE.findNumbers(toastNE.getTuples())) + "\n");
+        toastNE.generateEquations().forEach(System.out::println);
 
         // Creating another File object that represents the disk file and assign to output stream
         PrintStream er = new PrintStream("ErdosRenyiTest.txt");
@@ -301,12 +294,9 @@ public class Tuple {
         Graph erdosRenyi = GraphGenerator.erdosRenyi(5, 0.5);
         Tuple erdosRenyiNE = new Tuple(erdosRenyi, states);
 
-        System.out.println(" *** ERDOS-RENYI GRAPH ***\n\n" + erdosRenyi
-                + "\nEquations required for Erdos-Renyi graph:\n");
-        erdosRenyiNE.getTuples().forEach(System.out::println);
-        System.out.println("\nNumbers of equations of each size: "
-                + Arrays.toString(erdosRenyiNE.findNumbers(erdosRenyiNE.getTuples())) + "\n\n");
-
+        System.out.println(" *** ERDOS-RENYI GRAPH ***\n\n" + erdosRenyi + "Numbers of equations of each size: "
+                + Arrays.toString(erdosRenyiNE.findNumbers(erdosRenyiNE.getTuples())) + "\n");
+        erdosRenyiNE.generateEquations().forEach(System.out::println);
     }
 
 }
