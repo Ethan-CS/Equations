@@ -74,6 +74,19 @@ public class Tuple {
     public List<Vertex> findSingles() {
         // Get states, graph and the vertices in the associated graph for the model
         char[] states = this.getStates();
+        Arrays.sort(states);
+        char[] si = new char[]{'S', 'I'};
+        char[] sir = new char[]{'S', 'I', 'R'};
+        char[] sip = new char[]{'S', 'I', 'P'};
+        char[] sirp = new char[]{'S', 'I', 'R', 'P'};
+        Arrays.sort(si);
+        Arrays.sort(sir);
+        Arrays.sort(sip);
+        Arrays.sort(sirp);
+
+        if (Arrays.equals(states, sir)) states = si;
+        else if (Arrays.equals(states, sirp)) states = sip;
+
         Graph graph = this.getGraph();
         int numVertices = graph.getNumVertices();
         int[] vertices = new int[numVertices];
@@ -163,14 +176,17 @@ public class Tuple {
         Arrays.sort(states);
         char[] si = new char[]{'S', 'I'};
         char[] sir = new char[]{'S', 'I', 'R'};
+        char[] sip = new char[]{'S', 'I', 'P'};
         char[] sirp = new char[]{'S', 'I', 'R', 'P'};
         Arrays.sort(si);
         Arrays.sort(sir);
+        Arrays.sort(sip);
         Arrays.sort(sirp);
         int numVertices = this.getGraph().getNumVertices();
         int[][] t = this.getGraph().getTransmissionMatrix();
 
         if (Arrays.equals(states, sir)) states = si;
+        else if (Arrays.equals(states, sirp)) states = sip;
 
         for (List<Vertex> tuple : this.getTuples()) {
             StringBuilder eqn = new StringBuilder(); // The String representation of the equation of the tuple
@@ -179,25 +195,26 @@ public class Tuple {
                 switch (Character.toUpperCase(vertex.getState())) {
                     case 'S' -> {
                         if (Arrays.equals(states, sirp))
+                            if (eqn.length() > (tuple.toString() + " = ").length() && eqn.charAt(eqn.length() - 1) != '+')
+                                eqn.append("+ ");
                             eqn.append(ALPHA).append(LANGLE).append("P").append(vertex.getLocation()).append(RANGLE);
                         for (int j = 0; j < numVertices; j++) {
                             if (t[vertex.getLocation()][j] > 0) {
-                                eqn.append("-");
+                                eqn.append("- ");
                                 if (t[vertex.getLocation()][j] != 1) eqn.append(t[vertex.getLocation()][j]);
                                 eqn.append(BETA).append(LANGLE).append("S").append(vertex.getLocation())
                                         .append(" I").append(j).append(RANGLE);
                             }
                         }
                         if (Arrays.equals(states, sirp))
-                            eqn.append("-").append(ZETA).append(LANGLE)
+                            eqn.append("- ").append(ZETA).append(LANGLE)
                                     .append("S").append(vertex.getLocation()).append(RANGLE);
                     }
                     case 'I' -> {
                         for (int j = 0; j < numVertices; j++) {
                             if (t[vertex.getLocation()][j] > 0) {
                                 if (eqn.length() > (tuple.toString() + " = ").length() && eqn.charAt(eqn.length() - 1) != '+')
-                                    eqn.append("+");
-                                eqn.append(" ");
+                                    eqn.append("+ ");
                                 if (t[vertex.getLocation()][j] != 1) eqn.append(t[vertex.getLocation()][j]);
                                 eqn.append(GAMMA).append(LANGLE).append("S").append(vertex.getLocation())
                                         .append(" I").append(j).append(RANGLE);
@@ -205,6 +222,13 @@ public class Tuple {
                         }
                         eqn.append(" - ").append(GAMMA).
                                 append(LANGLE).append("I").append(vertex.getLocation()).append(RANGLE);
+                    }
+                    case 'P' -> {
+                        if (eqn.length() > (tuple.toString() + " = ").length() && eqn.charAt(eqn.length() - 1) != '+')
+                            eqn.append("+ ");
+                        eqn.append(ZETA).append(LANGLE).append("S").append(vertex.getLocation())
+                                .append(RANGLE).append("- ").append(ALPHA).append(LANGLE)
+                                .append("P").append(vertex.getLocation()).append(RANGLE);
                     }
                 }
             }
@@ -224,7 +248,7 @@ public class Tuple {
         PrintStream o = new PrintStream("TriangleLollipopToast.txt");
         System.setOut(o);
 
-        char[] states = new char[]{'S', 'I','R'};
+        char[] states = new char[]{'S', 'I', 'R', 'P'};
         System.out.println();
 
         // TRIANGLE
