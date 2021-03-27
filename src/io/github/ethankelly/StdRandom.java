@@ -573,32 +573,4 @@ public final class StdRandom {
     private static void validateSubArrayIndices(int lo, int hi, int length) throws AssertionError {
         assert lo >= 0 && hi <= length && lo <= hi : "Sub-array indices out of bounds: [" + lo + ", " + hi + ")";
     }
-
-    /**
-     * Unit tests the methods in this class.
-     *
-     * @param args the command-line arguments
-     */
-    public static void main(String[] args) {
-        int n = 10;
-        double[] probabilities = {0.5, 0.3, 0.1, 0.1};
-        int[] frequencies = {5, 3, 1, 1};
-        String[] a = "A B C D E F G".split(" ");
-
-        StdOut.println("seed = " + StdRandom.getSeed());
-        for (int i = 0; i < n; i++) {
-            StdOut.printf("%2d ", uniform(100));
-            StdOut.printf("%8.5f ", uniform(10.0, 99.0));
-            StdOut.printf("%5b ", bernoulli(0.5));
-            StdOut.printf("%7.5f ", gaussian(9.0, 0.2));
-            StdOut.printf("%1d ", discrete(probabilities));
-            StdOut.printf("%1d ", discrete(frequencies));
-            StdOut.printf("%11d ", uniform(100000000000L));
-            StdRandom.shuffle(a);
-            for (String s : a)
-                StdOut.print(s);
-            StdOut.println();
-        }
-    }
-
 }

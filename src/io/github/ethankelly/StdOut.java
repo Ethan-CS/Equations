@@ -281,19 +281,4 @@ public final class StdOut {
     public static void close() {
         out.close();
     }
-
-    /**
-     * Unit tests some of the methods in {@code StdOut}.
-     *
-     * @param args the command-line arguments
-     */
-    public static void main(String[] args) {
-
-        // write to stdout
-        StdOut.println("Test");
-        StdOut.println(17);
-        StdOut.println(true);
-        StdOut.printf("%.6f\n", 1.0 / 7.0);
-    }
-
 }

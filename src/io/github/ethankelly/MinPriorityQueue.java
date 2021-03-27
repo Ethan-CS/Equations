@@ -245,23 +245,4 @@ public class MinPriorityQueue<Key> implements Iterable<Key> {
             return copy.delMin();
         }
     }
-
-    /**
-     * Unit tests the {@code MinPQ} data type.
-     *
-     * @param args the command-line arguments
-     */
-    public static void main(String[] args) {
-        MinPriorityQueue<Integer> pq = new MinPriorityQueue<>();
-//        while (!StdIn.isEmpty()) {
-//            String item = StdIn.readString();
-//            if (!item.equals("-")) pq.insert(item);
-//            else if (!pq.isEmpty()) StdOut.print(pq.delMin() + " ");
-//        }
-        int[] toAdd = new int[]{0, 1, 1, 2, 3, 5, 8, 13, 21};
-        for (int i : toAdd) pq.insert(i);
-        StdOut.print(pq.delMin() + " ");
-        StdOut.println("(" + pq.size() + " left on pq)");
-    }
-
 }

@@ -16,6 +16,45 @@ public class GraphGenerator {
     }
 
     /**
+     * @return the Toast graph
+     */
+    public static Graph getToastGraph() {
+        // TOAST
+        Graph toast = new Graph(4);
+        toast.addEdge(0, 1);
+        toast.addEdge(0, 2);
+        toast.addEdge(0, 3);
+        toast.addEdge(1, 2);
+        toast.addEdge(2, 3);
+        return toast;
+    }
+
+    /**
+     * @return the Lollipop graph.
+     */
+    public static Graph getLollipopGraph() {
+        // LOLLIPOP
+        Graph lollipop = new Graph(4);
+        lollipop.addEdge(0, 1);
+        lollipop.addEdge(0, 2);
+        lollipop.addEdge(0, 3);
+        lollipop.addEdge(2, 3);
+        return lollipop;
+    }
+
+    /**
+     * @return the Triangle graph.
+     */
+    public static Graph getTriangleGraph() {
+        // TRIANGLE
+        Graph triangle = new Graph(3);
+        triangle.addEdge(0, 1);
+        triangle.addEdge(1, 2);
+        triangle.addEdge(2, 0);
+        return triangle;
+    }
+
+    /**
      * The Edge class is used to represent an edge as a pair of vertex locations (v, w) where v < w, between which the
      * edge exists.
      *
@@ -418,90 +457,5 @@ public class GraphGenerator {
      */
     public static void setSeed() {
         seed = StdRandom.getSeed();
-    }
-
-    /**
-     * Unit tests the {@code GraphGenerator} library.
-     *
-     * @param args the command-line arguments.
-     */
-    public static void main(String[] args) {
-        // Declare a number of vertices and a number of edges
-        int numVertices = 8;
-        int numEdges = 5;
-
-        // Split vertices into two partitions for bipartite graphs
-        int numVertices1 = numVertices / 2;
-        int numVertices2 = numVertices - numVertices1;
-
-        // Probabilities for testing Erdős–Rényi and Erdős–Rényi bipartite graphs
-        double p = (double) numEdges / (numVertices * (numVertices - 1) / 2.0);
-        double q = (double) numEdges / (numVertices1 * numVertices2);
-
-        // Print the numbers of vertices and edges to the standard output
-        StdOut.println();
-        StdOut.println("Generating random graphs on " + numVertices + " vertices and " + numEdges + " edges.");
-        StdOut.println();
-
-        // Generate and print each graph from the methods above to the standard output
-        StdOut.println("Complete graph");
-        StdOut.println(complete(numVertices));
-        StdOut.println();
-
-        StdOut.println("Simple");
-        StdOut.println(simple(numVertices, numEdges));
-        StdOut.println();
-
-        StdOut.println("Erdős–Rényi");
-        StdOut.println(erdosRenyi(numVertices, p));
-        StdOut.println();
-
-        StdOut.println("Complete bipartite");
-        StdOut.println(completeBipartite(numVertices1, numVertices2));
-        StdOut.println();
-
-        StdOut.println("Bipartite");
-        StdOut.println(bipartite(numVertices1, numVertices2, numEdges));
-        StdOut.println();
-
-        StdOut.println("Erdős–Rényi bipartite");
-        StdOut.println(bipartite(numVertices1, numVertices2, q));
-        StdOut.println();
-
-        StdOut.println("Path");
-        StdOut.println(path(numVertices));
-        StdOut.println();
-
-        StdOut.println("Cycle");
-        StdOut.println(cycle(numVertices));
-        StdOut.println();
-
-        StdOut.println("Binary tree");
-        StdOut.println(binaryTree(numVertices));
-        StdOut.println();
-
-        StdOut.println("Eulerian Cycle");
-        StdOut.println(eulerianCycle(numVertices, numEdges));
-        StdOut.println();
-
-        StdOut.println("Eulerian Path ");
-        StdOut.println(eulerianPath(numVertices, numEdges));
-        StdOut.println();
-
-        StdOut.println("Tree");
-        StdOut.println(tree(numVertices));
-        StdOut.println();
-
-        StdOut.println("4-Regular");
-        StdOut.println(regular(numVertices, 4));
-        StdOut.println();
-
-        StdOut.println("Star");
-        StdOut.println(star(numVertices));
-        StdOut.println();
-
-        StdOut.println("Wheel");
-        StdOut.println(wheel(numVertices));
-        StdOut.println();
     }
 }
