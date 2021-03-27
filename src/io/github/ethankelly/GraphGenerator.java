@@ -1,5 +1,10 @@
 package io.github.ethankelly;
 
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+import java.util.InputMismatchException;
+import java.util.Scanner;
 import java.util.stream.IntStream;
 
 /**
@@ -20,7 +25,7 @@ public class GraphGenerator {
      */
     public static Graph getToastGraph() {
         // TOAST
-        Graph toast = new Graph(4);
+        Graph toast = new Graph(4, "Toast");
         toast.addEdge(0, 1);
         toast.addEdge(0, 2);
         toast.addEdge(0, 3);
@@ -34,7 +39,7 @@ public class GraphGenerator {
      */
     public static Graph getLollipopGraph() {
         // LOLLIPOP
-        Graph lollipop = new Graph(4);
+        Graph lollipop = new Graph(4, "Lollipop");
         lollipop.addEdge(0, 1);
         lollipop.addEdge(0, 2);
         lollipop.addEdge(0, 3);
@@ -47,11 +52,231 @@ public class GraphGenerator {
      */
     public static Graph getTriangleGraph() {
         // TRIANGLE
-        Graph triangle = new Graph(3);
+        Graph triangle = new Graph(3, "Triangle");
         triangle.addEdge(0, 1);
         triangle.addEdge(1, 2);
         triangle.addEdge(2, 0);
         return triangle;
+    }
+
+    static String[] getUserInput() {
+        Scanner scan = new Scanner(System.in);
+        String[] arguments = new String[5];
+
+        getUserStates(scan, arguments);
+        getUserGraphSelection(scan, arguments);
+
+        System.out.println("Thanks! Generating equations now...");
+
+        scan.close();
+        return arguments;
+    }
+
+    private static void getUserGraphSelection(Scanner scan, String[] arguments) {
+        System.out.println("Now, select a graph. Type \"help\" to see the list of graphs that can be randomly generated.");
+
+        if (scan.nextLine().equalsIgnoreCase("help")) {
+            System.out.println("""
+                    Enter any of the following currently available graph types for generation:					                 
+                      1. Toast 
+                      2. Triangle
+                      3. Lollipop
+                      4. Simple
+                      5. Erdős–Rényi
+                      6. Complete
+                      7. Bipartite
+                      8. Complete Bipartite
+                      9. Path
+                     10. Binary Tree
+                     11. Cycle
+                     12. Eulerian Path
+                     13. Eulerian Cycle
+                     14. Wheel
+                     15. Star
+                     16. Regular
+                     17. Tree 
+                    Please enter either the number corresponding to the desired graph type or the name of the graph.""");
+        }
+
+        try {
+            arguments[1] = scan.nextLine();
+        } catch (InputMismatchException e) {
+            System.out.println("You should have entered either an integer or graph name.");
+            e.printStackTrace();
+        }
+        // 1, 2 and 3 don't require further input
+        if (!arguments[1].equalsIgnoreCase("toast") &&
+            !arguments[1].equalsIgnoreCase("triangle") &&
+            !arguments[1].equalsIgnoreCase("lollipop") &&
+            !arguments[1].equals("1") && !arguments[1].equals("2") && !arguments[1].equals("3")) {
+            // 6, 9, 10, 11, 14, 15, 17 just need vertices
+            System.out.println("Please enter the desired number of vertices in your selected graph.");
+            try {
+                arguments[2] = scan.nextLine();
+            } catch (InputMismatchException e) {
+                System.out.println("You should have entered an integer number of vertices.");
+                e.printStackTrace();
+            }
+            // 7 and 8 need two sets of vertices
+            if (arguments[1].equalsIgnoreCase("bipartite") || arguments[1].equals("7") ||
+                arguments[1].equalsIgnoreCase("complete bipartite") || arguments[1].equals("8")) {
+                System.out.println("Please enter the number of vertices for the first partition.");
+                try {
+                    arguments[2] = scan.nextLine();
+                } catch (InputMismatchException e) {
+                    System.out.println("You should have entered an integer number of vertices.");
+                    e.printStackTrace();
+                }
+                System.out.println("Please enter the number of vertices for the second partition.");
+                try {
+                    arguments[3] = scan.nextLine();
+                } catch (InputMismatchException e) {
+                    System.out.println("You should have entered an integer number of vertices.");
+                    e.printStackTrace();
+                }
+                // 7 further needs a number of edges
+                if (arguments[1].equalsIgnoreCase("bipartite") || arguments[1].equals("7")) {
+                    System.out.println("Please enter the desired number of edges in your selected graph.");
+                    try {
+                        arguments[4] = scan.nextLine();
+                    } catch (InputMismatchException e) {
+                        System.out.println("You should have entered an integer number of edges.");
+                        e.printStackTrace();
+                    }
+                }
+            // 4, 12 and 13 need vertices and edges
+            } else if (arguments[1].equalsIgnoreCase("simple") || arguments[1].equals("4") ||
+                       arguments[1].equalsIgnoreCase("eulerian path") || arguments[1].equals("12") ||
+                       arguments[1].equalsIgnoreCase("eulerian cycle") || arguments[1].equals("13")) {
+                System.out.println("Please enter the desired number of edges in your selected graph.");
+                try {
+                    arguments[3] = scan.nextLine();
+                } catch (InputMismatchException e) {
+                    System.out.println("You should have entered an integer number of edges.");
+                    e.printStackTrace();
+                }
+            // 16 needs a value for k
+            } else if (arguments[1].equalsIgnoreCase("regular") || arguments[1].equals("16")) {
+                System.out.println("Please enter the value of k for the k-regular graph.");
+                try {
+                    arguments[3] = scan.nextLine();
+                } catch (InputMismatchException e) {
+                    System.out.println("You should have entered an integer number.");
+                    e.printStackTrace();
+                }
+            } else if (arguments[1].equalsIgnoreCase("erdos renyi") ||
+                       arguments[1].equalsIgnoreCase("erdős rényi") || arguments[1].equals("5")) {
+                System.out.println("Please enter a probability for the Erdős-Rényi graph.");
+                try {
+                    arguments[3] = scan.nextLine();
+                } catch (InputMismatchException e) {
+                    System.out.println("You should have entered a decimal number.");
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private static void getUserStates(Scanner scan, String[] arguments) {
+        System.out.println("""
+                
+                *** COMPARTMENTAL GRAPH MODEL EQUATIONS GENERATOR ***
+                
+                Welcome to the Equations Generation program. This software generates the full system of differential 
+                equations required to describe a particular compartmental model of disease on a specified graph. A text
+                file will be generated in the same directory as you are running this software from. If you choose to run
+                the jar again, this text file will be overwritten unless you move it elsewhere or delete it.
+                                
+                To begin, please enter the states required in the model. Currently, this can be either of:
+                 * SIR
+                 * SIRP
+                where S represents Susceptible, I is Infected, R is Recovered and P is Protected.""");
+        try {
+            arguments[0] = scan.nextLine();
+        } catch (InputMismatchException e) {
+            System.out.println("You should have entered characters representing the required states.");
+            e.printStackTrace();
+        }
+    }
+
+    static Graph getGraph(String[] args) {
+        Graph graph;
+        switch (args[1].toLowerCase()) {
+            case "1", "toast" -> graph = getToastGraph();
+            case "2", "triangle" -> graph = getTriangleGraph();
+            case "3", "lollipop" -> graph = getLollipopGraph();
+            case "4", "simple" -> {
+                // Requires number of vertices and number of edges
+                int[] parsed = parseIntegers(new String[] {args[2], args[3]});
+                graph = simple(parsed[0], parsed[1]);
+            }
+            case "5", "erdos renyi", "erdős rényi", "er" -> {
+                // Requires number of vertices and a probability
+                int numVertices = parseIntegers(new String[] {args[2]})[0];
+                double p = parseDoubles(new String[] {args[3]})[0];
+                graph = erdosRenyi(numVertices, p);
+            }
+            case "6", "complete" -> graph = complete(parseIntegers(new String[] {args[2]})[0]);
+            case "7", "bipartite" -> {
+                // Requires 2 numbers of vertices and a number of edges
+                int[] parsed = parseIntegers(new String[] {args[2], args[3], args[4]});
+                graph = bipartite(parsed[0], parsed[1], parsed[2]);
+            }
+            case "8", "complete bipartite" -> {
+                // Requires 2 numbers of vertices
+                int[] parsed = parseIntegers(new String[] {args[2], args[3]});
+                graph = completeBipartite(parsed[0], parsed[1]);
+            }
+            case "9", "path" -> graph = path(parseIntegers(new String[] {args[2]})[0]);
+            case "10", "binary tree" -> graph = binaryTree(parseIntegers(new String[] {args[2]})[0]);
+            case "11", "cycle" -> graph = cycle(parseIntegers(new String[] {args[2]})[0]);
+            case "12", "eulerian path" -> {
+                // Requires number of vertices and number of edges
+                int[] parsed = parseIntegers(new String[] {args[2], args[3]});
+                graph = eulerianPath(parsed[0], parsed[1]);
+            }
+            case "13", "eulerian cycle" -> {
+                // Requires number of vertices and number of edges
+                int[] parsed = parseIntegers(new String[] {args[2], args[3]});
+                graph = eulerianCycle(parsed[0], parsed[1]);
+            }
+            case "14", "wheel" -> graph = wheel(parseIntegers(new String[] {args[2]})[0]);
+            case "15", "star" -> graph = star(parseIntegers(new String[] {args[2]})[0]);
+            case "16", "regular" -> {
+                // Requires number of vertices and value of k
+                int[] parsed = parseIntegers(new String[] {args[2], args[3]});
+                graph = regular(parsed[0], parsed[1]);
+            }
+            case "17", "tree" -> graph = tree(parseIntegers(new String[] {args[2]})[0]);
+            default -> throw new IllegalStateException("Unexpected graph type: " + args[1].toLowerCase());
+        }
+        return graph;
+    }
+
+    public static int[] parseIntegers(String[] args) {
+        int[] toReturn = new int[args.length];
+        for (int i = 0; i < args.length; i++) {
+            try {
+                toReturn[i] = Integer.parseInt(args[i]);
+            } catch (NumberFormatException e) {
+                System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
+                System.out.println("Could not parse integer: " + e);
+            }
+        }
+        return toReturn;
+    }
+
+    public static double[] parseDoubles(String[] args) {
+        double[] toReturn = new double[args.length];
+        for (int i = 0; i < args.length; i++) {
+            try {
+                toReturn[i] = Double.parseDouble(args[i]);
+            } catch (NumberFormatException e) {
+                System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
+                System.out.println("Could not parse double: " + e);
+            }
+        }
+        return toReturn;
     }
 
     /**
@@ -110,7 +335,7 @@ public class GraphGenerator {
     public static Graph simple(int numVertices, int numEdges) {
         assert numEdges <= numVertices * (numVertices - 1) / 2 : "Too many edges.";
         assert numEdges >= 0 : "Too few edges.";
-        Graph g = new Graph(numVertices);
+        Graph g = new Graph(numVertices, "Simple");
         g.setNumEdges(0);
         Set<Edge> set = new Set<>();
         while (g.getNumEdges() < numEdges) {
@@ -137,7 +362,7 @@ public class GraphGenerator {
      */
     public static Graph erdosRenyi(int numVertices, double probability) {
         assert !(probability < 0.0) && !(probability > 1.0) : "Probability must be between 0 and 1";
-        Graph g = new Graph(numVertices);
+        Graph g = new Graph(numVertices, "Erdős–Rényi");
         for (int v = 0; v < numVertices; v++)
             for (int w = v + 1; w < numVertices; w++)
                 if (StdRandom.bernoulli(probability))
@@ -153,7 +378,7 @@ public class GraphGenerator {
      * @return the complete graph on the given number of vertices.
      */
     public static Graph complete(int numVertices) {
-        return erdosRenyi(numVertices, 1.0);
+        return erdosRenyi(numVertices, 1.0).setName("Complete");
     }
 
     /**
@@ -167,7 +392,7 @@ public class GraphGenerator {
      * @return a complete bipartite graph on {@code numVer1} and {@code numVer2} vertices.
      */
     public static Graph completeBipartite(int numVer1, int numVer2) {
-        return bipartite(numVer1, numVer2, numVer1 * numVer2);
+        return bipartite(numVer1, numVer2, numVer1 * numVer2).setName("Complete Bipartite");
     }
 
     /**
@@ -184,7 +409,7 @@ public class GraphGenerator {
     public static Graph bipartite(int numVer1, int numVer2, int numEdges) {
         assert numEdges <= numVer1 * numVer2 : "Too many edges";
         assert numEdges >= 0 : "Too few edges";
-        Graph g = new Graph(numVer1 + numVer2);
+        Graph g = new Graph(numVer1 + numVer2, "Bipartite");
 
         int[] vertices = IntStream.range(0, numVer1 + numVer2).toArray();
         StdRandom.shuffle(vertices);
@@ -217,7 +442,7 @@ public class GraphGenerator {
         assert !(probability < 0.0) && !(probability > 1.0) : "Probability must be between 0 and 1";
         int[] vertices = IntStream.range(0, numVer1 + numVer2).toArray();
         StdRandom.shuffle(vertices);
-        Graph G = new Graph(numVer1 + numVer2);
+        Graph G = new Graph(numVer1 + numVer2, "Bipartite");
         for (int i = 0; i < numVer1; i++)
             for (int j = 0; j < numVer2; j++)
                 if (StdRandom.bernoulli(probability))
@@ -233,7 +458,7 @@ public class GraphGenerator {
      * @return a path graph on {@code numVertices} vertices
      */
     public static Graph path(int numVertices) {
-        Graph g = new Graph(numVertices);
+        Graph g = new Graph(numVertices, "Path");
         // Generate an array: [0, 1, ..., numVertices] and randomly shuffle it.
         int[] vertices = IntStream.range(0, numVertices).toArray();
         StdRandom.shuffle(vertices);
@@ -253,7 +478,7 @@ public class GraphGenerator {
      * @return a complete binary tree graph on {@code numVertices} vertices
      */
     public static Graph binaryTree(int numVertices) {
-        Graph g = new Graph(numVertices);
+        Graph g = new Graph(numVertices, "Binary Tree");
         // Generate an array: [0, 1, ..., numVertices] and randomly shuffle it.
         int[] vertices = IntStream.range(0, numVertices).toArray();
         StdRandom.shuffle(vertices);
@@ -273,7 +498,7 @@ public class GraphGenerator {
      * @return a cycle graph on {@code numVertices} vertices.
      */
     public static Graph cycle(int numVertices) {
-        Graph g = new Graph(numVertices);
+        Graph g = new Graph(numVertices, "Cycle");
         // Generate an array: [0, 1, ..., numVertices] and randomly shuffle it.
         int[] vertices = IntStream.range(0, numVertices).toArray();
         StdRandom.shuffle(vertices);
@@ -299,7 +524,7 @@ public class GraphGenerator {
         // Catch incorrect input of number of edges or vertices
         assert numEdges >= 0 : "negative number of edges";
         assert numVertices > 0 : "An Eulerian path must have at least one vertex";
-        Graph g = new Graph(numVertices);
+        Graph g = new Graph(numVertices, "Eulerian Path");
         // Fill an array of length equal to the number of edges with uniformly random values
         int[] vertices = IntStream.range(0, numEdges + 1).map(i -> StdRandom.uniform(numVertices)).toArray();
         // Connect consecutive (i, i+1) vertices
@@ -319,7 +544,7 @@ public class GraphGenerator {
     public static Graph eulerianCycle(int numVertices, int numEdges) {
         assert numEdges > 0 : "An Eulerian cycle must have at least one edge";
         assert numVertices > 0 : "An Eulerian cycle must have at least one vertex";
-        Graph G = new Graph(numVertices);
+        Graph G = new Graph(numVertices, "Eulerian Cycle");
         // Fill an array of length equal to the number of edges with uniformly random values
         int[] vertices = IntStream.range(0, numEdges).map(i -> StdRandom.uniform(numVertices)).toArray();
         // Connect consecutive (i, i+1) vertices
@@ -339,7 +564,7 @@ public class GraphGenerator {
      */
     public static Graph wheel(int numVertices) {
         assert numVertices > 1 : "Number of vertices must be at least 2";
-        Graph g = new Graph(numVertices);
+        Graph g = new Graph(numVertices, "Wheel");
         // Generate an array: [0, 1, ..., numVertices] and randomly shuffle it.
         int[] vertices = IntStream.range(0, numVertices).toArray();
         StdRandom.shuffle(vertices);
@@ -364,7 +589,7 @@ public class GraphGenerator {
      */
     public static Graph star(int numVertices) {
         assert numVertices > 0 : "Number of vertices must be at least 1";
-        Graph g = new Graph(numVertices);
+        Graph g = new Graph(numVertices, "Star");
         // Generate an array: [0, 1, ..., numVertices] and randomly shuffle it.
         int[] vertices = IntStream.range(0, numVertices).toArray();
         StdRandom.shuffle(vertices);
@@ -387,7 +612,7 @@ public class GraphGenerator {
      */
     public static Graph regular(int numVertices, int k) {
         assert numVertices * k % 2 == 0 : "Number of vertices * k must be even";
-        Graph g = new Graph(numVertices);
+        Graph g = new Graph(numVertices, k + "-Regular");
 
         // Create k copies of each vertex
         int[] vertices = new int[numVertices * k];
@@ -412,7 +637,7 @@ public class GraphGenerator {
      * @return a uniformly random tree on {@code numVertices} vertices.
      */
     public static Graph tree(int numVertices) {
-        Graph g = new Graph(numVertices);
+        Graph g = new Graph(numVertices, "Tree");
 
         if (numVertices == 1) return g;
 

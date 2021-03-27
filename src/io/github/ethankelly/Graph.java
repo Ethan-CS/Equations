@@ -23,6 +23,8 @@ import java.util.Random;
  * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
  */
 public class Graph {
+
+    private String name;
     private int numVertices;
     private int numEdges;
     private boolean[][] adjMatrix;
@@ -33,10 +35,11 @@ public class Graph {
      *
      * @param numVertices the number of vertices to create in the graph.
      */
-    public Graph(int numVertices) {
+    public Graph(int numVertices, String name) {
         this.numVertices = numVertices;
         this.adjMatrix = new boolean[numVertices][numVertices];
         this.transmissionMatrix = new int[numVertices][numVertices];
+        this.name = name;
     }
 
     /**
@@ -243,5 +246,14 @@ public class Graph {
 
     public void setTransmissionMatrix(int[][] transmissionMatrix) {
         this.transmissionMatrix = transmissionMatrix;
+    }
+
+    public Graph setName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public String getName() {
+        return this.name;
     }
 }
