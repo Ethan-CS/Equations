@@ -1,7 +1,7 @@
 package io.github.ethankelly;
 
+@SuppressWarnings("unused")
 public enum Greek {
-
     ALPHA("\u03B1"),
     BETA("\u03B2"),
     GAMMA("\u03B3"),
@@ -26,7 +26,6 @@ public enum Greek {
     CHI("\u03C7"),
     PSI("\u03C8"),
     OMEGA("\u03C9");
-
 
     private final String uni;
 

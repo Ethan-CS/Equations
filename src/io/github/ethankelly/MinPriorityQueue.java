@@ -19,6 +19,7 @@ import java.util.NoSuchElementException;
  * @param <Key> the generic type of key on the priority queue.
  * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
  */
+@SuppressWarnings("unused")
 public class MinPriorityQueue<Key> implements Iterable<Key> {
     private Key[] pq;                    // Store items at indices 1 to n
     private int n;                       // Number of items on priority queue
@@ -60,6 +61,7 @@ public class MinPriorityQueue<Key> implements Iterable<Key> {
      *
      * @param comparator the order in which to compare the keys
      */
+    @SuppressWarnings("unused")
     public MinPriorityQueue(Comparator<Key> comparator) {
         this(1, comparator);
     }
@@ -83,8 +85,8 @@ public class MinPriorityQueue<Key> implements Iterable<Key> {
     /**
      * @return {@code true} if this priority queue is empty, {@code false} otherwise
      */
-    public boolean isEmpty() {
-        return n == 0;
+    public boolean isNotEmpty() {
+        return n != 0;
     }
 
     /**
@@ -99,7 +101,7 @@ public class MinPriorityQueue<Key> implements Iterable<Key> {
      * @throws AssertionError if this priority queue is empty
      */
     public Key min() {
-        assert !isEmpty() : "Priority queue underflow";
+        assert isNotEmpty() : "Priority queue underflow";
         return pq[1];
     }
 
@@ -138,7 +140,7 @@ public class MinPriorityQueue<Key> implements Iterable<Key> {
      * @throws AssertionError if this priority queue is empty
      */
     public Key delMin() {
-        assert !isEmpty() : "Priority queue underflow";
+        assert isNotEmpty() : "Priority queue underflow";
         Key min = pq[1];
         each(1, n--);
         sink(1);
@@ -233,7 +235,7 @@ public class MinPriorityQueue<Key> implements Iterable<Key> {
         }
 
         public boolean hasNext() {
-            return !copy.isEmpty();
+            return copy.isNotEmpty();
         }
 
         public void remove() {

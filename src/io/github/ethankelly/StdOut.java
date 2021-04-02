@@ -34,6 +34,7 @@ import java.util.Locale;
  *
  * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
  */
+@SuppressWarnings("unused")
 public final class StdOut {
     // Unicode UTF-8 encoding
     private static final String CHARSET_NAME = "UTF-8";

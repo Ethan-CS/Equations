@@ -23,7 +23,7 @@ public class GraphGenerator {
     /**
      * @return the Toast graph
      */
-    public static Graph getToastGraph() {
+    public static Graph getToast() {
         // TOAST
         Graph toast = new Graph(4, "Toast");
         toast.addEdge(0, 1);
@@ -37,7 +37,7 @@ public class GraphGenerator {
     /**
      * @return the Lollipop graph.
      */
-    public static Graph getLollipopGraph() {
+    public static Graph getLollipop() {
         // LOLLIPOP
         Graph lollipop = new Graph(4, "Lollipop");
         lollipop.addEdge(0, 1);
@@ -48,9 +48,37 @@ public class GraphGenerator {
     }
 
     /**
+     * @return the bow-tie graph
+     */
+    public static Graph getBowTie() {
+        // BOW TIE
+        Graph bowTie = new Graph(5, "Bow tie");
+        bowTie.addEdge(0, 1);
+        bowTie.addEdge(0, 2);
+        bowTie.addEdge(1, 2);
+        bowTie.addEdge(2, 3);
+        bowTie.addEdge(2, 4);
+        bowTie.addEdge(3, 4);
+        return bowTie;
+    }
+
+    public static Graph getBowTieWithBridge() {
+        // BOW TIE WITH BRIDGE
+        Graph bowTieWithBridge = new Graph(6, "Bow tie with bridge");
+        bowTieWithBridge.addEdge(0, 1);
+        bowTieWithBridge.addEdge(0, 2);
+        bowTieWithBridge.addEdge(1, 2);
+        bowTieWithBridge.addEdge(2, 3);
+        bowTieWithBridge.addEdge(3, 4);
+        bowTieWithBridge.addEdge(3, 5);
+        bowTieWithBridge.addEdge(4, 5);
+        return bowTieWithBridge;
+    }
+
+    /**
      * @return the Triangle graph.
      */
-    public static Graph getTriangleGraph() {
+    public static Graph getTriangle() {
         // TRIANGLE
         Graph triangle = new Graph(3, "Triangle");
         triangle.addEdge(0, 1);
@@ -202,9 +230,9 @@ public class GraphGenerator {
     static Graph getGraph(String[] args) {
         Graph graph;
         switch (args[1].toLowerCase()) {
-            case "1", "toast" -> graph = getToastGraph();
-            case "2", "triangle" -> graph = getTriangleGraph();
-            case "3", "lollipop" -> graph = getLollipopGraph();
+            case "1", "toast" -> graph = getToast();
+            case "2", "triangle" -> graph = getTriangle();
+            case "3", "lollipop" -> graph = getLollipop();
             case "4", "simple" -> {
                 // Requires number of vertices and number of edges
                 int[] parsed = parseIntegers(new String[] {args[2], args[3]});
@@ -438,6 +466,7 @@ public class GraphGenerator {
      * possible edge with probability {@code probability}.
      * @throws AssertionError if probability is not between 0 and 1.
      */
+    @SuppressWarnings("unused")
     public static Graph bipartite(int numVer1, int numVer2, double probability) {
         assert !(probability < 0.0) && !(probability > 1.0) : "Probability must be between 0 and 1";
         int[] vertices = IntStream.range(0, numVer1 + numVer2).toArray();
@@ -672,6 +701,7 @@ public class GraphGenerator {
     /**
      * @return the seed from StdRandom used to generate the pseudo-random values used to create random graphs.
      */
+    @SuppressWarnings("unused")
     public static long getSeed() {
         return seed;
     }

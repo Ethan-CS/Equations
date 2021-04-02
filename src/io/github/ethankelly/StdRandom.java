@@ -43,6 +43,7 @@ import java.util.Random;
  *
  * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
  */
+@SuppressWarnings("unused")
 public final class StdRandom {
 
     private static Random random;    // pseudo-random number generator

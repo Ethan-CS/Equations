@@ -1,7 +1,5 @@
 package io.github.ethankelly;
 
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -39,6 +37,7 @@ public class Tuple {
         return tuples;
     }
 
+    @SuppressWarnings("unused")
     public void setTuples(List<List<Vertex>> tuples) {
         this.tuples = tuples;
     }

@@ -25,6 +25,7 @@ import java.util.TreeSet;
  * @param <Key> the generic type of a key in this set
  * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
  */
+@SuppressWarnings({"unused", "rawtypes"})
 public class Set<Key extends Comparable<Key>> implements Iterable<Key> {
     private final TreeSet<Key> set;
 
@@ -40,6 +41,7 @@ public class Set<Key extends Comparable<Key>> implements Iterable<Key> {
      *
      * @param x the set to copy.
      */
+    @SuppressWarnings("unused")
     public Set(Set<Key> x) {
         set = new TreeSet<>(x.set);
     }
