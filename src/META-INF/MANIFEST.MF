@@ -1,3 +1,3 @@
 Manifest-Version: 1.0
-Main-Class: io.github.ethankelly.Main
+Main-Class: main.io.github.ethankelly.Main
 

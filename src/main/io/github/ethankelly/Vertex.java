@@ -1,6 +1,6 @@
-package io.github.ethankelly;
+package main.io.github.ethankelly;
 
-import io.github.ethankelly.symbols.Maths;
+import main.io.github.ethankelly.symbols.Maths;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -33,7 +33,7 @@ public class Vertex implements Comparable<Vertex> {
 	 * @param toCheck the tuple we wish to verify has at least two different states in its elements.
 	 * @return true if at least one vertex state is different to that of the others, false if they are all the same.
 	 */
-	public static boolean areStatesDifferent(List<Vertex> toCheck) {
+	public static boolean areStatesDifferent(List<Vertex> toCheck, boolean reqClosures) {
 		boolean statesDifferent = false;
 		// If there's only one vertex in the list, by definition we require it
 		// in the system of equations so we ensure this method returns true.
@@ -42,7 +42,17 @@ public class Vertex implements Comparable<Vertex> {
 			// We only need to find two different states to know that the states are
 			// at least not all the same, returning true.
 			for (Vertex v : toCheck) {
-				if (toCheck.stream().anyMatch(w -> v.getState() != w.getState())) statesDifferent = true;
+				for (Vertex w : toCheck) {
+					if (v.getState() != w.getState()) {
+						statesDifferent = true;
+						break;
+					} else if (reqClosures) {
+						if ((v.getState() == 'S') ||  (w.getState() == 'S')) {
+							statesDifferent = true;
+							break;
+						}
+					}
+				}
 			}
 		}
 		return statesDifferent;
@@ -93,14 +103,14 @@ public class Vertex implements Comparable<Vertex> {
 	 * @return the state of the vertex.
 	 */
 	public char getState() {
-		return state;
+		return this.state;
 	}
 
 	/**
 	 * @return the index location of the vertex.
 	 */
 	public int getLocation() {
-		return location;
+		return this.location;
 	}
 
 	/**

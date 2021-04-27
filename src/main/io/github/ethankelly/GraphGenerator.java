@@ -1,8 +1,8 @@
-package io.github.ethankelly;
+package main.io.github.ethankelly;
 
-import io.github.ethankelly.std.Set;
-import io.github.ethankelly.std.Rand;
-import io.github.ethankelly.std.MinPriorityQueue;
+import main.io.github.ethankelly.std.Set;
+import main.io.github.ethankelly.std.Rand;
+import main.io.github.ethankelly.std.MinPriorityQueue;
 
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;

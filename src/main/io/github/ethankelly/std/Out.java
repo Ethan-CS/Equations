@@ -1,4 +1,4 @@
-package io.github.ethankelly.std;
+package main.io.github.ethankelly.std;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;

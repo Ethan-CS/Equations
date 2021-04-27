@@ -1,4 +1,4 @@
-package io.github.ethankelly;
+package main.io.github.ethankelly;
 
 
 import java.text.MessageFormat;

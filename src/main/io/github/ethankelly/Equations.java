@@ -1,7 +1,7 @@
-package io.github.ethankelly;
+package main.io.github.ethankelly;
 
-import io.github.ethankelly.symbols.Greek;
-import io.github.ethankelly.symbols.Maths;
+import main.io.github.ethankelly.symbols.Greek;
+import main.io.github.ethankelly.symbols.Maths;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -81,14 +81,30 @@ public class Equations {
         return equations;
     }
 
-    public static int getUpperBound(int numVertices, char[] states) {
+    public static int getUpperBound(int numVertices, char[] states, boolean closures) {
         Graph g = GraphGenerator.complete(numVertices);
-        Tuple tuples = new Tuple(g, states);
-        Equations.generateEquations(tuples).forEach(System.out::println);
+        Tuple tuples = new Tuple(g, states, closures);
+        return tuples.getTuples().size();
+    }
+
+    public static int getUpperBound(Graph g, char[] states, boolean closures) {
+        Tuple tuples = new Tuple(g, states, closures);
+        return tuples.getTuples().size();
+    }
+
+    public static int getLowerBound(int numVertices, char[] states, boolean closures) {
+        Graph g = GraphGenerator.cycle(numVertices);
+        Tuple tuples = new Tuple(g, states, closures);
         return tuples.getTuples().size();
     }
 
     public static void main(String[] args) {
-        System.out.println(getUpperBound(3, new char[]{'S', 'I', 'R'}));
+        char[] SIR = new char[]{'S', 'I', 'R'};
+        char[] SIRP = new char[]{'S', 'I', 'R','P'};
+        System.out.println(getUpperBound(4, SIR, true));
+        System.out.println(getUpperBound(4, SIR, false));
+
+        System.out.println(getLowerBound(4, SIR, true));
+        System.out.println(getLowerBound(4, SIR, false));
     }
 }

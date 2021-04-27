@@ -1,4 +1,4 @@
-package io.github.ethankelly;
+package main.io.github.ethankelly;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -17,7 +17,7 @@ public class Main {
 		String[] arguments = GraphGenerator.getUserInput();
 		char[] states = arguments[0].toUpperCase().toCharArray();
 		Graph graph = GraphGenerator.getGraph(arguments);
-		Tuple tuples = new Tuple(graph, states);
+		Tuple tuples = new Tuple(graph, states, false);
 
 		// Creating a File object that represents the disk file and assign to output stream
 		PrintStream o = new PrintStream(new FileOutputStream("Equations.txt"));

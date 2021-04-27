@@ -1,4 +1,4 @@
-package io.github.ethankelly;
+package main.io.github.ethankelly;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,23 +18,23 @@ public class Tuple {
     private List<List<Vertex>> tuples;
     private final Graph graph;
     private final char[] states;
-
-
+    private boolean closures;
 
     /**
      * Class constructor - assigns a graph and some array of states to a new Tuple object.
-     *
-     * @param graph  the graph of which we are interested in equations.
+     *  @param graph  the graph of which we are interested in equations.
      * @param states the states that a vertex can be in (e.g. SIP).
+     * @param closures whether to include closures in the generated tuples.
      */
-    public Tuple(Graph graph, char[] states) {
+    public Tuple(Graph graph, char[] states, boolean closures) {
         this.graph = graph;
         this.states = states;
-        this.tuples = this.generateTuples();
+        this.tuples = this.generateTuples(closures);
+        this.closures = closures;
     }
 
     public List<List<Vertex>> getTuples() {
-        return tuples;
+        return this.tuples;
     }
 
     @SuppressWarnings("unused")
@@ -118,7 +118,7 @@ public class Tuple {
      *
      * @return a list of each n-tuple we are required to express to exactly detail the model system dynamics.
      */
-    public List<List<Vertex>> generateTuples() {
+    public List<List<Vertex>> generateTuples(boolean closures) {
         List<Vertex> items = this.findSingles();
         List<List<Vertex>> result = new ArrayList<>();
         List<Vertex> selected = new ArrayList<>();
@@ -126,7 +126,7 @@ public class Tuple {
 
         // The helper method gives us all combinations, so remove the ones that don't
         // constitute valid (necessary) tuples (and sort by length of sub-arrays).
-        result.removeIf(row -> !this.isValidTuple(row));
+        result.removeIf(row -> !this.isValidTuple(row, closures));
         result.sort(Comparator.comparingInt(List::size));
 
         return result;
@@ -141,9 +141,9 @@ public class Tuple {
      * @param toAdd the potential tuple we are considering adding to the system dynamics.
      * @return true if the tuple is essential to expressing the system dynamics, false otherwise.
      */
-    private boolean isValidTuple(List<Vertex> toAdd) {
+    private boolean isValidTuple(List<Vertex> toAdd, boolean closures) {
         Graph g = this.getGraph();
-        return Vertex.areStatesDifferent(toAdd)
+        return Vertex.areStatesDifferent(toAdd, closures)
                 && Vertex.areLocationsDifferent(toAdd)
                 && Vertex.areAllConnected(toAdd, g);
     }
@@ -152,7 +152,7 @@ public class Tuple {
      * @return the graph associated with the model in question.
      */
     public Graph getGraph() {
-        return graph;
+        return this.graph;
     }
 
     /**
@@ -162,6 +162,6 @@ public class Tuple {
      * @return the states defined for the model in question.
      */
     public char[] getStates() {
-        return states;
+        return this.states;
     }
 }
