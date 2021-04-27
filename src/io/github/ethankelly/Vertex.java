@@ -1,5 +1,7 @@
 package io.github.ethankelly;
 
+import io.github.ethankelly.symbols.Maths;
+
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -62,6 +64,7 @@ public class Vertex implements Comparable<Vertex> {
 		for (Vertex v : vertices) {
             if (vertices.stream().anyMatch(w -> v.getLocation() == w.getLocation() && v != w)) {
                 locationsDifferent = false;
+                break;
             }
 		}
 		return locationsDifferent;
@@ -107,7 +110,7 @@ public class Vertex implements Comparable<Vertex> {
 	 */
 	@Override
 	public String toString() {
-		return Symbol.LANGLE.uni() + this.getState() + this.getLocation() + Symbol.RANGLE.uni();
+		return Maths.LANGLE.uni() + this.getState() + this.getLocation() + Maths.RANGLE.uni();
 	}
 
 	/**

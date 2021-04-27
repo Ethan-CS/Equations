@@ -1,4 +1,4 @@
-package io.github.ethankelly;
+package io.github.ethankelly.std;
 
 import java.util.Comparator;
 import java.util.Iterator;
@@ -19,7 +19,7 @@ import java.util.NoSuchElementException;
  * @param <Key> the generic type of key on the priority queue.
  * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "unchecked"})
 public class MinPriorityQueue<Key> implements Iterable<Key> {
     private Key[] pq;                    // Store items at indices 1 to n
     private int n;                       // Number of items on priority queue
@@ -30,7 +30,6 @@ public class MinPriorityQueue<Key> implements Iterable<Key> {
      *
      * @param initCapacity the initial capacity of this priority queue.
      */
-    @SuppressWarnings("unchecked")
     public MinPriorityQueue(int initCapacity) {
         pq = (Key[]) new Object[initCapacity + 1];
         n = 0;
@@ -49,7 +48,6 @@ public class MinPriorityQueue<Key> implements Iterable<Key> {
      * @param initCapacity the initial capacity of this priority queue.
      * @param comparator   the order in which to compare the keys.
      */
-    @SuppressWarnings("unchecked")
     public MinPriorityQueue(int initCapacity, Comparator<Key> comparator) {
         this.comparator = comparator;
         pq = (Key[]) new Object[initCapacity + 1];
@@ -61,7 +59,6 @@ public class MinPriorityQueue<Key> implements Iterable<Key> {
      *
      * @param comparator the order in which to compare the keys
      */
-    @SuppressWarnings("unused")
     public MinPriorityQueue(Comparator<Key> comparator) {
         this(1, comparator);
     }
@@ -72,7 +69,6 @@ public class MinPriorityQueue<Key> implements Iterable<Key> {
      *
      * @param keys the array of keys.
      */
-    @SuppressWarnings("unchecked")
     public MinPriorityQueue(Key[] keys) {
         n = keys.length;
         pq = (Key[]) new Object[keys.length + 1];
@@ -110,7 +106,6 @@ public class MinPriorityQueue<Key> implements Iterable<Key> {
      *
      * @param capacity the new dimension for the underlying array to take.
      */
-    @SuppressWarnings("unchecked")
     private void resize(int capacity) {
         assert capacity > n;
         Key[] temp = (Key[]) new Object[capacity];
@@ -176,7 +171,6 @@ public class MinPriorityQueue<Key> implements Iterable<Key> {
     ///////////////////////////////////////////////////////////////////////////
 
 
-    @SuppressWarnings("unchecked")
     private boolean greater(int i, int j) {
         if (comparator == null) {
             return ((Comparable<Key>) pq[i]).compareTo(pq[j]) > 0;

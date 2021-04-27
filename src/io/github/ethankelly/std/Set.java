@@ -1,4 +1,4 @@
-package io.github.ethankelly;
+package io.github.ethankelly.std;
 
 
 import java.util.Iterator;

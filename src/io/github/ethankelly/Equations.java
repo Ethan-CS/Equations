@@ -1,5 +1,8 @@
 package io.github.ethankelly;
 
+import io.github.ethankelly.symbols.Greek;
+import io.github.ethankelly.symbols.Maths;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,48 +35,60 @@ public class Equations {
                 switch (Character.toUpperCase(vertex.getState())) {
                     case 'S' -> {
                         if (new String(states).contains("P")) {
-                            if (eqn.length() > (tuple.toString() + " = ").length()) eqn.append("+ ");
-                            eqn.append(Greek.ALPHA.uni()).append(Symbol.LANGLE.uni()).append("P")
-                                    .append(vertex.getLocation()).append(Symbol.RANGLE.uni());
+                            if (eqn.length() > (tuple + " = ").length()) eqn.append("+ ");
+                            eqn.append(Greek.ALPHA.uni()).append(Maths.LANGLE.uni()).append("P")
+                                    .append(vertex.getLocation()).append(Maths.RANGLE.uni());
                         }
 
                         for (int j = 0; j < numVertices; j++) {
                             if (t[vertex.getLocation()][j] > 0) {
                                 eqn.append("- ");
                                 if (t[vertex.getLocation()][j] != 1) eqn.append(t[vertex.getLocation()][j]);
-                                eqn.append(Greek.BETA.uni()).append(Symbol.LANGLE.uni()).append("S").append(vertex.getLocation())
-                                        .append(" I").append(j).append(Symbol.RANGLE.uni());
+                                eqn.append(Greek.BETA.uni()).append(Maths.LANGLE.uni()).append("S").append(vertex.getLocation())
+                                        .append(" I").append(j).append(Maths.RANGLE.uni());
                             }
                         }
                         if (Arrays.equals(states, sirp))
-                            eqn.append("- ").append(Greek.ZETA.uni()).append(Symbol.LANGLE.uni())
-                                    .append("S").append(vertex.getLocation()).append(Symbol.RANGLE.uni());
+                            eqn.append("- ").append(Greek.ZETA.uni()).append(Maths.LANGLE.uni())
+                                    .append("S").append(vertex.getLocation()).append(Maths.RANGLE.uni());
                     }
                     case 'I' -> {
                         for (int j = 0; j < numVertices; j++) {
                             if (t[vertex.getLocation()][j] > 0) {
-                                if (eqn.length() > (tuple.toString() + " = ").length() && eqn.charAt(eqn.length() - 1) != '+')
+                                if (eqn.length() > (tuple + " = ").length() && eqn.charAt(eqn.length() - 1) != '+')
                                     eqn.append("+ ");
                                 if (t[vertex.getLocation()][j] != 1) eqn.append(t[vertex.getLocation()][j]);
-                                eqn.append(Greek.GAMMA.uni()).append(Symbol.LANGLE.uni()).append("S").append(vertex.getLocation())
-                                        .append(" I").append(j).append(Symbol.RANGLE.uni());
+                                eqn.append(Greek.GAMMA.uni()).append(Maths.LANGLE.uni()).append("S").append(vertex.getLocation())
+                                        .append(" I").append(j).append(Maths.RANGLE.uni());
                             }
                         }
                         eqn.append("- ").append(Greek.GAMMA.uni()).
-                                append(Symbol.LANGLE.uni()).append("I").append(vertex.getLocation()).append(Symbol.RANGLE.uni());
+                                append(Maths.LANGLE.uni()).append("I").append(vertex.getLocation()).append(Maths.RANGLE.uni());
                     }
                     case 'P' -> {
-                        if (eqn.length() > (tuple.toString() + " = ").length() && eqn.charAt(eqn.length() - 1) != '+')
+                        if (eqn.length() > (tuple + " = ").length() && eqn.charAt(eqn.length() - 1) != '+')
                             eqn.append("+ ");
-                        eqn.append(Greek.ZETA.uni()).append(Symbol.LANGLE.uni()).append("S").append(vertex.getLocation())
-                                .append(Symbol.RANGLE.uni()).append("- ").append(Greek.ALPHA.uni()).append(Symbol.LANGLE.uni())
-                                .append("P").append(vertex.getLocation()).append(Symbol.RANGLE.uni());
+                        eqn.append(Greek.ZETA.uni()).append(Maths.LANGLE.uni()).append("S").append(vertex.getLocation())
+                                .append(Maths.RANGLE.uni()).append("- ").append(Greek.ALPHA.uni()).append(Maths.LANGLE.uni())
+                                .append("P").append(vertex.getLocation()).append(Maths.RANGLE.uni());
                     }
+                    default -> throw new IllegalStateException("Unexpected state: " + Character.toUpperCase(vertex.getState()));
                 }
             }
             equations.add(String.valueOf(eqn));
         }
 
         return equations;
+    }
+
+    public static int getUpperBound(int numVertices, char[] states) {
+        Graph g = GraphGenerator.complete(numVertices);
+        Tuple tuples = new Tuple(g, states);
+        Equations.generateEquations(tuples).forEach(System.out::println);
+        return tuples.getTuples().size();
+    }
+
+    public static void main(String[] args) {
+        System.out.println(getUpperBound(3, new char[]{'S', 'I', 'R'}));
     }
 }

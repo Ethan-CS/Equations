@@ -1,6 +1,4 @@
-package io.github.ethankelly;
-
-import java.util.Random;
+package io.github.ethankelly.std;
 
 /**
  * The {@code StdRandom} class provides static methods for generating pseudo-random numbers from various discrete and
@@ -44,20 +42,20 @@ import java.util.Random;
  * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
  */
 @SuppressWarnings("unused")
-public final class StdRandom {
+public final class Rand {
 
-    private static Random random;    // pseudo-random number generator
+    private static java.util.Random random;    // pseudo-random number generator
     private static long seed;        // pseudo-random number generator seed
 
     // Static initializer
     static {
         // The same way the seed was set in Java 1.4
         seed = System.currentTimeMillis();
-        random = new Random(seed);
+        random = new java.util.Random(seed);
     }
 
     // Doesn't make sense to instantiate this class
-    private StdRandom() {
+    private Rand() {
     }
 
     /**
@@ -69,7 +67,7 @@ public final class StdRandom {
      */
     public static void setSeed(long s) {
         seed = s;
-        random = new Random(seed);
+        random = new java.util.Random(seed);
     }
 
     /**

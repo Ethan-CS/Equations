@@ -1,13 +1,13 @@
-package io.github.ethankelly;
+package io.github.ethankelly.symbols;
 
-public enum Symbol {
+public enum Maths {
 
     LANGLE("\u3008"),
     RANGLE("\u3009");
 
     private final String uni;
 
-    Symbol(String uni) {
+    Maths(String uni) {
         this.uni = uni;
     }
 

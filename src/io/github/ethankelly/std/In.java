@@ -1,4 +1,4 @@
-package io.github.ethankelly;
+package io.github.ethankelly.std;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -125,7 +125,7 @@ import java.util.regex.Pattern;
  *      arbitrary delimiter patterns.
  *      <li> {@code StdIn} coerces the character-set encoding to UTF-8, which is the most widely used character encoding
  *      for Unicode.
- *      <li> {@code StdIn} coerces the locale to {@link Locale#UK}, for consistency with {@link StdOut},
+ *      <li> {@code StdIn} coerces the locale to {@link Locale#UK}, for consistency with {@link Out},
  *      {@link Double#parseDouble(String)} and floating-point literals.
  *      <li> {@code StdIn} has convenient methods for reading a single character; reading in sequences of integers,
  *      doubles, or strings; and reading in all of the remaining input.
@@ -141,7 +141,7 @@ import java.util.regex.Pattern;
  * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
  */
 @SuppressWarnings("unused")
-public final class StdIn {
+public final class In {
     // Unicode UTF-8 encoding
     private static final String CHARSET_NAME = "UTF-8";
     // Language = English UK
@@ -157,7 +157,7 @@ public final class StdIn {
     private static Scanner scanner;
 
     // Doesn't make sense to instantiate this class
-    private StdIn() {
+    private In() {
     }
 
     /**
@@ -489,8 +489,8 @@ public final class StdIn {
     }
 
     private static void setScanner(Scanner scanner) {
-        StdIn.scanner = scanner;
-        StdIn.scanner.useLocale(LOCALE);
+        In.scanner = scanner;
+        In.scanner.useLocale(LOCALE);
     }
 
     /**

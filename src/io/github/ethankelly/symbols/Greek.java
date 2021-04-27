@@ -1,4 +1,4 @@
-package io.github.ethankelly;
+package io.github.ethankelly.symbols;
 
 @SuppressWarnings("unused")
 public enum Greek {

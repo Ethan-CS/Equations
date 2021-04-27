@@ -1,4 +1,4 @@
-package io.github.ethankelly;
+package io.github.ethankelly.std;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -25,7 +25,7 @@ import java.util.Locale;
  * <ul>
  *      <li> {@code StdOut} coerces the character-set encoding to UTF-8, which is a standard character encoding for
  *      Unicode.
- *      <li> {@code StdOut} coerces the locale to {@link Locale#UK}, for consistency with {@link StdIn},
+ *      <li> {@code StdOut} coerces the locale to {@link Locale#UK}, for consistency with {@link In},
  *      {@link Double#parseDouble(String)} and floating-point literals.
  *      <li> {@code StdOut} <em>flushes</em> standard output after each call to {@code print()} so that text will appear
  *      immediately in the terminal.
@@ -35,7 +35,7 @@ import java.util.Locale;
  * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
  */
 @SuppressWarnings("unused")
-public final class StdOut {
+public final class Out {
     // Unicode UTF-8 encoding
     private static final String CHARSET_NAME = "UTF-8";
     // Language = English UK
@@ -59,7 +59,7 @@ public final class StdOut {
     }
 
     // Doesn't make sense to instantiate this class
-    private StdOut() {
+    private Out() {
     }
 
     /**

@@ -1,5 +1,9 @@
 package io.github.ethankelly;
 
+import io.github.ethankelly.std.Set;
+import io.github.ethankelly.std.Rand;
+import io.github.ethankelly.std.MinPriorityQueue;
+
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
@@ -367,8 +371,8 @@ public class GraphGenerator {
         g.setNumEdges(0);
         Set<Edge> set = new Set<>();
         while (g.getNumEdges() < numEdges) {
-            int v = StdRandom.uniform(numVertices);
-            int w = StdRandom.uniform(numVertices);
+            int v = Rand.uniform(numVertices);
+            int w = Rand.uniform(numVertices);
             Edge e = new Edge(v, w);
             if ((v != w) && !set.contains(e)) {
                 set.add(e);
@@ -393,7 +397,7 @@ public class GraphGenerator {
         Graph g = new Graph(numVertices, "Erdős–Rényi");
         for (int v = 0; v < numVertices; v++)
             for (int w = v + 1; w < numVertices; w++)
-                if (StdRandom.bernoulli(probability))
+                if (Rand.bernoulli(probability))
                     g.addEdge(v, w);
         return g;
     }
@@ -440,12 +444,12 @@ public class GraphGenerator {
         Graph g = new Graph(numVer1 + numVer2, "Bipartite");
 
         int[] vertices = IntStream.range(0, numVer1 + numVer2).toArray();
-        StdRandom.shuffle(vertices);
+        Rand.shuffle(vertices);
 
         Set<Edge> set = new Set<>();
         while (g.getNumEdges() < numEdges) {
-            int i = StdRandom.uniform(numVer1);
-            int j = numVer1 + StdRandom.uniform(numVer2);
+            int i = Rand.uniform(numVer1);
+            int j = numVer1 + Rand.uniform(numVer2);
             Edge e = new Edge(vertices[i], vertices[j]);
             if (!set.contains(e)) {
                 set.add(e);
@@ -470,11 +474,11 @@ public class GraphGenerator {
     public static Graph bipartite(int numVer1, int numVer2, double probability) {
         assert !(probability < 0.0) && !(probability > 1.0) : "Probability must be between 0 and 1";
         int[] vertices = IntStream.range(0, numVer1 + numVer2).toArray();
-        StdRandom.shuffle(vertices);
+        Rand.shuffle(vertices);
         Graph G = new Graph(numVer1 + numVer2, "Bipartite");
         for (int i = 0; i < numVer1; i++)
             for (int j = 0; j < numVer2; j++)
-                if (StdRandom.bernoulli(probability))
+                if (Rand.bernoulli(probability))
                     G.addEdge(vertices[i], vertices[numVer1 + j]);
         return G;
     }
@@ -490,7 +494,7 @@ public class GraphGenerator {
         Graph g = new Graph(numVertices, "Path");
         // Generate an array: [0, 1, ..., numVertices] and randomly shuffle it.
         int[] vertices = IntStream.range(0, numVertices).toArray();
-        StdRandom.shuffle(vertices);
+        Rand.shuffle(vertices);
         // Connect the consecutive vertices to generate the random path graph
         for (int i = 0; i < numVertices - 1; i++) {
             g.addEdge(vertices[i], vertices[i + 1]);
@@ -510,7 +514,7 @@ public class GraphGenerator {
         Graph g = new Graph(numVertices, "Binary Tree");
         // Generate an array: [0, 1, ..., numVertices] and randomly shuffle it.
         int[] vertices = IntStream.range(0, numVertices).toArray();
-        StdRandom.shuffle(vertices);
+        Rand.shuffle(vertices);
         // Give each vertex two children (if we can)
         for (int i = 1; i < numVertices; i++) {
             g.addEdge(vertices[i], vertices[(i - 1) / 2]);
@@ -530,7 +534,7 @@ public class GraphGenerator {
         Graph g = new Graph(numVertices, "Cycle");
         // Generate an array: [0, 1, ..., numVertices] and randomly shuffle it.
         int[] vertices = IntStream.range(0, numVertices).toArray();
-        StdRandom.shuffle(vertices);
+        Rand.shuffle(vertices);
         // Connect vertices from 0 to 2 less than the number of vertices consecutively
         for (int i = 0; i < numVertices - 1; i++) {
             g.addEdge(vertices[i], vertices[i + 1]);
@@ -555,7 +559,7 @@ public class GraphGenerator {
         assert numVertices > 0 : "An Eulerian path must have at least one vertex";
         Graph g = new Graph(numVertices, "Eulerian Path");
         // Fill an array of length equal to the number of edges with uniformly random values
-        int[] vertices = IntStream.range(0, numEdges + 1).map(i -> StdRandom.uniform(numVertices)).toArray();
+        int[] vertices = IntStream.range(0, numEdges + 1).map(i -> Rand.uniform(numVertices)).toArray();
         // Connect consecutive (i, i+1) vertices
         IntStream.range(0, numEdges).forEach(i -> g.addEdge(vertices[i], vertices[i + 1]));
         return g;
@@ -575,7 +579,7 @@ public class GraphGenerator {
         assert numVertices > 0 : "An Eulerian cycle must have at least one vertex";
         Graph G = new Graph(numVertices, "Eulerian Cycle");
         // Fill an array of length equal to the number of edges with uniformly random values
-        int[] vertices = IntStream.range(0, numEdges).map(i -> StdRandom.uniform(numVertices)).toArray();
+        int[] vertices = IntStream.range(0, numEdges).map(i -> Rand.uniform(numVertices)).toArray();
         // Connect consecutive (i, i+1) vertices
         IntStream.range(0, numEdges - 1).forEach(i -> G.addEdge(vertices[i], vertices[i + 1]));
         // Connect the last edge-indexed element in the vertex array to the first vertex to complete the cycle
@@ -596,7 +600,7 @@ public class GraphGenerator {
         Graph g = new Graph(numVertices, "Wheel");
         // Generate an array: [0, 1, ..., numVertices] and randomly shuffle it.
         int[] vertices = IntStream.range(0, numVertices).toArray();
-        StdRandom.shuffle(vertices);
+        Rand.shuffle(vertices);
 
         // Create an Erdős–Rényi cycle on numVertices-1 vertices
         IntStream.range(1, numVertices - 1).forEach(i -> g.addEdge(vertices[i], vertices[i + 1]));
@@ -621,7 +625,7 @@ public class GraphGenerator {
         Graph g = new Graph(numVertices, "Star");
         // Generate an array: [0, 1, ..., numVertices] and randomly shuffle it.
         int[] vertices = IntStream.range(0, numVertices).toArray();
-        StdRandom.shuffle(vertices);
+        Rand.shuffle(vertices);
 
         // Connect vertices[0] to every other vertex
         IntStream.range(1, numVertices).forEach(i -> g.addEdge(vertices[0], vertices[i]));
@@ -653,7 +657,7 @@ public class GraphGenerator {
         // Pick a random perfect matching:
         // Shuffle the vertices and, for i from 0 to (k*numVertices)/2,
         // add edges between consecutive vertices (2i, 2i + 1)
-        StdRandom.shuffle(vertices);
+        Rand.shuffle(vertices);
         IntStream.range(0, numVertices * k / 2).forEach(i -> g.addEdge(vertices[2 * i], vertices[2 * i + 1]));
         return g;
     }
@@ -675,7 +679,7 @@ public class GraphGenerator {
         // Prüfer's proof of Cayley's theorem: Prufer sequences are in 1-1 with labeled trees on numVertices vertices
 
         // Fill a new array of size two less than numVertices with uniformly random integers
-        int[] prufer = IntStream.range(0, numVertices - 2).map(i -> StdRandom.uniform(numVertices)).toArray();
+        int[] prufer = IntStream.range(0, numVertices - 2).map(i -> Rand.uniform(numVertices)).toArray();
 
         // Degree of vertex v = 1 + no. times it appears in Prüfer sequence
         int[] degree = IntStream.range(0, numVertices).map(v -> 1).toArray();
@@ -711,6 +715,6 @@ public class GraphGenerator {
      * graphs.
      */
     public static void setSeed() {
-        seed = StdRandom.getSeed();
+        seed = Rand.getSeed();
     }
 }
