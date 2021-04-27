@@ -82,18 +82,27 @@ public class Equations {
     }
 
     public static int getUpperBound(int numVertices, char[] states, boolean closures) {
+        //TODO this is true iff there are no cut vertices
         Graph g = GraphGenerator.complete(numVertices);
         Tuple tuples = new Tuple(g, states, closures);
         return tuples.getTuples().size();
     }
 
     public static int getUpperBound(Graph g, char[] states, boolean closures) {
+        //TODO this is true iff there are no cut vertices
         Tuple tuples = new Tuple(g, states, closures);
         return tuples.getTuples().size();
     }
 
     public static int getLowerBound(int numVertices, char[] states, boolean closures) {
+        //TODO this is true iff there are no cut vertices
         Graph g = GraphGenerator.cycle(numVertices);
+        Tuple tuples = new Tuple(g, states, closures);
+        return tuples.getTuples().size();
+    }
+
+    public static int getLowerBound(Graph g, char[] states, boolean closures) {
+        //TODO this is true iff there are no cut vertices
         Tuple tuples = new Tuple(g, states, closures);
         return tuples.getTuples().size();
     }
@@ -101,10 +110,17 @@ public class Equations {
     public static void main(String[] args) {
         char[] SIR = new char[]{'S', 'I', 'R'};
         char[] SIRP = new char[]{'S', 'I', 'R','P'};
-        System.out.println(getUpperBound(4, SIR, true));
-        System.out.println(getUpperBound(4, SIR, false));
+        System.out.println("4-cycle");
+        System.out.println("Upper bound with closures: " + getUpperBound(4, SIR, true));
+        System.out.println("Lower bound with closures: " + getLowerBound(4, SIR, true));
+        System.out.println("Upper bound without closures: " + getUpperBound(4, SIR, false));
+        System.out.println("Lower bound without closures: " + getLowerBound(4, SIR, false));
 
-        System.out.println(getLowerBound(4, SIR, true));
-        System.out.println(getLowerBound(4, SIR, false));
+        Graph g = GraphGenerator.getLollipop();
+        System.out.println(g);
+        System.out.print("\nCut vertices: ");
+        g.getCutVertices().forEach(System.out::print);
+        System.out.println("\nUB with closures:" + getUpperBound(g, SIR, true));
+        System.out.println("LB with closures:" + getLowerBound(g, SIR, true));
     }
 }
