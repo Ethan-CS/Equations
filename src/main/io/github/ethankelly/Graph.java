@@ -311,6 +311,21 @@ public class Graph {
         }
     }
 
+    public boolean isMinimallyConnected() {
+        boolean minConnected = true;
+        // Check if graph is connected at all
+        if (getConnectedComponents().size() > 1) minConnected = false;
+        else for (int i = 0; i < getNumVertices(); i++) {
+            for (int j = 0; j < getNumVertices(); j++) {
+                if (isEdge(i, j)) {
+                    removeEdge(i, j);
+                    if (getConnectedComponents().size() == 1) minConnected = false;
+                }
+            }
+        }
+        return minConnected;
+    }
+
     /**
      * @return The number of vertices in the graph.
      */
