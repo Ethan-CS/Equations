@@ -62,30 +62,85 @@ public class Graph {
 
         System.out.println("Splicing graphs based on cut vertices:");
         List<Graph> subGraphs = g.splice();
+
+        System.out.println("The following are connected components");
+        List<List<Integer>> components2 = g.getConnectedComponents();
+        for (List<Integer> component : components2) System.out.println(component);
+
         for (Graph graph : subGraphs) System.out.println(graph);
+    }
+
+    @SuppressWarnings("unused")
+    private static void testMethods() {
+        //TODO put these into actual JUnit tests
+
+        // Create graphs given in diagrams
+        Graph g1 = GraphGenerator.getLollipop();
+        System.out.println(g1 +
+                MessageFormat.format("\nCut vertices in {0} graph: ", g1.getName()) +
+                g1.getCutVertices() +
+                "\nTime: " + g1.time);
+        System.out.println();
+
+        Graph g2 = GraphGenerator.getBowTie();
+        System.out.println(g2 +
+                MessageFormat.format("\nCut vertices in {0} graph: ", g2.getName()) +
+                g2.getCutVertices() +
+                "\nTime: " + g2.time);
+        System.out.println();
+
+        Graph g3 = GraphGenerator.getBowTieWithBridge();
+        System.out.println(g3 +
+                MessageFormat.format("\nCut vertices in {0} graph: ", g3.getName()) +
+                g3.getCutVertices() +
+                "\nTime: " + g3.time);
+
+        Graph g4 = new Graph(17, "Fig. 7");
+        g4.addEdge(0, 1);
+        g4.addEdge(0, 3);
+        g4.addEdge(1, 2);
+        g4.addEdge(1, 3);
+        g4.addEdge(1, 4);
+        g4.addEdge(2, 4);
+        g4.addEdge(4, 5);
+        g4.addEdge(5, 6);
+        g4.addEdge(5, 8);
+        g4.addEdge(6, 7);
+        g4.addEdge(6, 8);
+        g4.addEdge(8, 11);
+        g4.addEdge(9, 10);
+        g4.addEdge(10, 12);
+        g4.addEdge(11, 12);
+        g4.addEdge(11, 13);
+        g4.addEdge(11, 14);
+        g4.addEdge(12, 13);
+        g4.addEdge(13, 16);
+        g4.addEdge(14, 15);
+        System.out.println(g4 +
+                MessageFormat.format("\nCut vertices in {0} graph: ", g4.getName()) +
+                g4.getCutVertices() +
+                "\nTime: " + g4.time);
     }
 
     /**
      * A recursive function that finds cut-vertices using the depth-first search algorithm.
      *
      * @param u           The vertex to be visited next.
-     * @param visited     A boolean array to keep track of visited vertices.
-     * @param times       An integer array used to store discovery times of visited vertices.
-     * @param low         An integer array used to determine whether a vertex has a connection to the ancestor of an
-     *                    adjacent vertex.
-     * @param parent      An integer array that stores parent vertices in a depth-first search tree.
-     * @param cutVertices A boolean array that stores any found cut-vertices.
+     * @param visited     Keeps track of visited vertices.
+     * @param times       Stores discovery times of visited vertices.
+     * @param low         Used to determine whether a vertex has a connection to the ancestor of an adjacent vertex.
+     * @param parent      Stores parent vertices in a depth-first search tree.
+     * @param cutVertices Stores any found cut-vertices.
      */
     public void findCutVertices(int u, boolean[] visited, int[] times, int[] low, int[] parent, boolean[] cutVertices) {
         //TODO This is over-zealous! Cuts should only be identified if there's a component of size 2 or more after
         int children = 0; // Counter for children in the DFS Tree
-        visited[u] = true; // Mark the current node as visited
-        times[u] = low[u] = ++time; // Initialize discovery time and low value
+        visited[u] = true; // Mark the current node visited
+        times[u] = low[u] = ++time; // Initialise discovery time and low value
         LinkedList<Integer>[] adj = getAdjacencyList(); // Go through all vertices adjacent to this
-
         // v is current adjacent of u
         for (int v : adj[u]) {
-            // If v is not visited yet, then make it a child of u in DFS tree and recurse
+            // If v is not visited yet, make it a child of u in DFS tree and recurse
             if (!visited[v]) {
                 children++;
                 parent[v] = u;
@@ -120,7 +175,8 @@ public class Graph {
         if (cutVertices.isEmpty()) subGraphs.add(this);
         else {
             for (Integer cutVertex : cutVertices) {
-                removeAllEdges(cutVertex);
+                System.out.println("Removing edges of " + cutVertex);
+                removeBridges(cutVertex);
             }
             List<List<Integer>> connectedComponents = this.getConnectedComponents();
             for (List<Integer> cc : connectedComponents) {
@@ -162,10 +218,11 @@ public class Graph {
     }
 
     private Graph makeSubGraph(List<Integer> vertices) {
+
         Graph subGraph = new Graph(vertices.size(), this.getName() + " Subgraph");
-        for (int v : vertices) {
+        for (int v = 0; v < vertices.size(); v++) {
             for (int w = 0; w < this.getNumVertices(); w++) {
-                if (this.isEdge(v, w) && vertices.contains(w)) subGraph.addEdge(v, w);
+                if (this.isEdge(vertices.get(v), w) && vertices.contains(w)) subGraph.addEdge(v, vertices.indexOf(w));
             }
         }
         return subGraph;
@@ -242,8 +299,16 @@ public class Graph {
         this.setTransmissionMatrix(tMat);
     }
 
-    public void removeAllEdges(int i) {
-        IntStream.range(0, this.getNumVertices()).filter(j -> isEdge(i, j)).forEach(j -> removeEdge(i, j));
+    public void removeBridges(int i) {
+        int numConnectedComponents = getConnectedComponents().size();
+        for (int j = 0; j < getNumVertices(); j++) {
+            if (isEdge(i, j)) {
+                removeEdge(i, j);
+                // Ensure any edges we remove are bridges; preserve other edges
+                if (getConnectedComponents().size() == numConnectedComponents) addEdge(i, j);
+                else for (List<Integer> cc : getConnectedComponents()) if (cc.size() == 1) addEdge(i, j);
+            }
+        }
     }
 
     /**
@@ -367,55 +432,6 @@ public class Graph {
     public Graph setName(String name) {
         this.name = name;
         return this;
-    }
-
-    private static void testMethods() {
-        // Create graphs given in above diagrams
-        Graph g1 = GraphGenerator.getLollipop();
-        System.out.println(g1 +
-                MessageFormat.format("\nCut vertices in {0} graph: ", g1.getName()) +
-                g1.getCutVertices() +
-                "\nTime: " + g1.time);
-        System.out.println();
-
-        Graph g2 = GraphGenerator.getBowTie();
-        System.out.println(g2 +
-                MessageFormat.format("\nCut vertices in {0} graph: ", g2.getName()) +
-                g2.getCutVertices() +
-                "\nTime: " + g2.time);
-        System.out.println();
-
-        Graph g3 = GraphGenerator.getBowTieWithBridge();
-        System.out.println(g3 +
-                MessageFormat.format("\nCut vertices in {0} graph: ", g3.getName()) +
-                g3.getCutVertices() +
-                "\nTime: " + g3.time);
-
-        Graph g4 = new Graph(17, "Fig. 7");
-        g4.addEdge(0, 1);
-        g4.addEdge(0, 3);
-        g4.addEdge(1, 2);
-        g4.addEdge(1, 3);
-        g4.addEdge(1, 4);
-        g4.addEdge(2, 4);
-        g4.addEdge(4, 5);
-        g4.addEdge(5, 6);
-        g4.addEdge(5, 8);
-        g4.addEdge(6, 7);
-        g4.addEdge(6, 8);
-        g4.addEdge(8, 11);
-        g4.addEdge(9, 10);
-        g4.addEdge(10, 12);
-        g4.addEdge(11, 12);
-        g4.addEdge(11, 13);
-        g4.addEdge(11, 14);
-        g4.addEdge(12, 13);
-        g4.addEdge(13, 16);
-        g4.addEdge(14, 15);
-        System.out.println(g4 +
-                MessageFormat.format("\nCut vertices in {0} graph: ", g4.getName()) +
-                g4.getCutVertices() +
-                "\nTime: " + g4.time);
     }
 
 }
