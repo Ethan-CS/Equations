@@ -1,9 +1,7 @@
 package main.io.github.ethankelly;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -25,7 +23,7 @@ import java.util.stream.IntStream;
  *
  * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
  */
-public class Graph {
+public class Graph implements Cloneable {
     private static final int NIL = -1;
     private String name;
     private int numVertices;
@@ -38,19 +36,22 @@ public class Graph {
      * Class constructor.
      *
      * @param numVertices the number of vertices to create in the graph.
+     * @param adjMatrix
+     * @param transmissionMatrix
      */
-    public Graph(int numVertices, String name) {
+    public Graph(int numVertices, String name, boolean[][] adjMatrix, int[][] transmissionMatrix) {
         this.numVertices = numVertices;
-        this.adjMatrix = new boolean[numVertices][numVertices];
-        this.transmissionMatrix = new int[numVertices][numVertices];
         this.name = name;
+        this.adjMatrix = adjMatrix;
+        this.transmissionMatrix = transmissionMatrix;
+
     }
 
     public static void main(String[] args) {
 //		testMethods();
 
         // Create a graph given in the above diagram
-        Graph g = new Graph(5, "Test"); // 5 vertices numbered from 0 to 4
+        Graph g = new Graph(5, "Test", new boolean[5][5], new int[5][5]); // 5 vertices numbered from 0 to 4
         g.addEdge(0, 1);
         g.addEdge(0, 2);
         g.addEdge(1, 2);
@@ -95,7 +96,7 @@ public class Graph {
                 g3.getCutVertices() +
                 "\nTime: " + g3.time);
 
-        Graph g4 = new Graph(17, "Fig. 7");
+        Graph g4 = new Graph(17, "Fig. 7", new boolean[17][17], new int[17][17]);
         g4.addEdge(0, 1);
         g4.addEdge(0, 3);
         g4.addEdge(1, 2);
@@ -218,8 +219,8 @@ public class Graph {
     }
 
     private Graph makeSubGraph(List<Integer> vertices) {
-
-        Graph subGraph = new Graph(vertices.size(), this.getName() + " Subgraph");
+        //TODO Add cut-vertex back into sub-graph along with edges!
+        Graph subGraph = new Graph(vertices.size(), this.getName() + " Subgraph", new boolean[numVertices][numVertices], new int[numVertices][numVertices]);
         for (int v = 0; v < vertices.size(); v++) {
             for (int w = 0; w < this.getNumVertices(); w++) {
                 if (this.isEdge(vertices.get(v), w) && vertices.contains(w)) subGraph.addEdge(v, vertices.indexOf(w));
@@ -300,17 +301,19 @@ public class Graph {
     }
 
     public void removeBridges(int i) {
-        int numConnectedComponents = getConnectedComponents().size();
         for (int j = 0; j < getNumVertices(); j++) {
+            int numConnectedComponents = getConnectedComponents().size();
             if (isEdge(i, j)) {
                 removeEdge(i, j);
                 // Ensure any edges we remove are bridges; preserve other edges
-                if (getConnectedComponents().size() == numConnectedComponents) addEdge(i, j);
-                else for (List<Integer> cc : getConnectedComponents()) if (cc.size() == 1) addEdge(i, j);
+
+//                if (getConnectedComponents().size() != numConnectedComponents + 1) addEdge(i, j);
+//                else break;
             }
         }
     }
 
+    @SuppressWarnings("unused")
     public boolean isMinimallyConnected() {
         boolean minConnected = true;
         // Check if graph is connected at all
@@ -323,6 +326,7 @@ public class Graph {
                 }
             }
         }
+        assert !minConnected || (this.getNumEdges() - 1 == this.getNumVertices()) : "There are n-1 edges in a minimally connected graph.";
         return minConnected;
     }
 
@@ -373,26 +377,6 @@ public class Graph {
      */
     public boolean isEdge(int i, int j) {
         return getAdjMatrix()[i][j] || getAdjMatrix()[j][i];
-    }
-
-    /**
-     * Returns a textual representation of a graph as an adjacency matrix to be printed to the standard output.
-     *
-     * @return a string representation of the graph.
-     */
-    @Override
-    public String toString() {
-        int n = getNumVertices();
-        boolean[][] matrix = getAdjMatrix();
-        StringBuilder s = new StringBuilder();
-        for (int i = 0; i < n; i++) {
-            s.append(i).append(": ");
-            for (boolean j : matrix[i]) {
-                s.append(j ? 1 : 0).append(" ");
-            }
-            s.append("\n");
-        }
-        return s.toString();
     }
 
     @SuppressWarnings("unchecked")
@@ -449,4 +433,48 @@ public class Graph {
         return this;
     }
 
+    /**
+     * Returns a textual representation of a graph as an adjacency matrix to be printed to the standard output.
+     *
+     * @return a string representation of the graph.
+     */
+    @Override
+    public String toString() {
+        int n = getNumVertices();
+        boolean[][] matrix = getAdjMatrix();
+        StringBuilder s = new StringBuilder();
+        for (int i = 0; i < n; i++) {
+            s.append(i).append(": ");
+            for (boolean j : matrix[i]) {
+                s.append(j ? 1 : 0).append(" ");
+            }
+            s.append("\n");
+        }
+        return s.toString();
+    }
+
+    @Override
+    public Graph clone() {
+        try {
+            return (Graph) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return new Graph(this.getNumVertices(), this.getName(), this.getAdjMatrix(), this.getTransmissionMatrix());
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Graph graph = (Graph) o;
+        return getNumVertices() == graph.getNumVertices() && getNumEdges() == graph.getNumEdges() && Objects.equals(getName(), graph.getName()) && Arrays.equals(getAdjMatrix(), graph.getAdjMatrix()) && Arrays.equals(getTransmissionMatrix(), graph.getTransmissionMatrix());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(getName(), getNumVertices(), getNumEdges());
+        result = 31 * result + Arrays.deepHashCode(getAdjMatrix());
+        result = 31 * result + Arrays.deepHashCode(getTransmissionMatrix());
+        return result;
+    }
 }
