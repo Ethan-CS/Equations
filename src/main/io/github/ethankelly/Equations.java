@@ -96,7 +96,7 @@ public class Equations {
 
     public static int getLowerBound(int numVertices, char[] states, boolean closures) {
         //TODO this is true iff there are no cut vertices
-        Graph g = GraphGenerator.path(numVertices);
+        Graph g = GraphGenerator.tree(numVertices);
         assert g.isMinimallyConnected() : "Lower bound graph is not minimally connected";
         Tuple tuples = new Tuple(g, states, closures);
         return tuples.getTuples().size();
