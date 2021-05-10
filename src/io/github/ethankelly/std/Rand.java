@@ -1,4 +1,4 @@
-package main.io.github.ethankelly.std;
+package io.github.ethankelly.std;
 
 /**
  * The {@code StdRandom} class provides static methods for generating pseudo-random numbers from various discrete and

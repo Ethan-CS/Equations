@@ -1,4 +1,4 @@
-package main.io.github.ethankelly;
+package io.github.ethankelly;
 
 import java.util.ArrayList;
 import java.util.Arrays;

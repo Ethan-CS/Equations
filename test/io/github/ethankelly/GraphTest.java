@@ -1,7 +1,5 @@
-package test.io.github.ethankelly;
+package io.github.ethankelly;
 
-import main.io.github.ethankelly.Graph;
-import main.io.github.ethankelly.GraphGenerator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

@@ -1,4 +1,4 @@
-package main.io.github.ethankelly.symbols;
+package io.github.ethankelly.symbols;
 
 public enum Maths {
 
