@@ -1,6 +1,5 @@
-package test.io.github.ethankelly;
+package io.github.ethankelly;
 
-import main.io.github.ethankelly.Equations;
 import org.junit.jupiter.api.Assertions;
 
 class EquationsTest {

@@ -1,7 +1,7 @@
-package main.io.github.ethankelly;
+package io.github.ethankelly;
 
-import main.io.github.ethankelly.symbols.Greek;
-import main.io.github.ethankelly.symbols.Maths;
+import io.github.ethankelly.symbols.Greek;
+import io.github.ethankelly.symbols.Maths;
 
 import java.util.ArrayList;
 import java.util.Arrays;

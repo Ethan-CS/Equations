@@ -1,4 +1,4 @@
-package main.io.github.ethankelly;
+package io.github.ethankelly;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;

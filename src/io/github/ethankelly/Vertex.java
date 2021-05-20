@@ -1,6 +1,6 @@
-package main.io.github.ethankelly;
+package io.github.ethankelly;
 
-import main.io.github.ethankelly.symbols.Maths;
+import io.github.ethankelly.symbols.Maths;
 
 import java.util.List;
 import java.util.stream.IntStream;
