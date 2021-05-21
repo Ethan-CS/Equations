@@ -94,7 +94,7 @@ public class Vertex implements Comparable<Vertex> {
 		// If there's only one vertex in the list, required in the system of equations - ensure this returns true.
 		// If more than one vertex, return whether they all have some path between them.
 		return toCheck.size() == 1 || IntStream.range(0, toCheck.size() - 1).allMatch(
-				i -> g.isEdge(toCheck.get(i).getLocation(),
+				i -> g.hasEdge(toCheck.get(i).getLocation(),
 						toCheck.get(i + 1).getLocation())
 		);
 	}
