@@ -24,22 +24,20 @@ import java.util.stream.IntStream;
  * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
  */
 public class Graph implements Cloneable {
-	private int numVertices; // Number of vertices in the graph object
-	private String name; // Name of the graph class this graph object belongs to
-	private boolean[][] adjMatrix; // true at (i, j) means i and j share an edge in the graph
-	private int[][] transmissionMatrix; // Value at (i, j) is transmission rate from i to j
-
-	private int numEdges; // Number of edges in graph (determined from adjacency matrix)
-	private static final int NIL = -1; // Marks paths that don't exist
+	private static final int NIL = -1;
+	private String name;
+	private int numVertices;
+	private int numEdges;
+	private boolean[][] adjMatrix;
+	private int[][] transmissionMatrix;
 	private int time = 0; // Discovery time for cut-vertex identification
 
 	/**
 	 * Class constructor.
 	 *
 	 * @param numVertices        the number of vertices to create in the graph.
-	 * @param adjMatrix          the matrix representing edges between vertices ({@code true} in row i, column j
-	 *                           represents an edge between vertices i and j).
-	 * @param transmissionMatrix like the adjacency matrix, but values indicate rate of transmission between two
+	 * @param adjMatrix          the square matrix representing the presence/absence of edges between vertices.
+	 * @param transmissionMatrix the square matrix with entries representing the rates of transmission between
 	 *                           vertices.
 	 */
 	public Graph(int numVertices, String name, boolean[][] adjMatrix, int[][] transmissionMatrix) {
@@ -47,30 +45,19 @@ public class Graph implements Cloneable {
 		this.name = name;
 		this.adjMatrix = adjMatrix;
 		this.transmissionMatrix = transmissionMatrix;
+
 	}
 
+	public Graph(int numVertices, String name) {
+		this.numVertices = numVertices;
+		this.name = name;
+		this.adjMatrix = new boolean[numVertices][numVertices];
+		this.transmissionMatrix = new int[numVertices][numVertices];
+	}
+
+
 	public static void main(String[] args) {
-//		testMethods();
 
-		// Create a graph given in the above diagram
-		Graph g = new Graph(5, "Test", new boolean[5][5], new int[5][5]); // 5 vertices numbered from 0 to 4
-		g.addEdge(0, 1);
-		g.addEdge(0, 2);
-		g.addEdge(1, 2);
-		g.addEdge(2, 3);
-		g.addEdge(3, 4);
-		System.out.println("The following are connected components");
-		List<List<Integer>> components = g.getConnectedComponents();
-		for (List<Integer> component : components) System.out.println(component);
-
-		System.out.println("Splicing graphs based on cut vertices:");
-		List<Graph> subGraphs = g.splice();
-
-		System.out.println("The following are connected components");
-		List<List<Integer>> components2 = g.getConnectedComponents();
-		for (List<Integer> component : components2) System.out.println(component);
-
-		for (Graph graph : subGraphs) System.out.println(graph);
 	}
 
 	@SuppressWarnings("unused")
@@ -125,17 +112,10 @@ public class Graph implements Cloneable {
 		                   "\nTime: " + g4.time);
 	}
 
-	/**
+	/*
 	 * A recursive function that finds cut-vertices using the depth-first search algorithm.
-	 *
-	 * @param u           The vertex to be visited next.
-	 * @param visited     Keeps track of visited vertices.
-	 * @param times       Stores discovery times of visited vertices.
-	 * @param low         Used to determine whether a vertex has a connection to the ancestor of an adjacent vertex.
-	 * @param parent      Stores parent vertices in a depth-first search tree.
-	 * @param cutVertices Stores any found cut-vertices.
 	 */
-	public void findCutVertices(int u, boolean[] visited, int[] times, int[] low, int[] parent, boolean[] cutVertices) {
+	private void findCutVertices(int u, boolean[] visited, int[] times, int[] low, int[] parent, boolean[] cutVertices) {
 		int children = 0; // Counter for children in the DFS Tree
 		visited[u] = true; // Mark the current node visited
 		times[u] = low[u] = ++time; // Initialise discovery time and low value
@@ -172,18 +152,18 @@ public class Graph implements Cloneable {
 	Then, return this list of sub-graphs.
 	 */
 	public List<Graph> splice() {
-		Graph that = this.clone();
+		// Empty List of Graphs that will contain our sub-graphs
 		List<Graph> subGraphs = new ArrayList<>();
-		List<Integer> cutVertices = that.getCutVertices();
-		if (cutVertices.isEmpty()) subGraphs.add(that);
+		List<Integer> cutVertices = this.getCutVertices();
+		if (cutVertices.isEmpty()) subGraphs.add(this);
 		else {
 			for (Integer cutVertex : cutVertices) {
-				System.out.println("Removing edges of: " + cutVertex);
+				System.out.println("Removing edges of " + cutVertex);
 				removeBridges(cutVertex);
 			}
-			List<List<Integer>> connectedComponents = that.getConnectedComponents();
+			List<List<Integer>> connectedComponents = this.getConnectedComponents();
 			for (List<Integer> cc : connectedComponents) {
-				subGraphs.add(this.makeSubGraph(that, cc));
+				subGraphs.add(this.makeSubGraph(cc));
 			}
 		}
 		return subGraphs;
@@ -220,16 +200,12 @@ public class Graph implements Cloneable {
 		return components;
 	}
 
-	private Graph makeSubGraph(Graph copy, List<Integer> vertices) {
+	private Graph makeSubGraph(List<Integer> vertices) {
 		//TODO Add cut-vertex back into sub-graph along with edges!
-		int newNumVertices = vertices.size();
-		Graph subGraph = new Graph(newNumVertices,
-				this.getName() + " Subgraph",
-				new boolean[newNumVertices][newNumVertices],
-				new int[newNumVertices][newNumVertices]);
+		Graph subGraph = new Graph(vertices.size(), this.getName() + " Subgraph", new boolean[numVertices][numVertices], new int[numVertices][numVertices]);
 		for (int v = 0; v < vertices.size(); v++) {
-			for (int w = 0; w < copy.getNumVertices(); w++) {
-				if (this.isEdge(vertices.get(v), w) && vertices.contains(w)) subGraph.addEdge(v, vertices.indexOf(w));
+			for (int w = 0; w < this.getNumVertices(); w++) {
+				if (this.hasEdge(vertices.get(v), w) && vertices.contains(w)) subGraph.addEdge(v, vertices.indexOf(w));
 			}
 		}
 		return subGraph;
@@ -306,10 +282,30 @@ public class Graph implements Cloneable {
 		this.setTransmissionMatrix(tMat);
 	}
 
+	/**
+	 * Adds a given number of vertices to the current graph.
+	 *
+	 * @param verticesToAdd the number of vertices to append to the graph.
+	 */
+	public void appendVertices(int verticesToAdd) {
+		assert verticesToAdd >= 0 : "Number of vertices to add must be a positive integer";
+		// Create a new graph object with the new number of vertices
+		int newNumVert = this.getNumVertices() + verticesToAdd;
+		Graph that = new Graph(newNumVert, this.getName());
+		// Ensure all original edges are in the new graph instance
+		for (int i = 0; i < this.getNumVertices(); i++) {
+			for (int j = 0; j < this.getNumVertices(); j++) if (this.hasEdge(i, j)) that.addEdge(i, j);
+		}
+		this.setNumVertices(newNumVert);
+		this.setNumVertices(that.getNumVertices());
+		this.setAdjMatrix(that.getAdjMatrix());
+		this.setTransmissionMatrix(that.getTransmissionMatrix());
+	}
+
 	public void removeBridges(int i) {
 		for (int j = 0; j < getNumVertices(); j++) {
 			int numConnectedComponents = getConnectedComponents().size();
-			if (isEdge(i, j)) {
+			if (hasEdge(i, j)) {
 				removeEdge(i, j);
 				// Ensure any edges we remove are bridges; preserve other edges
 
@@ -326,7 +322,7 @@ public class Graph implements Cloneable {
 		if (getConnectedComponents().size() > 1) minConnected = false;
 		else for (int i = 0; i < getNumVertices(); i++) {
 			for (int j = 0; j < getNumVertices(); j++) {
-				if (isEdge(i, j)) {
+				if (hasEdge(i, j)) {
 					removeEdge(i, j);
 					if (getConnectedComponents().size() == 1) minConnected = false;
 				}
@@ -381,7 +377,7 @@ public class Graph implements Cloneable {
 	 * @param j second vertex
 	 * @return true if i and j share an edge, false otherwise
 	 */
-	public boolean isEdge(int i, int j) {
+	public boolean hasEdge(int i, int j) {
 		return getAdjMatrix()[i][j] || getAdjMatrix()[j][i];
 	}
 
@@ -407,61 +403,6 @@ public class Graph implements Cloneable {
 	}
 
 	/**
-	 * Returns a textual representation of a graph as an adjacency matrix to be printed to the standard output.
-	 *
-	 * @return a string representation of the graph.
-	 */
-	@Override
-	public String toString() {
-		int n = getNumVertices();
-		boolean[][] matrix = getAdjMatrix();
-		StringBuilder s = new StringBuilder();
-		for (int i = 0; i < n; i++) {
-			s.append(i).append(": ");
-			for (boolean j : matrix[i]) {
-				s.append(j ? 1 : 0).append(" ");
-			}
-			s.append("\n");
-		}
-		return s.toString();
-	}
-
-	/**
-	 * Makes a copy of the current Graph object.
-	 *
-	 * @return a new graph with identical attributes (number of vertices, name, adjacency matrix and transmission matrix)
-	 * as the current graph.
-	 */
-	@Override
-	public Graph clone() {
-		try {
-			return (Graph) super.clone();
-		} catch (CloneNotSupportedException e) {
-			return new Graph(this.getNumVertices(), this.getName(), this.getAdjMatrix(), this.getTransmissionMatrix());
-		}
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		Graph graph = (Graph) o;
-		return getNumVertices() == graph.getNumVertices() &&
-		       getNumEdges() == graph.getNumEdges() &&
-		       Objects.equals(getName(), graph.getName()) &&
-		       Arrays.deepEquals(getAdjMatrix(), graph.getAdjMatrix()) &&
-		       Arrays.deepEquals(getTransmissionMatrix(), graph.getTransmissionMatrix());
-	}
-
-	@Override
-	public int hashCode() {
-		int result = Objects.hash(getName(), getNumVertices(), getNumEdges());
-		result = 31 * result + Arrays.deepHashCode(getAdjMatrix());
-		result = 31 * result + Arrays.deepHashCode(getTransmissionMatrix());
-		return result;
-	}
-
-	/**
 	 * @return the number of edges in the given graph.
 	 */
 	public int getNumEdges() {
@@ -469,6 +410,8 @@ public class Graph implements Cloneable {
 	}
 
 	/**
+	 * Given a number of edges to associate with a given graph, updates the associated attribute.
+	 *
 	 * @param numEdges the number of edges to associate with the given graph.
 	 */
 	public void setNumEdges(int numEdges) {
@@ -490,5 +433,50 @@ public class Graph implements Cloneable {
 	public Graph setName(String name) {
 		this.name = name;
 		return this;
+	}
+
+	/**
+	 * Returns a textual representation of a graph as an adjacency matrix to be printed to the standard output.
+	 *
+	 * @return a string representation of the graph.
+	 */
+	@Override
+	public String toString() {
+		int n = getNumVertices();
+		boolean[][] matrix = getAdjMatrix();
+		StringBuilder s = new StringBuilder();
+		for (int i = 0; i < n; i++) {
+			s.append(i).append(": ");
+			for (boolean j : matrix[i]) {
+				s.append(j ? 1 : 0).append(" ");
+			}
+			s.append("\n");
+		}
+		return s.toString();
+	}
+
+	@Override
+	public Graph clone() {
+		try {
+			return (Graph) super.clone();
+		} catch (CloneNotSupportedException e) {
+			return new Graph(this.getNumVertices(), this.getName(), this.getAdjMatrix(), this.getTransmissionMatrix());
+		}
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		Graph graph = (Graph) o;
+		return getNumVertices() == graph.getNumVertices() && getNumEdges() == graph.getNumEdges() && Objects.equals(getName(), graph.getName()) && Arrays.equals(getAdjMatrix(), graph.getAdjMatrix()) && Arrays.equals(getTransmissionMatrix(), graph.getTransmissionMatrix());
+	}
+
+	@Override
+	public int hashCode() {
+		int result = Objects.hash(getName(), getNumVertices(), getNumEdges());
+		result = 31 * result + Arrays.deepHashCode(getAdjMatrix());
+		result = 31 * result + Arrays.deepHashCode(getTransmissionMatrix());
+		return result;
 	}
 }

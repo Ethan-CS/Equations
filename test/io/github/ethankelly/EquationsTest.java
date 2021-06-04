@@ -1,12 +1,13 @@
 package io.github.ethankelly;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 class EquationsTest {
     public static char[] SIR = new char[]{'S', 'I', 'R'};
     public static char[] SIRP = new char[]{'S', 'I', 'R', 'P'};
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testEdgeBoundsClosuresSIR() {
         Assertions.assertEquals(Equations.getLowerBound(2, SIR, true),
                 Equations.getUpperBound(2, SIR, true),
@@ -17,7 +18,7 @@ class EquationsTest {
                 "Lower bound should be 7 equations.");
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testEdgeBoundsClosuresSIRP() {
         Assertions.assertEquals(Equations.getLowerBound(2, SIRP, true),
                 Equations.getUpperBound(2, SIRP, true),
@@ -28,7 +29,7 @@ class EquationsTest {
                 "Lower bound should be 13 equations.");
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testEdgeBoundsNoClosuresSIR() {
         Assertions.assertEquals(Equations.getLowerBound(2, SIR, false),
                 Equations.getUpperBound(2, SIR, false),
@@ -39,7 +40,7 @@ class EquationsTest {
                 "Lower bound should be 6 equations.");
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testEdgeBoundsNoClosuresSIRP() {
         Assertions.assertEquals(Equations.getLowerBound(2, SIRP, false),
                 Equations.getUpperBound(2, SIRP, false),
@@ -50,7 +51,7 @@ class EquationsTest {
                 "Lower bound should be 12 equations.");
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testTriangleBoundsClosuresSIR() {
         Assertions.assertEquals(Equations.getLowerBound(3, SIR, true),
                 Equations.getUpperBound(3, SIR, true),
@@ -62,7 +63,7 @@ class EquationsTest {
                 "Lower bound should be 22 equations.");
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testTriangleBoundsClosuresSIRP() {
         Assertions.assertEquals(Equations.getLowerBound(3, SIRP, true),
                 Equations.getUpperBound(3, SIRP, true),
@@ -74,7 +75,7 @@ class EquationsTest {
                 "Lower bound should be 55 equations.");
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testTriangleBoundsNoClosuresSIR() {
         Assertions.assertEquals(Equations.getLowerBound(3, SIR, false),
                 Equations.getUpperBound(3, SIR, false),
@@ -86,7 +87,7 @@ class EquationsTest {
                 "Lower bound should be 18 equations.");
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testTriangleBoundsNoClosuresSIRP() {
         Assertions.assertEquals(Equations.getLowerBound(3, SIRP, false),
                 Equations.getUpperBound(3, SIRP, false),
@@ -96,5 +97,11 @@ class EquationsTest {
                 "Upper bound should be 51 equations.");
         Assertions.assertEquals(51, Equations.getLowerBound(3, SIRP, false),
                 "Lower bound should be 51 equations.");
+    }
+
+    @Test
+    void testLollipopBoundsClosuresSIR() {
+        
+
     }
 }
