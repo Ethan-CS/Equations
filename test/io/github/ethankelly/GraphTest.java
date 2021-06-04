@@ -1,11 +1,12 @@
 package io.github.ethankelly;
 
+import io.github.ethankelly.graph.Graph;
+import io.github.ethankelly.graph.GraphGenerator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 class GraphTest {
 
@@ -54,5 +55,6 @@ class GraphTest {
         // Now, ensure that changing an attribute of the clone makes it not equal the original
         g.setName("New name");
         Assertions.assertNotEquals(g, h, "Expected instances to be different.");
+        Assertions.assertNotEquals(h.getName(), "New name", "Name of clone should not change");
     }
 }

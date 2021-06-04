@@ -1,5 +1,8 @@
 package io.github.ethankelly;
 
+import io.github.ethankelly.graph.Graph;
+import io.github.ethankelly.graph.GraphGenerator;
+import io.github.ethankelly.graph.Vertex;
 import io.github.ethankelly.symbols.Greek;
 import io.github.ethankelly.symbols.Maths;
 
@@ -23,56 +26,54 @@ public class Equations {
         Arrays.sort(sip);
         Arrays.sort(sirp);
         int numVertices = tuples.getGraph().getNumVertices();
-        int[][] t = tuples.getGraph().getTransmissionMatrix();
 
         if (Arrays.equals(states, sir)) states = si;
         else if (Arrays.equals(states, sirp)) states = sip;
 
-        for (List<Vertex> tuple : tuples.getTuples()) {
+        for (List<VertexState> tuple : tuples.getTuples()) {
             StringBuilder eqn = new StringBuilder(); // The String representation of the equation of the tuples
             eqn.append(tuple.toString()).append(" = ");
-            for (Vertex vertex : tuple) {
-                switch (Character.toUpperCase(vertex.getState())) {
+            for (VertexState vs : tuple) {
+                switch (Character.toUpperCase(vs.getState())) {
                     case 'S' -> {
                         if (new String(states).contains("P")) {
                             if (eqn.length() > (tuple + " = ").length()) eqn.append("+ ");
                             eqn.append(Greek.ALPHA.uni()).append(Maths.LANGLE.uni()).append("P")
-                                    .append(vertex.getLocation()).append(Maths.RANGLE.uni());
+                                    .append(vs.getLocation()).append(Maths.RANGLE.uni());
                         }
 
                         for (int j = 0; j < numVertices; j++) {
-                            if (t[vertex.getLocation()][j] > 0) {
+                            Vertex w = new Vertex(j);
+                            if (tuples.getGraph().hasEdge(vs.getLocation(), w.getLocation())) {
                                 eqn.append("- ");
-                                if (t[vertex.getLocation()][j] != 1) eqn.append(t[vertex.getLocation()][j]);
-                                eqn.append(Greek.BETA.uni()).append(Maths.LANGLE.uni()).append("S").append(vertex.getLocation())
+                                eqn.append(Greek.BETA.uni()).append(Maths.LANGLE.uni()).append("S").append(vs.getLocation())
                                         .append(" I").append(j).append(Maths.RANGLE.uni());
                             }
                         }
                         if (Arrays.equals(states, sirp))
                             eqn.append("- ").append(Greek.ZETA.uni()).append(Maths.LANGLE.uni())
-                                    .append("S").append(vertex.getLocation()).append(Maths.RANGLE.uni());
+                                    .append("S").append(vs.getLocation()).append(Maths.RANGLE.uni());
                     }
                     case 'I' -> {
                         for (int j = 0; j < numVertices; j++) {
-                            if (t[vertex.getLocation()][j] > 0) {
+                            if (tuples.getGraph().hasEdge(vs.getLocation(), j)) {
                                 if (eqn.length() > (tuple + " = ").length() && eqn.charAt(eqn.length() - 1) != '+')
                                     eqn.append("+ ");
-                                if (t[vertex.getLocation()][j] != 1) eqn.append(t[vertex.getLocation()][j]);
-                                eqn.append(Greek.GAMMA.uni()).append(Maths.LANGLE.uni()).append("S").append(vertex.getLocation())
+                                eqn.append(Greek.GAMMA.uni()).append(Maths.LANGLE.uni()).append("S").append(vs.getLocation())
                                         .append(" I").append(j).append(Maths.RANGLE.uni());
                             }
                         }
                         eqn.append("- ").append(Greek.GAMMA.uni()).
-                                append(Maths.LANGLE.uni()).append("I").append(vertex.getLocation()).append(Maths.RANGLE.uni());
+                                append(Maths.LANGLE.uni()).append("I").append(vs.getLocation()).append(Maths.RANGLE.uni());
                     }
                     case 'P' -> {
                         if (eqn.length() > (tuple + " = ").length() && eqn.charAt(eqn.length() - 1) != '+')
                             eqn.append("+ ");
-                        eqn.append(Greek.ZETA.uni()).append(Maths.LANGLE.uni()).append("S").append(vertex.getLocation())
+                        eqn.append(Greek.ZETA.uni()).append(Maths.LANGLE.uni()).append("S").append(vs.getLocation())
                                 .append(Maths.RANGLE.uni()).append("- ").append(Greek.ALPHA.uni()).append(Maths.LANGLE.uni())
-                                .append("P").append(vertex.getLocation()).append(Maths.RANGLE.uni());
+                                .append("P").append(vs.getLocation()).append(Maths.RANGLE.uni());
                     }
-                    default -> throw new IllegalStateException("Unexpected state: " + Character.toUpperCase(vertex.getState()));
+                    default -> throw new IllegalStateException("Unexpected state: " + Character.toUpperCase(vs.getState()));
                 }
             }
             equations.add(String.valueOf(eqn));

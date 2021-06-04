@@ -1,4 +1,4 @@
-package io.github.ethankelly;
+package io.github.ethankelly.graph;
 
 import io.github.ethankelly.std.MinPriorityQueue;
 import io.github.ethankelly.std.Rand;
@@ -29,7 +29,7 @@ public class GraphGenerator {
      */
     public static Graph getToast() {
         // TOAST
-        Graph toast = new Graph(4, "Toast", new boolean[4][4], new int[4][4]);
+        Graph toast = new Graph(4, "Toast");
         toast.addEdge(0, 1);
         toast.addEdge(0, 2);
         toast.addEdge(0, 3);
@@ -43,7 +43,7 @@ public class GraphGenerator {
      */
     public static Graph getLollipop() {
         // LOLLIPOP
-        Graph lollipop = new Graph(4, "Lollipop", new boolean[4][4], new int[4][4]);
+        Graph lollipop = new Graph(4, "Lollipop");
         lollipop.addEdge(0, 1);
         lollipop.addEdge(0, 2);
         lollipop.addEdge(0, 3);
@@ -56,7 +56,7 @@ public class GraphGenerator {
      */
     public static Graph getBowTie() {
         // BOW TIE
-        Graph bowTie = new Graph(5, "Bow tie", new boolean[5][5], new int[5][5]);
+        Graph bowTie = new Graph(5, "Bow tie");
         bowTie.addEdge(0, 1);
         bowTie.addEdge(0, 2);
         bowTie.addEdge(1, 2);
@@ -68,7 +68,7 @@ public class GraphGenerator {
 
     public static Graph getBowTieWithBridge() {
         // BOW TIE WITH BRIDGE
-        Graph bowTieWithBridge = new Graph(6, "Bow tie with bridge", new boolean[6][6], new int[6][6]);
+        Graph bowTieWithBridge = new Graph(6, "Bow tie with bridge");
         bowTieWithBridge.addEdge(0, 1);
         bowTieWithBridge.addEdge(0, 2);
         bowTieWithBridge.addEdge(1, 2);
@@ -84,14 +84,14 @@ public class GraphGenerator {
      */
     public static Graph getTriangle() {
         // TRIANGLE
-        Graph triangle = new Graph(3, "Triangle", new boolean[3][3], new int[3][3]);
+        Graph triangle = new Graph(3, "Triangle");
         triangle.addEdge(0, 1);
         triangle.addEdge(1, 2);
         triangle.addEdge(2, 0);
         return triangle;
     }
 
-    static String[] getUserInput() {
+    public static String[] getUserInput() {
         Scanner scan = new Scanner(System.in);
         String[] arguments = new String[5];
 
@@ -231,7 +231,7 @@ public class GraphGenerator {
         }
     }
 
-    static Graph getGraph(String[] args) {
+    public static Graph getGraph(String[] args) {
         Graph graph;
         switch (args[1].toLowerCase()) {
             case "1", "toast" -> graph = getToast();
@@ -367,7 +367,7 @@ public class GraphGenerator {
     public static Graph simple(int numVertices, int numEdges) {
         assert numEdges <= numVertices * (numVertices - 1) / 2 : "Too many edges.";
         assert numEdges >= 0 : "Too few edges.";
-        Graph g = new Graph(numVertices, "Simple", new boolean[numVertices][numVertices], new int[numVertices][numVertices]);
+        Graph g = new Graph(numVertices, "Simple");
         g.setNumEdges(0);
         Set<Edge> set = new Set<>();
         while (g.getNumEdges() < numEdges) {
@@ -394,7 +394,7 @@ public class GraphGenerator {
      */
     public static Graph erdosRenyi(int numVertices, double probability) {
         assert !(probability < 0.0) && !(probability > 1.0) : "Probability must be between 0 and 1";
-        Graph g = new Graph(numVertices, "Erdős–Rényi", new boolean[numVertices][numVertices], new int[numVertices][numVertices]);
+        Graph g = new Graph(numVertices, "Erdős–Rényi");
         for (int v = 0; v < numVertices; v++)
             for (int w = v + 1; w < numVertices; w++)
                 if (Rand.bernoulli(probability))
@@ -441,9 +441,8 @@ public class GraphGenerator {
     public static Graph bipartite(int numVer1, int numVer2, int numEdges) {
         assert numEdges <= numVer1 * numVer2 : "Too many edges";
         assert numEdges >= 0 : "Too few edges";
-        Graph g = new Graph(numVer1 + numVer2, "Bipartite",
-                new boolean[numVer1 + numVer2][numVer1 + numVer2],
-                new int[numVer1 + numVer2][numVer1 + numVer2]);
+        Graph g = new Graph(numVer1 + numVer2, "Bipartite"
+        );
 
         int[] vertices = IntStream.range(0, numVer1 + numVer2).toArray();
         Rand.shuffle(vertices);
@@ -477,9 +476,8 @@ public class GraphGenerator {
         assert !(probability < 0.0) && !(probability > 1.0) : "Probability must be between 0 and 1";
         int[] vertices = IntStream.range(0, numVer1 + numVer2).toArray();
         Rand.shuffle(vertices);
-        Graph G = new Graph(numVer1 + numVer2, "Bipartite",
-                new boolean[numVer1 + numVer2][numVer1 + numVer2],
-                new int[numVer1 + numVer2][numVer1 + numVer2]);
+        Graph G = new Graph(numVer1 + numVer2, "Bipartite"
+        );
         for (int i = 0; i < numVer1; i++)
             for (int j = 0; j < numVer2; j++)
                 if (Rand.bernoulli(probability))
@@ -495,7 +493,7 @@ public class GraphGenerator {
      * @return a path graph on {@code numVertices} vertices
      */
     public static Graph path(int numVertices) {
-        Graph g = new Graph(numVertices, "Path", new boolean[numVertices][numVertices], new int[numVertices][numVertices]);
+        Graph g = new Graph(numVertices, "Path");
         // Generate an array: [0, 1, ..., numVertices] and randomly shuffle it.
         int[] vertices = IntStream.range(0, numVertices).toArray();
         Rand.shuffle(vertices);
@@ -515,7 +513,7 @@ public class GraphGenerator {
      * @return a complete binary tree graph on {@code numVertices} vertices
      */
     public static Graph binaryTree(int numVertices) {
-        Graph g = new Graph(numVertices, "Binary Tree", new boolean[numVertices][numVertices], new int[numVertices][numVertices]);
+        Graph g = new Graph(numVertices, "Binary Tree");
         // Generate an array: [0, 1, ..., numVertices] and randomly shuffle it.
         int[] vertices = IntStream.range(0, numVertices).toArray();
         Rand.shuffle(vertices);
@@ -535,7 +533,7 @@ public class GraphGenerator {
      * @return a cycle graph on {@code numVertices} vertices.
      */
     public static Graph cycle(int numVertices) {
-        Graph g = new Graph(numVertices, "Cycle", new boolean[numVertices][numVertices], new int[numVertices][numVertices]);
+        Graph g = new Graph(numVertices, "Cycle");
         // Generate an array: [0, 1, ..., numVertices] and randomly shuffle it.
         int[] vertices = IntStream.range(0, numVertices).toArray();
         Rand.shuffle(vertices);
@@ -561,7 +559,7 @@ public class GraphGenerator {
         // Catch incorrect input of number of edges or vertices
         assert numEdges >= 0 : "negative number of edges";
         assert numVertices > 0 : "An Eulerian path must have at least one vertex";
-        Graph g = new Graph(numVertices, "Eulerian Path", new boolean[numVertices][numVertices], new int[numVertices][numVertices]);
+        Graph g = new Graph(numVertices, "Eulerian Path");
         // Fill an array of length equal to the number of edges with uniformly random values
         int[] vertices = IntStream.range(0, numEdges + 1).map(i -> Rand.uniform(numVertices)).toArray();
         // Connect consecutive (i, i+1) vertices
@@ -581,7 +579,7 @@ public class GraphGenerator {
     public static Graph eulerianCycle(int numVertices, int numEdges) {
         assert numEdges > 0 : "An Eulerian cycle must have at least one edge";
         assert numVertices > 0 : "An Eulerian cycle must have at least one vertex";
-        Graph G = new Graph(numVertices, "Eulerian Cycle", new boolean[numVertices][numVertices], new int[numVertices][numVertices]);
+        Graph G = new Graph(numVertices, "Eulerian Cycle");
         // Fill an array of length equal to the number of edges with uniformly random values
         int[] vertices = IntStream.range(0, numEdges).map(i -> Rand.uniform(numVertices)).toArray();
         // Connect consecutive (i, i+1) vertices
@@ -601,7 +599,7 @@ public class GraphGenerator {
      */
     public static Graph wheel(int numVertices) {
         assert numVertices > 1 : "Number of vertices must be at least 2";
-        Graph g = new Graph(numVertices, "Wheel", new boolean[numVertices][numVertices], new int[numVertices][numVertices]);
+        Graph g = new Graph(numVertices, "Wheel");
         // Generate an array: [0, 1, ..., numVertices] and randomly shuffle it.
         int[] vertices = IntStream.range(0, numVertices).toArray();
         Rand.shuffle(vertices);
@@ -626,7 +624,7 @@ public class GraphGenerator {
      */
     public static Graph star(int numVertices) {
         assert numVertices > 0 : "Number of vertices must be at least 1";
-        Graph g = new Graph(numVertices, "Star", new boolean[numVertices][numVertices], new int[numVertices][numVertices]);
+        Graph g = new Graph(numVertices, "Star");
         // Generate an array: [0, 1, ..., numVertices] and randomly shuffle it.
         int[] vertices = IntStream.range(0, numVertices).toArray();
         Rand.shuffle(vertices);
@@ -649,7 +647,7 @@ public class GraphGenerator {
      */
     public static Graph regular(int numVertices, int k) {
         assert numVertices * k % 2 == 0 : "Number of vertices * k must be even";
-        Graph g = new Graph(numVertices, k + "-Regular", new boolean[numVertices][numVertices], new int[numVertices][numVertices]);
+        Graph g = new Graph(numVertices, k + "-Regular");
 
         // Create k copies of each vertex
         int[] vertices = new int[numVertices * k];
@@ -674,7 +672,7 @@ public class GraphGenerator {
      * @return a uniformly random tree on {@code numVertices} vertices.
      */
     public static Graph tree(int numVertices) {
-        Graph g = new Graph(numVertices, "Tree", new boolean[numVertices][numVertices], new int[numVertices][numVertices]);
+        Graph g = new Graph(numVertices, "Tree");
 
         if (numVertices == 1) return g;
 

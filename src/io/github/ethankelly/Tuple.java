@@ -1,5 +1,7 @@
 package io.github.ethankelly;
 
+import io.github.ethankelly.graph.Graph;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -15,7 +17,7 @@ import java.util.List;
  */
 @SuppressWarnings("DuplicatedCode")
 public class Tuple {
-    private List<List<Vertex>> tuples;
+    private List<List<VertexState>> tuples;
     private final Graph graph;
     private final char[] states;
     private boolean closures;
@@ -33,12 +35,12 @@ public class Tuple {
         this.closures = closures;
     }
 
-    public List<List<Vertex>> getTuples() {
+    public List<List<VertexState>> getTuples() {
         return this.tuples;
     }
 
     @SuppressWarnings("unused")
-    public void setTuples(List<List<Vertex>> tuples) {
+    public void setTuples(List<List<VertexState>> tuples) {
         this.tuples = tuples;
     }
 
@@ -49,7 +51,7 @@ public class Tuple {
      * @param equations the equations to find the numbers of each length.
      * @return An array with the number of equations of each size required to exactly describe the SIR system.
      */
-    public int[] findNumbers(List<List<Vertex>> equations) {
+    public int[] findNumbers(List<List<VertexState>> equations) {
         // The array needs as many elements as there are different sizes in the equations list,
         // So initialise to (1 less than) the size of the largest (final) sub-list.
         int[] sizes = new int[equations.get(equations.size() - 1).size()];
@@ -66,7 +68,7 @@ public class Tuple {
      *
      * @return the number of single-probability differential equations required by the model.
      */
-    public List<Vertex> findSingles() {
+    public List<VertexState> findSingles() {
         // Get states, graph and the vertices in the associated graph for the model
         char[] states = this.getStates();
         Arrays.sort(states);
@@ -88,20 +90,20 @@ public class Tuple {
         Arrays.setAll(vertices, i -> i);
 
         // We need an equation for the probability of each vertex being in each state
-        List<Vertex> verticesWeNeed = new ArrayList<>();
+        List<VertexState> verticesWeNeed = new ArrayList<>();
         for (char c : states) {
             for (int v : vertices) {
-                verticesWeNeed.add(new Vertex(c, v));
+                verticesWeNeed.add(new VertexState(c, v));
             }
         }
         return verticesWeNeed;
     }
 
     // Recursive helper method to generate the total equations we need
-    private void generateTuples(List<Vertex> items,
-                                List<Vertex> selected,
+    private void generateTuples(List<VertexState> items,
+                                List<VertexState> selected,
                                 int index,
-                                List<List<Vertex>> result) {
+                                List<List<VertexState>> result) {
         if (index >= items.size()) {
             result.add(new ArrayList<>(selected));
         } else {
@@ -118,10 +120,10 @@ public class Tuple {
      *
      * @return a list of each n-tuple we are required to express to exactly detail the model system dynamics.
      */
-    public List<List<Vertex>> generateTuples(boolean closures) {
-        List<Vertex> items = this.findSingles();
-        List<List<Vertex>> result = new ArrayList<>();
-        List<Vertex> selected = new ArrayList<>();
+    public List<List<VertexState>> generateTuples(boolean closures) {
+        List<VertexState> items = this.findSingles();
+        List<List<VertexState>> result = new ArrayList<>();
+        List<VertexState> selected = new ArrayList<>();
         generateTuples(items, selected, 0, result);
 
         // The helper method gives us all combinations, so remove the ones that don't
@@ -141,11 +143,11 @@ public class Tuple {
      * @param toAdd the potential tuple we are considering adding to the system dynamics.
      * @return true if the tuple is essential to expressing the system dynamics, false otherwise.
      */
-    private boolean isValidTuple(List<Vertex> toAdd, boolean closures) {
+    private boolean isValidTuple(List<VertexState> toAdd, boolean closures) {
         Graph g = this.getGraph();
-        return Vertex.areStatesDifferent(toAdd, closures)
-                && Vertex.areLocationsDifferent(toAdd)
-                && Vertex.areAllConnected(toAdd, g);
+        return VertexState.areStatesDifferent(toAdd, closures)
+               && VertexState.areLocationsDifferent(toAdd)
+               && VertexState.areAllConnected(toAdd, g);
     }
 
     /**

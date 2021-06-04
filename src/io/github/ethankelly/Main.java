@@ -1,5 +1,8 @@
 package io.github.ethankelly;
 
+import io.github.ethankelly.graph.Graph;
+import io.github.ethankelly.graph.GraphGenerator;
+
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;

@@ -1,5 +1,7 @@
 package io.github.ethankelly;
 
+import io.github.ethankelly.graph.Graph;
+import io.github.ethankelly.graph.Vertex;
 import io.github.ethankelly.symbols.Maths;
 
 import java.util.List;
@@ -10,7 +12,7 @@ import java.util.stream.IntStream;
  * epidemiological model. Each vertex object has a state (for instance, {@code 'S'} for "Susceptible") and a numerical
  * location in the graph we are interested in.
  */
-public class Vertex implements Comparable<Vertex> {
+public class VertexState extends Vertex implements Comparable<VertexState>  {
 	private final char state;
 	private final int location;
 
@@ -20,7 +22,8 @@ public class Vertex implements Comparable<Vertex> {
 	 * @param state    the state for which we are interested in studying the probability of the vertex being in.
 	 * @param location the numerical index that represents the location of the vertex in the associated graph.
 	 */
-	public Vertex(char state, int location) {
+	public VertexState(char state, int location) {
+		super(location);
 		this.state = state;
 		this.location = location;
 	}
@@ -33,7 +36,7 @@ public class Vertex implements Comparable<Vertex> {
 	 * @param toCheck the tuple we wish to verify has at least two different states in its elements.
 	 * @return true if at least one vertex state is different to that of the others, false if they are all the same.
 	 */
-	public static boolean areStatesDifferent(List<Vertex> toCheck, boolean reqClosures) {
+	public static boolean areStatesDifferent(List<VertexState> toCheck, boolean reqClosures) {
 		boolean statesDifferent = false;
 		// If there's only one vertex in the list, by definition we require it
 		// in the system of equations so we ensure this method returns true.
@@ -41,8 +44,8 @@ public class Vertex implements Comparable<Vertex> {
         else {
 			// We only need to find two different states to know that the states are
 			// at least not all the same, returning true.
-			for (Vertex v : toCheck) {
-				for (Vertex w : toCheck) {
+			for (VertexState v : toCheck) {
+				for (VertexState w : toCheck) {
 					if (v.getState() != w.getState()) {
 						statesDifferent = true;
 						break;
@@ -67,11 +70,11 @@ public class Vertex implements Comparable<Vertex> {
 	 * @param vertices the tuple we wish to verify has no repeated vertex locations.
 	 * @return true if no index location is repeated in the vertices, false otherwise.
 	 */
-	public static boolean areLocationsDifferent(List<Vertex> vertices) {
+	public static boolean areLocationsDifferent(List<VertexState> vertices) {
 		boolean locationsDifferent = true;
 		// Only need to find two vertices in the list with same index location
 		// to know we don't have a required tuple, returning false.
-		for (Vertex v : vertices) {
+		for (VertexState v : vertices) {
             if (vertices.stream().anyMatch(w -> v.getLocation() == w.getLocation() && v != w)) {
                 locationsDifferent = false;
                 break;
@@ -90,12 +93,12 @@ public class Vertex implements Comparable<Vertex> {
 	 * @param g       the graph in which the tuple exists.
 	 * @return true if the tuple forms a path in some way, false otherwise.
 	 */
-	public static boolean areAllConnected(List<Vertex> toCheck, Graph g) {
+	public static boolean areAllConnected(List<VertexState> toCheck, Graph g) {
 		// If there's only one vertex in the list, required in the system of equations - ensure this returns true.
 		// If more than one vertex, return whether they all have some path between them.
 		return toCheck.size() == 1 || IntStream.range(0, toCheck.size() - 1).allMatch(
-				i -> g.hasEdge(toCheck.get(i).getLocation(),
-						toCheck.get(i + 1).getLocation())
+				i -> g.hasEdge(new Vertex(toCheck.get(i).getLocation()),
+						new Vertex(toCheck.get(i + 1).getLocation()))
 		);
 	}
 
@@ -132,7 +135,7 @@ public class Vertex implements Comparable<Vertex> {
 	 * if the location of {@code that} is less than the vertex in question.
 	 */
 	@Override
-	public int compareTo(Vertex that) {
+	public int compareTo(VertexState that) {
 		final int BEFORE = -1;
 		final int EQUAL = 0;
 		final int AFTER = 1;
