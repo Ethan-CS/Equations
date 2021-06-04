@@ -24,6 +24,13 @@ public class GraphGenerator {
         setSeed();
     }
 
+    public static Graph getEdge() {
+        // EDGE
+        Graph edge = new Graph(2, "Edge");
+        edge.addEdge(0,1);
+        return edge;
+    }
+
     /**
      * @return the Toast graph
      */

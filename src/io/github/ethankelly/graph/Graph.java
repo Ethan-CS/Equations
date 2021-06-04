@@ -1,41 +1,42 @@
 package io.github.ethankelly.graph;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.stream.IntStream;
 
 /**
  * The {@code Graph} class represents a graph - a collection of vertices connected by edges in some meaningful
- * configuration. While the basis for the model is agency, this agency is represented as interactions of vertices of a
- * graph.
- * <p>
- * Using a graph to represent and examine allows the use of many excellent existing results in graph theory, plus the
- * use of a graph is not an unusual choice of visualisation in models of contagion even intuitively. The graphs to be
- * used in this model, objects of this class, have two important attributes:
- * <ul>
- *     <li> The number of vertices in the graph.
- *     <li> An adjacency matrix - each entry is true if the vertices represented by the row
- *          and column are connected by an edge, false otherwise
- *          (@see <a href ="https://mathworld.wolfram.com/AdjacencyMatrix.html">https://mathworld.wolfram.com/AdjacencyMatrix.html</a>).
- * </ul>
- * In much of the literature, graphs of this kind represent 'contact networks.'
+ * configuration.
  *
  * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
  */
 public class Graph implements Cloneable {
 	private static final int NIL = -1;
-	private int time = 0; // Discovery time for cut-vertex identification
-
+	private int time; // Discovery time for cut-vertex identification
+	/**
+	 * Name of the graph - generally corresponds to graph class.
+	 */
 	private String name;
+	/**
+	 * The number of vertices in the given graph
+	 */
 	private int numVertices;
+	/**
+	 * The number of edges in the given graph
+	 */
 	private int numEdges;
-	List<LinkedList<Vertex>> adjList = new LinkedList<>();
+	/**
+	 * A linked list representation of the graph (known as an adjacency list).
+	 */
+	private List<LinkedList<Vertex>> adjList = new LinkedList<>();
 
 	/**
 	 * Class constructor.
 	 *
-	 * @param numVertices        the number of vertices to create in the graph.
+	 * @param numVertices the number of vertices to include in the graph.
+	 * @param name        the name of the graph (to indicate graph class).
 	 */
 	public Graph(int numVertices, String name) {
 		this.numVertices = numVertices;
@@ -44,28 +45,26 @@ public class Graph implements Cloneable {
 		this.time = 0;
 	}
 
-	public Graph(List<Vertex> vertices, String name) {
-		this.numVertices = vertices.size();
-		this.name = name;
-		AtomicInteger i = new AtomicInteger();
-		vertices.forEach(v -> adjList.add(i.getAndIncrement(), new LinkedList<>()));
-		this.time = 0;
-	}
-
-	public Graph(Graph clone) {
-		this.name = clone.name;
-		this.numVertices = clone.numVertices;
-		this.numEdges = clone.numEdges;
-		this.adjList = clone.adjList;
-		this.time = clone.time;
-	}
-
 	public static void main(String[] args) {
+		System.out.println(" ***** LOLLIPOP ****** ");
 		Graph lollipop = GraphGenerator.getLollipop();
 		System.out.println(lollipop);
 		List<Graph> lollipopCC = lollipop.splice();
 		System.out.println("--- Spliced ---");
 		for (Graph g : lollipopCC) System.out.println(g);
+
+		System.out.println("\n ***** G1 ***** ");
+		Graph g1 = new Graph(6, "Test");
+		g1.addEdge(0,1);
+		g1.addEdge(0,5);
+		g1.addEdge(1,2);
+		g1.addEdge(2,5);
+		g1.addEdge(2,3);
+		g1.addEdge(3, 4);
+		System.out.println(g1);
+		System.out.println("Cut vertices: " + g1.getCutVertices());
+		System.out.println("--- Spliced ---");
+		for (Graph g : g1.splice()) System.out.println(g);
 	}
 
 	public void removeEdgesOfVertex(Vertex v) {
@@ -95,7 +94,8 @@ public class Graph implements Cloneable {
 				// u is a cut vertex if either (1) it is a root of DFS tree and has two or more children,
 				// or (2) the low value of one of its children is more than its own discovery value.
 				if (parent[u.getLocation()] == NIL && children > 1) cutVertices[u.getLocation()] = true; // (1)
-				if (parent[u.getLocation()] != NIL && low[v.getLocation()] >= times[u.getLocation()]) cutVertices[u.getLocation()] = true; // (2)
+				if (parent[u.getLocation()] != NIL && low[v.getLocation()] >= times[u.getLocation()])
+					cutVertices[u.getLocation()] = true; // (2)
 			} else if (v.getLocation() != parent[u.getLocation()]) {
 				// Update the low value of u for parent function calls.
 				low[u.getLocation()] = Math.min(low[u.getLocation()], times[v.getLocation()]);
@@ -103,45 +103,49 @@ public class Graph implements Cloneable {
 		}
 	}
 
-	/*
-	Go through graph, deleting edges connected to each cut vertex.
-	Then, go back through graph searching for connected components.
-	Every time we have a connected component, i.e. group of vertices only accessible to each other,
-	send it to the subgraph creator method and store the result in the list of graphs.
-	Then, repeat until we have done this with all connected components (create a method that tells us how
-	many connected components we have, so we know when we've finished this process).
-	Then, return this list of sub-graphs.
+	/**
+	 * Finds the cut-vertices of the graph, deletes edges attached to them, creates sub-graphs for each of the remaining
+	 * connected components and replaces the cut-vertex in each of them and returns the list of graphs.
+	 *
+	 * @return the sub-graphs based on cut-vertex removal from the current graph.
 	 */
 	public List<Graph> splice() {
+		// TODO this is adding sub-graphs to the list too soon - it should check that each sub-graph has no connected
+		//  components before adding and if it does, send it through the splicing method until it has none
+
+
 		// Empty List of Graphs that will contain our sub-graphs
 		List<Graph> subGraphs = new ArrayList<>();
 		List<Vertex> cutVertices = this.getCutVertices();
-		Graph original = this.clone();
+		// Create a copy of the current graph, so that we can remove edges on the copy
+		// and maintain the original graph for replacing any required edges
 		Graph clone = this.clone();
 		// If there are no cut vertices, add the graph to the list as it cannot be spliced further
 		if (cutVertices.isEmpty()) subGraphs.add(this);
 		else {
 			for (Vertex cutVertex : cutVertices) {
-				System.out.println("before removing cut vertex:");
-				System.out.println(original);
-
-				System.out.println("Removing edges of " + cutVertex);
+				// Remove the cut vertices from a copy of the graph
 				clone.removeEdgesOfVertex(cutVertex);
-
-				System.out.println("removed cut vertex; graph now looks like this:");
-				System.out.println(original);
-
-				List<List<Vertex>> newCCs = clone.getConnectedComponents();
-				for (List<Vertex> cc : newCCs) {
-					if (!cc.contains(cutVertex)) cc.add(cutVertex);
-					if (!cc.equals(Collections.singletonList(cutVertex))) subGraphs.add(makeSubGraph(cc, original));
+				List<List<Vertex>> CCs = clone.getCCs();
+				for (List<Vertex> cc : CCs) {
+					// If the connected component doesn't already contain the cut vertex, add it back in
+					if (!cc.contains(cutVertex)) {
+						if (cutVertex.getLocation() < cc.size()) cc.add(cutVertex.getLocation(), cutVertex);
+						else cc.add(cutVertex);
+					}
+					// If the connected component is just a single vertex (the cut-vertex) graph, ignore it
+					if (!cc.equals(Collections.singletonList(cutVertex))) subGraphs.add(makeSubGraph(cc));
 				}
 			}
 
 		}
+		for (Graph subgraph : subGraphs) {
+			if (!subgraph.getCutVertices().isEmpty()) System.out.println("Not all ccs are as decomposed as possible");
+		}
 		return subGraphs;
 	}
 
+	// Recursive helper function that uses a depth-first search to find connected components
 	private List<Vertex> DFSUtil(Vertex v, boolean[] visited, List<Vertex> thisComponent) {
 		// Mark the current node as visited and print it
 		visited[v.getLocation()] = true;
@@ -161,7 +165,7 @@ public class Graph implements Cloneable {
 	 *
 	 * @return a list of connected components as lists of integers.
 	 */
-	public List<List<Vertex>> getConnectedComponents() {
+	public List<List<Vertex>> getCCs() {
 		List<List<Vertex>> components = new ArrayList<>();
 		// Mark all the vertices as not visited
 		boolean[] visited = new boolean[this.getNumVertices()];
@@ -174,18 +178,18 @@ public class Graph implements Cloneable {
 		return components;
 	}
 
-	private Graph makeSubGraph(List<Vertex> vertices, Graph original) {
+	// Given a list of vertices, creates a sub-graph from them with all relevant edges from the original graph
+	private Graph makeSubGraph(List<Vertex> vertices) {
 		// Make a new graph with appropriate number of vertices, name and adjacency matrices
-		Graph subGraph = new Graph(vertices, this.getName() + " Subgraph");
+		Graph subGraph = new Graph(vertices.size(), this.getName() + " Subgraph");
 
 		List<Vertex> newVertices = new ArrayList<>();
 		int i = 0;
 		for (Vertex v : vertices) newVertices.add(i++, v);
-		System.out.println("I got to " + i);
 
 		for (Vertex v : newVertices) {
 			for (Vertex w : newVertices) {
-				if (original.hasEdge(v, w) &&
+				if (this.hasEdge(v, w) &&
 				    !subGraph.hasEdge(newVertices.indexOf(v), newVertices.indexOf(w))) {
 					subGraph.addEdge(newVertices.indexOf(v), newVertices.indexOf(w));
 				}
@@ -210,23 +214,27 @@ public class Graph implements Cloneable {
 		int[] disc = new int[numVertices];
 		int[] low = new int[numVertices];
 		int[] parent = new int[numVertices];
-		boolean[] cutVertices = new boolean[numVertices]; // To store articulation points
+		boolean[] cutVertices = new boolean[numVertices]; // To store found cut-vertices
 
-		// Initialize parent and visited, and cutVertices(articulation point)
-		// arrays
+		// Initialize parent and visited and cut-vertices(articulation point) arrays
 		for (int i = 0; i < numVertices; i++) {
 			parent[i] = NIL;
 			visited[i] = false;
 			cutVertices[i] = false;
 		}
 
-		// Call the recursive helper function to find articulation
-		// points in DFS tree rooted with vertex 'i'
+		// Call the recursive helper function to find articulation points in DFS tree rooted with vertex 'i'
 		for (int i = 0; i < adjList.size(); i++)
 			if (!visited[i]) findCutVertices(new Vertex(i), visited, disc, low, parent, cutVertices);
 
-		// Now cutVertices contains articulation points, return them
-		return IntStream.range(0, cutVertices.length).filter(i -> cutVertices[i]).mapToObj(Vertex::new).collect(Collectors.toList());
+		List<Vertex> list = new ArrayList<>();
+		for (int i = 0; i < cutVertices.length; i++) {
+			if (cutVertices[i]) {
+				Vertex vertex = new Vertex(i);
+				list.add(vertex);
+			}
+		}
+		return list;
 	}
 
 	/**
@@ -286,7 +294,7 @@ public class Graph implements Cloneable {
 			Vertex v = new Vertex(i);
 			for (int j = 0; j < this.getNumVertices(); j++) {
 				Vertex w = new Vertex(j);
-				if (this.hasEdge(v, w)) that.addEdge(i, j);
+				if (this.hasEdge(v, w) && v.getLocation() != w.getLocation()) that.addEdge(i, j);
 			}
 		}
 		this.setNumVertices(newNumVert);
@@ -295,26 +303,26 @@ public class Graph implements Cloneable {
 //		this.setAdjMatrix(that.getAdjMatrix());
 	}
 
-	private void setAdjList(List<LinkedList<Vertex>> adjList) {
-		this.adjList = adjList;
-	}
-
 	private List<LinkedList<Vertex>> getAdjList() {
 		return this.adjList;
+	}
+
+	private void setAdjList(List<LinkedList<Vertex>> adjList) {
+		this.adjList = adjList;
 	}
 
 	@SuppressWarnings("unused")
 	public boolean isMinimallyConnected() {
 		boolean minConnected = true;
 		// Check if graph is connected at all
-		if (getConnectedComponents().size() > 1) minConnected = false;
+		if (getCCs().size() > 1) minConnected = false;
 		else for (int i = 0; i < getNumVertices(); i++) {
 			Vertex v = new Vertex(i);
 			for (int j = 0; j < getNumVertices(); j++) {
 				Vertex w = new Vertex(j);
 				if (hasEdge(v, w)) {
 					removeEdge(v, w);
-					if (getConnectedComponents().size() == 1) minConnected = false;
+					if (getCCs().size() == 1) minConnected = false;
 				}
 			}
 		}
@@ -390,7 +398,7 @@ public class Graph implements Cloneable {
 	public String toString() {
 		StringBuilder s = new StringBuilder();
 		for (int i = 0; i < this.getNumVertices(); i++) {
-			s.append(i).append("->");
+			s.append(i).append(" ->");
 			for (Vertex vertex : adjList.get(i)) s.append(" ").append(vertex);
 			s.append("\n");
 		}
@@ -405,7 +413,6 @@ public class Graph implements Cloneable {
 		} catch (CloneNotSupportedException e) {
 			cloned = new Graph(this.getNumVertices(), this.getName());
 		}
-
 		List<LinkedList<Vertex>> newList = new ArrayList<>();
 		for (LinkedList<Vertex> list : this.getAdjList()) {
 			int index = this.getAdjList().indexOf(list);
@@ -422,9 +429,10 @@ public class Graph implements Cloneable {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		Graph graph = (Graph) o;
+		// TODO this should check that adjacency lists are true as well
 		return getNumVertices() == graph.getNumVertices() &&
 		       getNumEdges() == graph.getNumEdges() &&
-		       Objects.equals(getName(), graph.getName());
+		       getName().equals(graph.getName());
 	}
 
 	@Override

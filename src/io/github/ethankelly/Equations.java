@@ -99,7 +99,7 @@ public class Equations {
         //TODO this is true iff there are no cut vertices
         Graph g = GraphGenerator.cycle(numVertices);
         assert g.getCutVertices().isEmpty() : "Lower bound graph should have no cut vertices";
-        assert g.getConnectedComponents().size() == 1 : "Lower bound graph should be connected";
+        assert g.getCCs().size() == 1 : "Lower bound graph should be connected";
         Tuple tuples = new Tuple(g, states, closures);
         return tuples.getTuples().size();
     }
