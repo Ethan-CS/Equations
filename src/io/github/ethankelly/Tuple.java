@@ -1,6 +1,7 @@
 package io.github.ethankelly;
 
 import io.github.ethankelly.graph.Graph;
+import io.github.ethankelly.graph.VertexState;
 
 import java.util.ArrayList;
 import java.util.Arrays;

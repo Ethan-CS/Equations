@@ -3,6 +3,7 @@ package io.github.ethankelly;
 import io.github.ethankelly.graph.Graph;
 import io.github.ethankelly.graph.GraphGenerator;
 import io.github.ethankelly.graph.Vertex;
+import io.github.ethankelly.graph.VertexState;
 import io.github.ethankelly.symbols.Greek;
 import io.github.ethankelly.symbols.Maths;
 
