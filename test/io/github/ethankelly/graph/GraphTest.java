@@ -1,8 +1,5 @@
-package io.github.ethankelly;
+package io.github.ethankelly.graph;
 
-import io.github.ethankelly.graph.Graph;
-import io.github.ethankelly.graph.GraphGenerator;
-import io.github.ethankelly.graph.Vertex;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -13,27 +10,33 @@ import java.util.List;
 
 class GraphTest {
     private static final Graph g1 = new Graph(6, "Test");
+    private static final Graph g2 = new Graph(5, "Test");
+    // Get the lollipop graph from the graph generator
+    private static final Graph lollipop = GraphGenerator.getLollipop();
+    private static final Graph toast = GraphGenerator.getToast();
 
     @BeforeAll
     static void setUpGraphs() {
+        // Add edges  to  G1
         g1.addEdge(0,1);
         g1.addEdge(0,5);
         g1.addEdge(1,2);
         g1.addEdge(2,5);
-        g1.addEdge(2,4);
+        g1.addEdge(3,4);
         g1.addEdge(2,3);
+
+        // Add edges to G2
+        g2.addEdge(0, 1);
+        g2.addEdge(0, 4);
+        g2.addEdge(1, 2);
+        g2.addEdge(1, 4);
+        g2.addEdge(2, 3);
     }
 
     @Test
     void testCutVerticesG1() {
-        Graph g1Copy = g1.clone();
-        System.out.println(g1.getCutVertices());
-        Assertions.assertEquals(g1.getCutVertices(), Collections.singletonList(new Vertex(2)),
-                "Should have identified 2 as the only cut-vertex for G1.");
-        g1Copy.appendVertices(1);
-        g1Copy.addEdge(2, 6);
-        Assertions.assertEquals(g1Copy.getCutVertices(), Collections.singletonList(new Vertex(2)),
-                "Should have identified 2 as the only cut-vertex for G1.");
+        Assertions.assertEquals(g1.getCutVertices(), Arrays.asList(new Vertex(2), new Vertex(3)),
+                "Should have identified 2 and 3 as the only cut-vertices for G1.");
     }
 
     @Test
@@ -42,11 +45,11 @@ class GraphTest {
         subA.addEdge(0, 1);
         subA.addEdge(0, 3);
         subA.addEdge(1, 2);
+        subA.addEdge(2, 3);
 
         Graph subB = GraphGenerator.getEdge().setName("Test Subgraph");
-        Graph subC = subB.clone();
 
-        List<Graph> correctSubGraphs = Arrays.asList(subA, subB, subC);
+        List<Graph> correctSubGraphs = Arrays.asList(subA, subB, subB);
         List<Graph> foundSubGraphs = g1.splice();
 
         Assertions.assertEquals(correctSubGraphs.size(), foundSubGraphs.size(),
@@ -59,24 +62,36 @@ class GraphTest {
 
     @Test
     void testCutVerticesG2() {
-        Graph g2 = new Graph(5, "Test");
-        g2.addEdge(0, 1);
-        g2.addEdge(0, 4);
-        g2.addEdge(1, 2);
-        g2.addEdge(1, 4);
-        g2.addEdge(2, 3);
-
         Assertions.assertEquals(g2.getCutVertices(), Arrays.asList(new Vertex(1), new Vertex(2)),
                 "Should have identified 1 and 2 as cut-vertices for G2.");
     }
 
     @Test
-    void testSpliceLollipop() {
-        // Get the lollipop graph from the graph generator
-        Graph lollipop = GraphGenerator.getLollipop();
+    void testSpliceG2() {
+        Graph subA = GraphGenerator.getTriangle().setName("Test Subgraph");
+        Graph subB = GraphGenerator.getEdge().setName("Test Subgraph");
+
+        List<Graph> correctSubGraphs = Arrays.asList(subA, subB, subB);
+        List<Graph> foundSubGraphs = g2.splice();
+
+        Assertions.assertEquals(correctSubGraphs.size(), foundSubGraphs.size(),
+                "Splice method did not find the right number of sub-graphs for G2.");
+        Assertions.assertTrue(correctSubGraphs.containsAll(foundSubGraphs),
+                "Not all of the correct sub-graphs were found for G2");
+        Assertions.assertTrue(foundSubGraphs.containsAll(correctSubGraphs),
+                "Some incorrect sub-graphs were found.");
+
+    }
+
+    @Test
+    void testCutVerticesLollipop() {
         // Get the cut vertices - should just be vertex 0
         Assertions.assertEquals(lollipop.getCutVertices(), Collections.singletonList(new Vertex(0)),
                 "Lollipop has exactly one cut vertex at location 0");
+    }
+
+    @Test
+    void testSpliceLollipop() {
         // Now, splice the graph and ensure two graphs are created correctly
         List<Graph> lollipopSplice = lollipop.splice();
         // First subgraph is a single edge
@@ -90,15 +105,29 @@ class GraphTest {
         // Now, assert expected and actual are equal - bit convoluted so we can ignore order of graphs in list
         Assertions.assertEquals(correctSplice.size(), lollipopSplice.size(), "Splices were different sizes");
         Assertions.assertTrue(correctSplice.containsAll(lollipopSplice),
-                "The lollipop slice contains too much");
+                "The lollipop splice contains too much");
         Assertions.assertTrue(lollipopSplice.containsAll(correctSplice),
                 "The lollipop splice is missing something.");
     }
 
     @Test
+    void testCutVerticesToast() {
+        // Get the cut vertices - should just be vertex 0
+        Assertions.assertEquals(toast.getCutVertices(), Collections.emptyList(),
+                "Toast has no cut vertices");
+    }
+
+    @Test
+    void testSpliceToast() {
+        // Now, assert expected and actual are equal - bit convoluted so we can ignore order of graphs in list
+        Assertions.assertEquals(Collections.singletonList(GraphGenerator.getToast()), toast.splice(),
+                "Toast cannot be spliced into sub-graphs.");
+    }
+
+    @Test
     void testClone() {
         // Make sure clone() creates an identical instance
-        Graph g = GraphGenerator.getLollipop();
+        Graph g = lollipop.clone();
         Graph h = g.clone();
         Assertions.assertEquals(g, h, "The clone() method did not make an identical instance.");
         // Now, ensure that changing an attribute of the clone makes it not equal the original

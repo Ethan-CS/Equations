@@ -98,7 +98,8 @@ public class Graph implements Cloneable {
         // Get the cut vertices of the current graph
         List<Vertex> cutVertices = clone.getCutVertices();
         // Split the graph up by cut vertex
-        spliceUtil(subGraphs, cutVertices.get(0), clone, this.clone());
+        if (!cutVertices.isEmpty()) spliceUtil(subGraphs, cutVertices.get(0), clone, this.clone());
+        else subGraphs.add(this);
 
         return subGraphs;
     }
@@ -274,7 +275,6 @@ public class Graph implements Cloneable {
         }
     }
 
-
     public void removeEdgesOfVertex(Vertex v) {
         for (int j = 0; j < getNumVertices(); j++) {
             Vertex w = new Vertex(j);
@@ -283,7 +283,6 @@ public class Graph implements Cloneable {
     }
 
     public void removeVertex(Vertex v) {
-        System.out.println("\nREMOVING " + v + ": " + adjList.get(v.getLocation()));
         adjList.set(v.getLocation(), new ArrayList<>());
 // TODO Better to do below iteration using removeIf, return to this if we have a better way of  recalculating numEdges
 
@@ -429,6 +428,9 @@ public class Graph implements Cloneable {
         return s.toString();
     }
 
+    /**
+     * @return a new instance of the current Graph object with identical parameters
+     */
     @Override
     public Graph clone() {
         Graph cloned;
