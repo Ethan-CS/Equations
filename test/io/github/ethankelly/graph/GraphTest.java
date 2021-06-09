@@ -135,4 +135,13 @@ class GraphTest {
         Assertions.assertNotEquals(g, h, "Expected instances to be different.");
         Assertions.assertNotEquals(h.getName(), "New name", "Name of clone should not change");
     }
+
+    @Test
+    void testEquals() {
+        Graph g = GraphGenerator.erdosRenyi(50, 0.5);
+        Graph h = g.clone();
+        Assertions.assertEquals(g, h, "Identical graphs were not returned true.");
+        h.appendVertices(1);
+        Assertions.assertNotEquals(g, h, "When passed different graphs, equals method should return false");
+    }
 }
