@@ -2,6 +2,7 @@ package io.github.ethankelly.graph;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -124,6 +125,13 @@ class GraphTest {
                 "Toast cannot be spliced into sub-graphs.");
     }
 
+    @RepeatedTest(50)
+    void testRecalculateEdges() {
+        Graph g = GraphGenerator.erdosRenyi(50, 0.5);
+        Assertions.assertEquals(g.getNumEdges(), g.recalculateEdges(),
+                "Recalculate edges did not get the correct number of edges");
+    }
+
     @Test
     void testClone() {
         // Make sure clone() creates an identical instance
@@ -136,10 +144,12 @@ class GraphTest {
         Assertions.assertNotEquals(h.getName(), "New name", "Name of clone should not change");
     }
 
-    @Test
+    @RepeatedTest(50)
     void testEquals() {
         Graph g = GraphGenerator.erdosRenyi(50, 0.5);
-        Graph h = g.clone();
+        Graph h = new Graph(g.getNumVertices(), g.getName());
+        h.setAdjList(g.getAdjList());
+        h.setNumEdges(g.getNumEdges());
         Assertions.assertEquals(g, h, "Identical graphs were not returned true.");
         h.appendVertices(1);
         Assertions.assertNotEquals(g, h, "When passed different graphs, equals method should return false");
