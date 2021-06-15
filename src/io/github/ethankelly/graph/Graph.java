@@ -88,6 +88,24 @@ public class Graph implements Cloneable {
 	}
 
 	/**
+	 * Given some list of vertices (tuple), this method verifies that all of the vertices in the graph given are in fact
+	 * connected. That is, we are only interested in a tuple of vertices that constitute some manner of path (cycle or
+	 * such like) - if not, then we do not have to consider the associated equation in the final system of equations
+	 * that describes our compartmental model and we can discount the given tuple.
+	 *
+	 * @param toCheck the tuple we wish to check constitutes some kind of path.
+	 * @return true if the tuple forms a path in some way, false otherwise.
+	 */
+	public boolean areAllConnected(List<Vertex> toCheck) {
+		// If there's only one vertex in the list, required in the system of equations - ensure this returns true.
+		// If more than one vertex, return whether they all have some path between them.
+		return toCheck.size() == 1 || IntStream.range(0, toCheck.size() - 1).allMatch(
+				i -> hasEdge(new Vertex(toCheck.get(i).getLocation()),
+						new Vertex(toCheck.get(i + 1).getLocation()))
+		);
+	}
+
+	/**
 	 * Finds the cut-vertices of the graph, deletes edges attached to them, creates sub-graphs for each of the remaining
 	 * connected components and replaces the cut-vertex in each of them and returns the list of graphs.
 	 *

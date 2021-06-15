@@ -163,7 +163,7 @@ public class Tuple {
         Graph g = this.getGraph();
         return Vertex.areStatesDifferent(toAdd, closures)
                && Vertex.areLocationsDifferent(toAdd)
-               && Vertex.areAllConnected(toAdd, g);
+               && g.areAllConnected(toAdd);
     }
 
     /**

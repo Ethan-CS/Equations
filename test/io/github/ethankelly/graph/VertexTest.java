@@ -59,22 +59,16 @@ class VertexTest {
 	}
 
 	@Test
-	void areAllConnected() {
-	}
-
-	@Test
 	void testEquals() {
-	}
+		Vertex v = new Vertex('S', 1);
+		Vertex w = new Vertex('S', 1);
 
-	@Test
-	void testHashCode() {
-	}
+		Assertions.assertEquals(v, w, "Equivalent vertices did not return true");
 
-	@Test
-	void testClone() {
-	}
+		Vertex x = new Vertex('I', 1);
+		Vertex y = new Vertex('S', 2);
 
-	@Test
-	void compareTo() {
+		Assertions.assertNotEquals(v, x, "Non-equivalent vertices returned equal");
+		Assertions.assertNotEquals(v, y, "Non-equivalent vertices returned equal");
 	}
 }

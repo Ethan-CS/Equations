@@ -4,7 +4,6 @@ import io.github.ethankelly.symbols.Maths;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.IntStream;
 
 /**
  * The {@code VertexState} class represents an instance of a vertex being in a particular state in a compartmental
@@ -84,25 +83,6 @@ public class Vertex implements Comparable<Vertex> {
             }
 		}
 		return locationsDifferent;
-	}
-
-	/**
-	 * Given some list of vertices (tuple), this method verifies that all of the vertices in the graph given are in fact
-	 * connected. That is, we are only interested in a tuple of vertices that constitute some manner of path (cycle or
-	 * such like) - if not, then we do not have to consider the associated equation in the final system of equations
-	 * that describes our compartmental model and we can discount the given tuple.
-	 *
-	 * @param toCheck the tuple we wish to check constitutes some kind of path.
-	 * @param g       the graph in which the tuple exists.
-	 * @return true if the tuple forms a path in some way, false otherwise.
-	 */
-	public static boolean areAllConnected(List<Vertex> toCheck, Graph g) {
-		// If there's only one vertex in the list, required in the system of equations - ensure this returns true.
-		// If more than one vertex, return whether they all have some path between them.
-		return toCheck.size() == 1 || IntStream.range(0, toCheck.size() - 1).allMatch(
-				i -> g.hasEdge(new Vertex(toCheck.get(i).getLocation()),
-						new Vertex(toCheck.get(i + 1).getLocation()))
-		);
 	}
 
 	/**
@@ -186,8 +166,8 @@ public class Vertex implements Comparable<Vertex> {
 		int SAME = 0;
 		int AFTER = 1;
 
-		int states = 0;
-		int locations = 0;
+		int states = SAME;
+		int locations = SAME;
 
 		if (this.getState() < that.getState()) states = BEFORE;
 		else if (this.getState() > that.getState()) states = AFTER;
@@ -195,7 +175,7 @@ public class Vertex implements Comparable<Vertex> {
 		if (this.getLocation() < that.getLocation()) locations = BEFORE;
 		else if (this.getState() > that.getLocation()) locations = AFTER;
 
-		if (states == 0) return locations;
+		if (states == SAME) return locations;
 		else return states;
 	}
 }
