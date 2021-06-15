@@ -5,16 +5,13 @@ import io.github.ethankelly.graph.GraphGenerator;
 import io.github.ethankelly.graph.Vertex;
 import io.github.ethankelly.symbols.Greek;
 import io.github.ethankelly.symbols.Maths;
-import org.apache.commons.math3.exception.DimensionMismatchException;
-import org.apache.commons.math3.exception.MaxCountExceededException;
-import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @SuppressWarnings("DuplicatedCode")
-public class Equations implements FirstOrderDifferentialEquations {
+public class Equations {
 
     public static List<String> generateEquations(Tuple tuples) {
         List<String> equations = new ArrayList<>();
@@ -28,10 +25,10 @@ public class Equations implements FirstOrderDifferentialEquations {
         Arrays.sort(sir);
         Arrays.sort(sip);
         Arrays.sort(sirp);
+        int numVertices = tuples.getGraph().getNumVertices();
+
         if (Arrays.equals(states, sir)) states = si;
         else if (Arrays.equals(states, sirp)) states = sip;
-
-        int numVertices = tuples.getGraph().getNumVertices();
 
         for (List<Vertex> tuple : tuples.getTuples()) {
             StringBuilder eqn = new StringBuilder(); // The String representation of the equation of the tuples
@@ -137,15 +134,5 @@ public class Equations implements FirstOrderDifferentialEquations {
         for (Graph subGraph : subGraphsH) {
             System.out.println(subGraph);
         }
-    }
-
-    @Override
-    public int getDimension() {
-        return 1;
-    }
-
-    @Override
-    public void computeDerivatives(double v, double[] doubles, double[] doubles1) throws MaxCountExceededException, DimensionMismatchException {
-
     }
 }
