@@ -84,7 +84,7 @@ public class Tuple {
      *
      * @return the number of single-probability differential equations required by the model.
      */
-    public List<Vertex> findSingles() {
+    public List<List<Vertex>> findSingles() {
         // Get states, graph and the vertices in the associated graph for the model
         char[] states = this.getStates();
         Arrays.sort(states);
@@ -106,17 +106,17 @@ public class Tuple {
         Arrays.setAll(vertices, i -> i);
 
         // We need an equation for the probability of each vertex being in each state
-        List<Vertex> verticesWeNeed = new ArrayList<>();
+        List<List<Vertex>> verticesWeNeed = new ArrayList<>();
         for (char c : states) {
             for (int v : vertices) {
-                verticesWeNeed.add(new Vertex(c, v));
+                verticesWeNeed.add(Collections.singletonList(new Vertex(c, v)));
             }
         }
         return verticesWeNeed;
     }
 
     // Recursive helper method to generate the total equations we need
-    private void generateTuples(List<Vertex> items,
+    private void generateTuples(List<List<Vertex>> items,
                                 List<Vertex> selected,
                                 int index,
                                 List<List<Vertex>> result) {
@@ -124,7 +124,7 @@ public class Tuple {
             result.add(new ArrayList<>(selected));
         } else {
             generateTuples(items, selected, index + 1, result);
-            selected.add(items.get(index));
+            selected.add(items.get(index).get(0)); // get(0) since items is composed of singleton lists
             generateTuples(items, selected, index + 1, result);
             selected.remove(selected.size() - 1);
         }
@@ -137,7 +137,7 @@ public class Tuple {
      * @return a list of each n-tuple we are required to express to exactly detail the model system dynamics.
      */
     public List<List<Vertex>> generateTuples(boolean closures) {
-        List<Vertex> items = this.findSingles();
+        List<List<Vertex>> items = this.findSingles();
         List<List<Vertex>> result = new ArrayList<>();
         List<Vertex> selected = new ArrayList<>();
         generateTuples(items, selected, 0, result);
@@ -146,6 +146,8 @@ public class Tuple {
         // constitute valid (necessary) tuples (and sort by length of sub-arrays).
         result.removeIf(row -> !this.isValidTuple(row, closures));
         result.sort(Comparator.comparingInt(List::size));
+
+        for (List<Vertex> tuple : result) Collections.sort(tuple);
 
         return result;
     }
@@ -181,5 +183,10 @@ public class Tuple {
      */
     public char[] getStates() {
         return this.states;
+    }
+
+    @Override
+    public String toString() {
+        return String.valueOf(tuples);
     }
 }

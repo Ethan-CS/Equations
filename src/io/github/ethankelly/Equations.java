@@ -38,40 +38,40 @@ public class Equations {
                     case 'S' -> {
                         if (new String(states).contains("P")) {
                             if (eqn.length() > (tuple + " = ").length()) eqn.append("+ ");
-                            eqn.append(Greek.ALPHA.uni()).append(Maths.LANGLE.uni()).append("P")
-                                    .append(vs.getLocation()).append(Maths.RANGLE.uni());
+                            eqn.append(Greek.ALPHA.uni()).append(Maths.L_ANGLE.uni()).append("P")
+                                    .append(vs.getLocation()).append(Maths.R_ANGLE.uni());
                         }
 
                         for (int j = 0; j < numVertices; j++) {
                             Vertex w = new Vertex(j);
                             if (tuples.getGraph().hasEdge(vs.getLocation(), w.getLocation())) {
                                 eqn.append("- ");
-                                eqn.append(Greek.BETA.uni()).append(Maths.LANGLE.uni()).append("S").append(vs.getLocation())
-                                        .append(" I").append(j).append(Maths.RANGLE.uni());
+                                eqn.append(Greek.BETA.uni()).append(Maths.L_ANGLE.uni()).append("S").append(vs.getLocation())
+                                        .append(" I").append(j).append(Maths.R_ANGLE.uni());
                             }
                         }
                         if (Arrays.equals(states, sirp))
-                            eqn.append("- ").append(Greek.ZETA.uni()).append(Maths.LANGLE.uni())
-                                    .append("S").append(vs.getLocation()).append(Maths.RANGLE.uni());
+                            eqn.append("- ").append(Greek.ZETA.uni()).append(Maths.L_ANGLE.uni())
+                                    .append("S").append(vs.getLocation()).append(Maths.R_ANGLE.uni());
                     }
                     case 'I' -> {
                         for (int j = 0; j < numVertices; j++) {
                             if (tuples.getGraph().hasEdge(vs.getLocation(), j)) {
                                 if (eqn.length() > (tuple + " = ").length() && eqn.charAt(eqn.length() - 1) != '+')
                                     eqn.append("+ ");
-                                eqn.append(Greek.GAMMA.uni()).append(Maths.LANGLE.uni()).append("S").append(vs.getLocation())
-                                        .append(" I").append(j).append(Maths.RANGLE.uni());
+                                eqn.append(Greek.GAMMA.uni()).append(Maths.L_ANGLE.uni()).append("S").append(vs.getLocation())
+                                        .append(" I").append(j).append(Maths.R_ANGLE.uni());
                             }
                         }
                         eqn.append("- ").append(Greek.GAMMA.uni()).
-                                append(Maths.LANGLE.uni()).append("I").append(vs.getLocation()).append(Maths.RANGLE.uni());
+                                append(Maths.L_ANGLE.uni()).append("I").append(vs.getLocation()).append(Maths.R_ANGLE.uni());
                     }
                     case 'P' -> {
                         if (eqn.length() > (tuple + " = ").length() && eqn.charAt(eqn.length() - 1) != '+')
                             eqn.append("+ ");
-                        eqn.append(Greek.ZETA.uni()).append(Maths.LANGLE.uni()).append("S").append(vs.getLocation())
-                                .append(Maths.RANGLE.uni()).append("- ").append(Greek.ALPHA.uni()).append(Maths.LANGLE.uni())
-                                .append("P").append(vs.getLocation()).append(Maths.RANGLE.uni());
+                        eqn.append(Greek.ZETA.uni()).append(Maths.L_ANGLE.uni()).append("S").append(vs.getLocation())
+                                .append(Maths.R_ANGLE.uni()).append("- ").append(Greek.ALPHA.uni()).append(Maths.L_ANGLE.uni())
+                                .append("P").append(vs.getLocation()).append(Maths.R_ANGLE.uni());
                     }
                     default -> throw new IllegalStateException("Unexpected state: " + Character.toUpperCase(vs.getState()));
                 }

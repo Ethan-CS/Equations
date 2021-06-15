@@ -1,9 +1,14 @@
 package io.github.ethankelly.symbols;
 
+/**
+ * An enum containing maths symbols used in the project with their associated unicode values.
+ *
+ * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
+ */
 public enum Maths {
 
-    LANGLE("\u3008"),
-    RANGLE("\u3009");
+    L_ANGLE("\u3008"),
+    R_ANGLE("\u3009");
 
     private final String uni;
 

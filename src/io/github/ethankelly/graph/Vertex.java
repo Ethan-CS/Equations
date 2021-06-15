@@ -43,7 +43,7 @@ public class Vertex implements Comparable<Vertex> {
 		// If there's only one vertex in the list, by definition we require it
 		// in the system of equations so we ensure this method returns true.
 		if (toCheck.size() == 1) statesDifferent = true;
-        else {
+		else {
 			// We only need to find two different states to know that the states are
 			// at least not all the same, returning true.
 			for (Vertex v : toCheck) {
@@ -77,10 +77,10 @@ public class Vertex implements Comparable<Vertex> {
 		// Only need to find two vertices in the list with same index location
 		// to know we don't have a required tuple, returning false.
 		for (Vertex v : vertices) {
-            if (vertices.stream().anyMatch(w -> v.getLocation() == w.getLocation() && v != w)) {
-                locationsDifferent = false;
-                break;
-            }
+			if (vertices.stream().anyMatch(w -> v.getLocation() == w.getLocation() && v != w)) {
+				locationsDifferent = false;
+				break;
+			}
 		}
 		return locationsDifferent;
 	}
@@ -147,7 +147,7 @@ public class Vertex implements Comparable<Vertex> {
 	@Override
 	public String toString() {
 		if (this.getState() == ' ') return String.valueOf(this.getLocation());
-		else return Maths.LANGLE.uni() + this.getState() + this.getLocation() + Maths.RANGLE.uni();
+		else return Maths.L_ANGLE.uni() + this.getState() + this.getLocation() + Maths.R_ANGLE.uni();
 	}
 
 	/**
@@ -166,16 +166,18 @@ public class Vertex implements Comparable<Vertex> {
 		int SAME = 0;
 		int AFTER = 1;
 
-		int states = SAME;
 		int locations = SAME;
 
-		if (this.getState() < that.getState()) states = BEFORE;
-		else if (this.getState() > that.getState()) states = AFTER;
+//		int states = SAME;
+//		if (this.getState() < that.getState()) states = BEFORE;
+//		else if (this.getState() > that.getState()) states = AFTER;
 
 		if (this.getLocation() < that.getLocation()) locations = BEFORE;
 		else if (this.getState() > that.getLocation()) locations = AFTER;
 
-		if (states == SAME) return locations;
-		else return states;
+//		if (states == SAME) return locations;
+//		else return states;
+
+		return locations;
 	}
 }

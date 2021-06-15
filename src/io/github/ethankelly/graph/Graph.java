@@ -60,6 +60,7 @@ public class Graph implements Cloneable {
 		g1.addEdge(2, 5);
 		g1.addEdge(2, 3);
 		g1.addEdge(3, 4);
+		System.out.println(g1);
 		List<Graph> g1Spliced = g1.splice();
 		System.out.println("--- Spliced ---");
 		for (Graph g : g1Spliced) System.out.println(g);

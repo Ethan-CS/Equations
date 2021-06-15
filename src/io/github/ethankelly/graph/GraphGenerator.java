@@ -15,7 +15,7 @@ import java.util.stream.IntStream;
  * The {@code GraphGenerator} class provides several methods for creating various graphs, including Erdos-Renyi random
  * graphs, random bipartite graphs, random k-regular graphs, and random rooted trees.
  *
- * @author Ethan Kelly
+ * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
  */
 public class GraphGenerator {
     private static long seed;

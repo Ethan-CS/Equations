@@ -1,5 +1,10 @@
 package io.github.ethankelly.symbols;
 
+/**
+ * An enum containing the names of the characters of the Greek alphabet and their associated unicode values.
+ *
+ * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
+ */
 @SuppressWarnings("unused")
 public enum Greek {
     ALPHA("\u03B1"),
