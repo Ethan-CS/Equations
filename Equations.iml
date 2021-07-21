@@ -61,5 +61,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="org.apache.commons:commons-math3:3.6.1" level="project" />
+    <orderEntry type="library" name="org.apache.commons:commons-math3:3.6.11" level="project" />
   </component>
 </module>

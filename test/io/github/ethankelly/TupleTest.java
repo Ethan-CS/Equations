@@ -17,10 +17,10 @@ public class TupleTest {
     public static char[] sip = new char[]{'S', 'I', 'P'};
     public static char[] sirp = new char[]{'S', 'I', 'R', 'P'};
 
-    public static Tuple triangleTuplesClosuresSIR = new Tuple(GraphGenerator.getTriangle(), sir, true);
-    public static Tuple triangleTuplesNoClosuresSIR = new Tuple(GraphGenerator.getTriangle(), sir, false);
-    public static Tuple triangleTuplesClosuresSIRP = new Tuple(GraphGenerator.getTriangle(), sirp, true);
-    public static Tuple triangleTuplesNoClosuresSIRP = new Tuple(GraphGenerator.getTriangle(), sirp, false);
+    public static Tuples triangleTuplesClosuresSIR = new Tuples(GraphGenerator.getTriangle(), sir, true);
+    public static Tuples triangleTuplesNoClosuresSIR = new Tuples(GraphGenerator.getTriangle(), sir, false);
+    public static Tuples triangleTuplesClosuresSIRP = new Tuples(GraphGenerator.getTriangle(), sirp, true);
+    public static Tuples triangleTuplesNoClosuresSIRP = new Tuples(GraphGenerator.getTriangle(), sirp, false);
 
     public static List<List<Vertex>> expectedTriangleSIRPSingles = new ArrayList<>();
     public static List<List<Vertex>> expectedTriangleSIRPTuples = new ArrayList<>();
@@ -36,11 +36,6 @@ public class TupleTest {
         expectedTriangleSIRSingles.add(Collections.singletonList(new Vertex('I', 0)));
         expectedTriangleSIRSingles.add(Collections.singletonList(new Vertex('I', 1)));
         expectedTriangleSIRSingles.add(Collections.singletonList(new Vertex('I', 2)));
-
-        expectedTriangleSIRPSingles.addAll(expectedTriangleSIRSingles);
-        expectedTriangleSIRPSingles.add(Collections.singletonList(new Vertex('P', 0)));
-        expectedTriangleSIRPSingles.add(Collections.singletonList(new Vertex('P', 1)));
-        expectedTriangleSIRPSingles.add(Collections.singletonList(new Vertex('P', 2)));
 
         List<List<Vertex>> expectedTriangleSIRDoubles = new ArrayList<>();
         expectedTriangleSIRDoubles.add(Arrays.asList(new Vertex('S', 0), new Vertex('I', 1)));
@@ -76,6 +71,17 @@ public class TupleTest {
         System.out.println(triangleTuplesNoClosuresSIR);
         System.out.println(expectedTriangleSIRTuples.size());
         System.out.println(triangleTuplesNoClosuresSIR.getTuples().size());
+
+        expectedTriangleSIRPSingles.addAll(expectedTriangleSIRSingles);
+        expectedTriangleSIRPSingles.add(Collections.singletonList(new Vertex('P', 0)));
+        expectedTriangleSIRPSingles.add(Collections.singletonList(new Vertex('P', 1)));
+        expectedTriangleSIRPSingles.add(Collections.singletonList(new Vertex('P', 2)));
+
+//        List<List<Vertex>> expectedTriangleSIRPDoubles = new ArrayList<>();
+//        expectedTriangleSIRPDoubles.add()
+
+        expectedTriangleSIRPTuples.addAll(expectedTriangleSIRPSingles);
+
     }
 
     @Test
@@ -106,11 +112,21 @@ public class TupleTest {
     @Test
     void testTriangleTuples() {
         Assertions.assertEquals(expectedTriangleSIRTuples.size(), triangleTuplesNoClosuresSIR.getTuples().size(),
-                "Triangle tuples without closures contains too many tuples");
+                "Expected and actual triangle tuples are different in size.");
         Assertions.assertTrue(expectedTriangleSIRTuples.containsAll(triangleTuplesNoClosuresSIR.getTuples()),
-                "Triangle tuples without closures is missing tuples");
-//        Assertions.assertTrue(expectedTriangleSIRTuples.containsAll(triangleTuplesClosuresSIR.getTuples()) &&
-//                        triangleTuplesClosuresSIR.getTuples().containsAll(expectedTriangleSIRTuples),
-//                "Triangle tuples with closures not as expected");
+                "Expected triangle tuples without closures does not contain all of actual tuples.");
+        Assertions.assertTrue(expectedTriangleSIRTuples.containsAll(triangleTuplesNoClosuresSIR.getTuples()),
+                "Obtained triangle tuples without closures does not contain all of expected tuples.");
+
+        // Add in extra tuples for closures (all susceptible states)
+        expectedTriangleSIRTuples.add(Arrays.asList(new Vertex('S', 0), new Vertex('S', 1)));
+        expectedTriangleSIRTuples.add(Arrays.asList(new Vertex('S', 0), new Vertex('S', 2)));
+        expectedTriangleSIRTuples.add(Arrays.asList(new Vertex('S', 1), new Vertex('S', 2)));
+        expectedTriangleSIRTuples.add(Arrays.asList(new Vertex('S', 0), new Vertex('S', 1),
+                new Vertex('S', 2)));
+
+        Assertions.assertTrue(expectedTriangleSIRTuples.containsAll(triangleTuplesClosuresSIR.getTuples()) &&
+                        triangleTuplesClosuresSIR.getTuples().containsAll(expectedTriangleSIRTuples),
+                "Triangle tuples with closures not as expected");
     }
 }

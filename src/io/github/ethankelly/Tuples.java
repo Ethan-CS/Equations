@@ -13,20 +13,19 @@ import java.util.*;
  * vertices connected in some way by a number of edges). The graphs may be randomly generated or hard-coded and the
  * states can be specified when running the model.
  */
-@SuppressWarnings("DuplicatedCode")
-public class Tuple {
+public class Tuples {
     private List<List<Vertex>> tuples;
     private final Graph graph;
     private final char[] states;
-    private boolean closures;
+    private final boolean closures;
 
     /**
      * Class constructor - assigns a graph and some array of states to a new Tuple object.
-     *  @param graph  the graph of which we are interested in equations.
-     * @param states the states that a vertex can be in (e.g. SIP).
+     * @param graph  the graph of which we are interested in equations.
+     * @param states the states that a vertex can be in (e.g. SIR).
      * @param closures whether to include closures in the generated tuples.
      */
-    public Tuple(Graph graph, char[] states, boolean closures) {
+    public Tuples(Graph graph, char[] states, boolean closures) {
         this.graph = graph;
         this.states = states;
         this.tuples = this.generateTuples(closures);
@@ -64,7 +63,7 @@ public class Tuple {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Tuple tuple = (Tuple) o;
+        Tuples tuple = (Tuples) o;
         return closures == tuple.closures &&
                 Objects.equals(getTuples(), tuple.getTuples()) &&
                 Objects.equals(getGraph(), tuple.getGraph()) &&
@@ -88,17 +87,9 @@ public class Tuple {
         // Get states, graph and the vertices in the associated graph for the model
         char[] states = this.getStates();
         Arrays.sort(states);
-        char[] si = new char[]{'S', 'I'};
-        char[] sir = new char[]{'S', 'I', 'R'};
-        char[] sip = new char[]{'S', 'I', 'P'};
-        char[] sirp = new char[]{'S', 'I', 'R', 'P'};
-        Arrays.sort(si);
-        Arrays.sort(sir);
-        Arrays.sort(sip);
-        Arrays.sort(sirp);
 
-        if (Arrays.equals(states, sir)) states = si;
-        else if (Arrays.equals(states, sirp)) states = sip;
+        if (Arrays.equals(states, States.sir.states())) states = States.si.states();
+        else if (Arrays.equals(states, States.sirp.states())) states = States.sip.states();
 
         Graph graph = this.getGraph();
         int numVertices = graph.getNumVertices();

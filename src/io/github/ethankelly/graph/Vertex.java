@@ -150,6 +150,11 @@ public class Vertex implements Comparable<Vertex> {
 		else return Maths.L_ANGLE.uni() + this.getState() + this.getLocation() + Maths.R_ANGLE.uni();
 	}
 
+	public String plainToString() {
+		if (this.getState() == ' ') return String.valueOf(this.getLocation());
+		else return String.valueOf(this.getState()) + this.getLocation();
+	}
+
 	/**
 	 * Compares this object with the specified object for order.  Returns a negative integer, zero, or a positive
 	 * integer as this object is less than, equal to, or greater than the specified object.
