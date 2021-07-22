@@ -1,5 +1,6 @@
 package io.github.ethankelly.graph;
 
+import io.github.ethankelly.Tuple;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -10,51 +11,56 @@ class VertexTest {
 
 	@Test
 	void areStatesDifferent() {
-		List<Vertex> allSusceptible = new ArrayList<>();
-		allSusceptible.add(new Vertex('S', 1));
-		allSusceptible.add(new Vertex('S', 2));
-		allSusceptible.add(new Vertex('S', 3));
+		List<Vertex> S = new ArrayList<>();
+		S.add(new Vertex('S', 1));
+		S.add(new Vertex('S', 2));
+		S.add(new Vertex('S', 3));
+		Tuple allSusceptible = new Tuple(S);
 
-		List<Vertex> allInfected = new ArrayList<>();
-		allInfected.add(new Vertex('I', 1));
-		allInfected.add(new Vertex('I', 2));
-		allInfected.add(new Vertex('I', 3));
+		List<Vertex> I = new ArrayList<>();
+		I.add(new Vertex('I', 1));
+		I.add(new Vertex('I', 2));
+		I.add(new Vertex('I', 3));
+		Tuple allInfected = new Tuple(I);
 
-		List<Vertex> differentStates = new ArrayList<>();
-		differentStates.add(new Vertex('S', 1));
-		differentStates.add(new Vertex('I', 2));
-		differentStates.add(new Vertex('R', 3));
+		List<Vertex> SIR = new ArrayList<>();
+		SIR.add(new Vertex('S', 1));
+		SIR.add(new Vertex('I', 2));
+		SIR.add(new Vertex('R', 3));
+		Tuple differentStates = new Tuple(SIR);
 
-		Assertions.assertFalse(Vertex.areStatesDifferent(allSusceptible, false),
+		Assertions.assertFalse(allSusceptible.areStatesDifferent(false),
 				"All susceptible without closures should return false");
-		Assertions.assertTrue(Vertex.areStatesDifferent(differentStates, false),
+		Assertions.assertTrue(differentStates.areStatesDifferent(false),
 				"Different states should return true without closures");
-		Assertions.assertTrue(Vertex.areStatesDifferent(differentStates, true),
+		Assertions.assertTrue(differentStates.areStatesDifferent(true),
 				"Different states should return true with closures");
-		Assertions.assertTrue(Vertex.areStatesDifferent(allSusceptible, true),
+		Assertions.assertTrue(allSusceptible.areStatesDifferent(true),
 				"All susceptible with closures should return true");
-		Assertions.assertFalse(Vertex.areStatesDifferent(allInfected, true),
+		Assertions.assertFalse(allInfected.areStatesDifferent(true),
 				"All the same (other than susceptible) should return false with closures");
 	}
 
 	@Test
 	void areLocationsDifferent() {
-		List<Vertex> allSameLocation = new ArrayList<>();
-		allSameLocation.add(new Vertex('S', 1));
-		allSameLocation.add(new Vertex('I', 1));
-		allSameLocation.add(new Vertex('R', 1));
+		List<Vertex> same = new ArrayList<>();
+		same.add(new Vertex('S', 1));
+		same.add(new Vertex('I', 1));
+		same.add(new Vertex('R', 1));
+		Tuple allSameLocation = new Tuple(same);
 
-		List<Vertex> allDifferentLocation = new ArrayList<>();
-		allDifferentLocation.add(new Vertex('S', 1));
-		allDifferentLocation.add(new Vertex('I', 2));
-		allDifferentLocation.add(new Vertex('R', 3));
+		List<Vertex> different = new ArrayList<>();
+		different.add(new Vertex('S', 1));
+		different.add(new Vertex('I', 2));
+		different.add(new Vertex('R', 3));
+		Tuple allDifferentLocation = new Tuple(different);
 
-		Assertions.assertFalse(Vertex.areLocationsDifferent(allSameLocation),
+		Assertions.assertFalse(allSameLocation.areLocationsDifferent(),
 				"All same location vertices should return false.");
-		Assertions.assertTrue(Vertex.areLocationsDifferent(allDifferentLocation),
+		Assertions.assertTrue(allDifferentLocation.areLocationsDifferent(),
 				"All different locations should return true.");
 		allDifferentLocation.add(new Vertex('S', 1));
-		Assertions.assertFalse(Vertex.areLocationsDifferent(allDifferentLocation),
+		Assertions.assertFalse(allDifferentLocation.areLocationsDifferent(),
 				"Two of same location in list should return false.");
 	}
 

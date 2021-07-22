@@ -88,23 +88,23 @@ public class TupleTest {
     void testTriangleGenerateSingles() {
         // Check expected and actual singles for SIR
         // With closures
-        List<List<Vertex>> actualClosedSIR = triangleTuplesClosuresSIR.findSingles();
+        List<Tuple> actualClosedSIR = triangleTuplesClosuresSIR.findSingles();
         Assertions.assertTrue(expectedTriangleSIRSingles.containsAll(actualClosedSIR),
                 "SIR Triangle singles with closures not as expected");
 
         // Without closures (shouldn't matter for singles)
-        List<List<Vertex>> actualNotClosedSIR = triangleTuplesNoClosuresSIR.findSingles();
+        List<Tuple> actualNotClosedSIR = triangleTuplesNoClosuresSIR.findSingles();
         Assertions.assertTrue(expectedTriangleSIRSingles.containsAll(actualNotClosedSIR),
                 "SIR Triangle singles without closures not as expected");
 
         // Same again, for SIRP
         // With closures
-        List<List<Vertex>> actualClosedSIRP = triangleTuplesClosuresSIRP.findSingles();
+        List<Tuple> actualClosedSIRP = triangleTuplesClosuresSIRP.findSingles();
         Assertions.assertTrue(expectedTriangleSIRPSingles.containsAll(actualClosedSIRP),
                 "SIRP triangle singles with closures not as expected");
 
         // Without closures (shouldn't matter for singles)
-        List<List<Vertex>> actualNotClosedSIRP = triangleTuplesNoClosuresSIRP.findSingles();
+        List<Tuple> actualNotClosedSIRP = triangleTuplesNoClosuresSIRP.findSingles();
         Assertions.assertTrue(expectedTriangleSIRPSingles.containsAll(actualNotClosedSIRP),
                 "SIRP triangle singles without closures not as expected");
     }

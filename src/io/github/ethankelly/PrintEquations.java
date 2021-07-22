@@ -21,10 +21,10 @@ public class PrintEquations {
         if (Arrays.equals(states, States.sir.states())) states = States.si.states();
         else if (Arrays.equals(states, States.sirp.states())) states = States.sip.states();
 
-        for (List<Vertex> tuple : tuples.getTuples()) {
+        for (Tuple tuple : tuples.getTuples()) {
             StringBuilder eqn = new StringBuilder(); // The String representation of the equation of the tuples
             eqn.append(tuple.toString()).append(" = ");
-            for (Vertex vs : tuple) {
+            for (Vertex vs : tuple.getSingles()) {
                 switch (Character.toUpperCase(vs.getState())) {
                     case 'S' -> {
                         if (new String(states).contains("P")) {
