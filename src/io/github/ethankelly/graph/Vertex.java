@@ -1,5 +1,6 @@
 package io.github.ethankelly.graph;
 
+import io.github.ethankelly.Tuple;
 import io.github.ethankelly.symbols.Maths;
 
 import java.util.HashMap;
@@ -28,61 +29,6 @@ public class Vertex implements Comparable<Vertex> {
 	public Vertex(int location) {
 		this.state = ' ';
 		this.location = location;
-	}
-
-	/**
-	 * Given a list of vertices (some tuple), this method checks whether all of the states are the same. If they are the
-	 * same, we do not have to consider the associated equation of the tuple in the final system of equations that
-	 * describes our compartmental model.
-	 *
-	 * @param toCheck the tuple we wish to verify has at least two different states in its elements.
-	 * @return true if at least one vertex state is different to that of the others, false if they are all the same.
-	 */
-	public static boolean areStatesDifferent(List<Vertex> toCheck, boolean reqClosures) {
-		boolean statesDifferent = false;
-		// If there's only one vertex in the list, by definition we require it
-		// in the system of equations so we ensure this method returns true.
-		if (toCheck.size() == 1) statesDifferent = true;
-		else {
-			// We only need to find two different states to know that the states are
-			// at least not all the same, returning true.
-			for (Vertex v : toCheck) {
-				for (Vertex w : toCheck) {
-					if (v.getState() != w.getState()) {
-						statesDifferent = true;
-						break;
-					} else if (reqClosures) {
-						if ((v.getState() == 'S') ||  (w.getState() == 'S')) {
-							statesDifferent = true;
-							break;
-						}
-					}
-				}
-			}
-		}
-		return statesDifferent;
-	}
-
-	/**
-	 * Given some list of vertices (some tuple), this method checks whether the index locations of every element of the
-	 * tuple are all distinct. If even two of the vertices have the same location, it is not a valid tuple for our
-	 * purposes and we will not hve to consider the associated equation in the final system of equations that describes
-	 * our compartmental model.
-	 *
-	 * @param vertices the tuple we wish to verify has no repeated vertex locations.
-	 * @return true if no index location is repeated in the vertices, false otherwise.
-	 */
-	public static boolean areLocationsDifferent(List<Vertex> vertices) {
-		boolean locationsDifferent = true;
-		// Only need to find two vertices in the list with same index location
-		// to know we don't have a required tuple, returning false.
-		for (Vertex v : vertices) {
-			if (vertices.stream().anyMatch(w -> v.getLocation() == w.getLocation() && v != w)) {
-				locationsDifferent = false;
-				break;
-			}
-		}
-		return locationsDifferent;
 	}
 
 	/**

@@ -14,7 +14,7 @@ import java.util.*;
  * states can be specified when running the model.
  */
 public class Tuples {
-    private List<List<Vertex>> tuples;
+    private List<Tuple> tuples;
     private final Graph graph;
     private final char[] states;
     private final boolean closures;
@@ -32,13 +32,8 @@ public class Tuples {
         this.closures = closures;
     }
 
-    public List<List<Vertex>> getTuples() {
+    public List<Tuple> getTuples() {
         return this.tuples;
-    }
-
-    @SuppressWarnings("unused")
-    public void setTuples(List<List<Vertex>> tuples) {
-        this.tuples = tuples;
     }
 
     /**
@@ -48,13 +43,13 @@ public class Tuples {
      * @param equations the equations to find the numbers of each length.
      * @return An array with the number of equations of each size required to exactly describe the SIR system.
      */
-    public int[] findNumbers(List<List<Vertex>> equations) {
+    public int[] findNumbers(List<Tuple> equations) {
         // The array needs as many elements as there are different sizes in the equations list,
         // So initialise to (1 less than) the size of the largest (final) sub-list.
-        int[] sizes = new int[equations.get(equations.size() - 1).size()];
+        int[] sizes = new int[equations.get(equations.size() - 1).getSingles().size()];
         // For each sub-list we come across, increase the element at the array position corresponding
         // to its size.
-        equations.forEach(equation -> sizes[equation.size() - 1]++);
+        equations.forEach(equation -> sizes[equation.getSingles().size() - 1]++);
 
         return sizes;
     }
@@ -83,7 +78,7 @@ public class Tuples {
      *
      * @return the number of single-probability differential equations required by the model.
      */
-    public List<List<Vertex>> findSingles() {
+    public List<Tuple> findSingles() {
         // Get states, graph and the vertices in the associated graph for the model
         char[] states = this.getStates();
         Arrays.sort(states);
@@ -97,25 +92,25 @@ public class Tuples {
         Arrays.setAll(vertices, i -> i);
 
         // We need an equation for the probability of each vertex being in each state
-        List<List<Vertex>> verticesWeNeed = new ArrayList<>();
+        List<Tuple> verticesWeNeed = new ArrayList<>();
         for (char c : states) {
             for (int v : vertices) {
-                verticesWeNeed.add(Collections.singletonList(new Vertex(c, v)));
+                verticesWeNeed.add(new Tuple(new Vertex(c, v)));
             }
         }
         return verticesWeNeed;
     }
 
     // Recursive helper method to generate the total equations we need
-    private void generateTuples(List<List<Vertex>> items,
+    private void generateTuples(List<Tuple> items,
                                 List<Vertex> selected,
                                 int index,
-                                List<List<Vertex>> result) {
+                                List<Tuple> result) {
         if (index >= items.size()) {
-            result.add(new ArrayList<>(selected));
+            result.add(new Tuple(new ArrayList<>(selected)));
         } else {
             generateTuples(items, selected, index + 1, result);
-            selected.add(items.get(index).get(0)); // get(0) since items is composed of singleton lists
+            selected.add(items.get(index).getSingles().get(0)); // get(0) since items is composed of singleton lists
             generateTuples(items, selected, index + 1, result);
             selected.remove(selected.size() - 1);
         }
@@ -127,36 +122,20 @@ public class Tuples {
      *
      * @return a list of each n-tuple we are required to express to exactly detail the model system dynamics.
      */
-    public List<List<Vertex>> generateTuples(boolean closures) {
-        List<List<Vertex>> items = this.findSingles();
-        List<List<Vertex>> result = new ArrayList<>();
+    public List<Tuple> generateTuples(boolean closures) {
+        List<Tuple> items = this.findSingles();
+        List<Tuple> result = new ArrayList<>();
         List<Vertex> selected = new ArrayList<>();
         generateTuples(items, selected, 0, result);
 
         // The helper method gives us all combinations, so remove the ones that don't
         // constitute valid (necessary) tuples (and sort by length of sub-arrays).
-        result.removeIf(row -> !this.isValidTuple(row, closures));
-        result.sort(Comparator.comparingInt(List::size));
+        result.removeIf(row -> !row.isValidTuple(this.getGraph(), closures));
+//        result.sort(Comparator.comparingInt(List::size));
 
-        for (List<Vertex> tuple : result) Collections.sort(tuple);
+//        for (Tuple tuple : result) Collections.sort(tuple);
 
         return result;
-    }
-
-    /**
-     * Given a potential tuple, this method checks that the states of each probability are not all the same, that each
-     * probability corresponds to a different vertex and that all of the vertices involved are in fact connected. If
-     * these three conditions are met, then it is a tuple that we are required to express in the total set of equations
-     * describing the system dynamics.
-     *
-     * @param toAdd the potential tuple we are considering adding to the system dynamics.
-     * @return true if the tuple is essential to expressing the system dynamics, false otherwise.
-     */
-    private boolean isValidTuple(List<Vertex> toAdd, boolean closures) {
-        Graph g = this.getGraph();
-        return Vertex.areStatesDifferent(toAdd, closures)
-               && Vertex.areLocationsDifferent(toAdd)
-               && g.areAllConnected(toAdd);
     }
 
     /**

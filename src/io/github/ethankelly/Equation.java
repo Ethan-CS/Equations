@@ -2,22 +2,24 @@ package io.github.ethankelly;
 
 import io.github.ethankelly.graph.Graph;
 import io.github.ethankelly.graph.GraphGenerator;
-import io.github.ethankelly.graph.Vertex;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.exception.MaxCountExceededException;
 import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 import org.apache.commons.math3.ode.FirstOrderIntegrator;
 import org.apache.commons.math3.ode.nonstiff.DormandPrince853Integrator;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Equation implements FirstOrderDifferentialEquations {
-    private Graph g; // Underlying graph
-    private char[] states; // States used in the model e.g. SIR
-    private List<List<Vertex>> tuples; // The required tuples (found using Tuples class)
-    private int dimension; // The number of equations required (i.e. number of tuples we have)
-    private Map<List<Vertex>, Integer> indicesMapping = new HashMap<>(); // Mapping of tuples to unique integers
-    private double[][] T; // Transmission matrix
+    private final Graph g; // Underlying graph
+    private final char[] states; // States used in the model e.g. SIR
+    private final List<Tuple> tuples; // The required tuples (found using Tuples class)
+    private final int dimension; // The number of equations required (i.e. number of tuples we have)
+    private final Map<Tuple, Integer> indicesMapping = new HashMap<>(); // Mapping of tuples to unique integers
+    private final double[][] T; // Transmission matrix
 
     public double beta = 0.5; // Rate of transmission
     public double gamma = 0.5; // Rate of recovery
@@ -45,14 +47,14 @@ public class Equation implements FirstOrderDifferentialEquations {
      *
      * @return a mapping of required tuples to unique integers.
      */
-    public Map<List<Vertex>, Integer> getIndicesMapping() {
+    public Map<Tuple, Integer> getIndicesMapping() {
         // If we have already created a mapping, return it;
         // Else, create a mapping and store to class attribute
         if (this.indicesMapping.size() == 0) {
-            Map<List<Vertex>, Integer> indices = new HashMap<>(); //  The mapping we will return
-            List<List<Vertex>> tuples = this.getTuples(); // The required tuples to assign unique integers to each
+            Map<Tuple, Integer> indices = new HashMap<>(); //  The mapping we will return
+            List<Tuple> tuples = this.getTuples(); // The required tuples to assign unique integers to each
             int i = 0; // Counter, to make sure we use a systematic mapping
-            for (List<Vertex> list : tuples) indices.put(list, i++);
+            for (Tuple list : tuples) indices.put(list, i++);
             return indices;
         } else {
             return this.indicesMapping;
@@ -62,7 +64,7 @@ public class Equation implements FirstOrderDifferentialEquations {
     /**
      * @return the tuples for which we are required to generate equations.
      */
-    public List<List<Vertex>> getTuples() {
+    public List<Tuple> getTuples() {
         return this.tuples;
     }
 
@@ -76,67 +78,65 @@ public class Equation implements FirstOrderDifferentialEquations {
 
     @Override
     public void computeDerivatives(double v, double[] y, double[] yDot) throws MaxCountExceededException, DimensionMismatchException {
-        List<List<Vertex>> tuples = this.getTuples();
-        Map<List<Vertex>, Integer> indices = this.getIndicesMapping();
-        // Base case (singles) must be dealt with directly, others can be derived systematically
-        for (List<Vertex> tuple : tuples) {
-            if(tuple.size() == 1) {
-                getSingleEquation(y, yDot, tuple);
-            } else {
-                for (int i = 0; i < tuple.size(); i++) {
-                    List<Vertex> iSingle = Collections.singletonList(tuple.get(i));
-                    double yProduct = 1;
-                    for (int j = 0; j < tuple.size(); j++) {
-                        if (i != j) {
-                            List<Vertex> jSingle = Collections.singletonList(tuple.get(j));
-                            yProduct = yProduct * y[indices.get(jSingle)];
-                        }
-                    }
-                    yDot[indices.get(tuple)] += yDot[indices.get(iSingle)] * yProduct;
-                }
-
-            }
-        }
-
-    }
-
-    private void getSingleEquation(double[] y, double[] yDot, List<Vertex> tuple) {
-        Vertex single = tuple.get(0);
-        int i = single.getLocation();
-        // STATE IN SINGLE IS S
-        if (single.getState() == 'S') {
-            for (int j = 0; j < this.T.length; j++) {
-                List<Vertex> S_iI_j = new ArrayList<>();
-                S_iI_j.add(new Vertex('S', i));
-                S_iI_j.add(new Vertex('I', j));
-                System.out.println(S_iI_j);
-                // TODO this isn't working because we need a dedicated, comparable Tuple class rather than using List<Vertex> to represent them directly
-                try {
-                    yDot[this.getIndicesMapping().get(tuple)] +=
-                            - T[i][j] * y[this.getIndicesMapping().get(S_iI_j)];
-                } catch (NullPointerException e) {
-                    List<Vertex> I_jS_i = new ArrayList<>();
-                    I_jS_i.add(new Vertex('I', j));
-                    I_jS_i.add(new Vertex('S', i));
-                    System.out.println("Nope! Trying this instead: " + I_jS_i);
-                    yDot[this.getIndicesMapping().get(tuple)] +=
-                            - T[i][j] * y[this.getIndicesMapping().get(I_jS_i)];
-                }
-            }
-        // STATE IN SINGLE IS I
-        } else if (single.getLocation() == 'I') {
-            for (int j = 0; j < this.T.length; j++) {
-                List<Vertex> S_iI_j = new ArrayList<>();
-                S_iI_j.add(new Vertex('S', i));
-                S_iI_j.add(new Vertex('I', j));
-
-                List<Vertex> I_j = new ArrayList<>();
-                I_j.add(new Vertex('I', j));
-
-                yDot[this.getIndicesMapping().get(tuple)] += T[i][j] * y[this.getIndicesMapping().get(S_iI_j)]
-                        - (gamma * y[this.getIndicesMapping().get(I_j)]);
-            }
-        }
+//        List<Tuple> tuples = this.getTuples();
+//        Map<Tuple, Integer> indices = this.getIndicesMapping();
+//        // Base case (singles) must be dealt with directly, others can be derived systematically
+//        for (Tuple tuple : tuples) {
+//            if(tuple.size() == 1) {
+//                getSingleEquation(y, yDot, tuple);
+//            } else {
+//                for (int i = 0; i < tuple.size(); i++) {
+//                    // TODO this looks suspect
+//                    Tuple iSingle = new Tuple(tuple.getSingles().get(i));
+//                    double yProduct = 1;
+//                    for (int j = 0; j < tuple.size(); j++) {
+//                        if (i != j) {
+//                            List<Vertex> jSingle = Collections.singletonList(tuple.get(j));
+//                            yProduct = yProduct * y[indices.get(jSingle)];
+//                        }
+//                    }
+//                    yDot[indices.get(tuple)] += yDot[indices.get(iSingle)] * yProduct;
+//                }
+//
+//            }
+//        }
+//
+//    }
+//
+//    private void getSingleEquation(double[] y, double[] yDot, Tuple tuple) {
+//        Vertex single = tuple.getSingles().get(0);
+//        int i = single.getLocation();
+//        // STATE IN SINGLE IS S
+//        if (single.getState() == 'S') {
+//            for (int j = 0; j < this.T.length; j++) {
+//                if (i!=j) {
+//                    List<Vertex> S_iI_j = new ArrayList<>();
+//                    S_iI_j.add(new Vertex('S', i));
+//                    S_iI_j.add(new Vertex('I', j));
+//                    System.out.println(S_iI_j);
+//                    // TODO this isn't working because we need a dedicated, comparable Tuple class rather than using List<Vertex> to represent them directly
+//                    try {
+//                        yDot[this.getIndicesMapping().get(tuple)] +=
+//                                -T[i][j] * y[this.getIndicesMapping().get(new Tuple(S_iI_j))];
+//                    } catch (NullPointerException e) {
+//                        System.err.println("Couldn't find a mapping for " + S_iI_j + "\n" + e);
+//                    }
+//                }
+//            }
+//        // STATE IN SINGLE IS I
+//        } else if (single.getLocation() == 'I') {
+//            for (int j = 0; j < this.T.length; j++) {
+//                List<Vertex> S_iI_j = new ArrayList<>();
+//                S_iI_j.add(new Vertex('S', i));
+//                S_iI_j.add(new Vertex('I', j));
+//
+//                List<Vertex> I_j = new ArrayList<>();
+//                I_j.add(new Vertex('I', j));
+//
+//                yDot[this.getIndicesMapping().get(tuple)] += T[i][j] * y[this.getIndicesMapping().get(S_iI_j)]
+//                        - (gamma * y[this.getIndicesMapping().get(I_j)]);
+//            }
+//        }
     }
 
     public static void main(String[] args) {
