@@ -21,7 +21,7 @@ public class PrintEquations {
         if (Arrays.equals(states, States.sir.states())) states = States.si.states();
         else if (Arrays.equals(states, States.sirp.states())) states = States.sip.states();
 
-        for (Tuple tuple : tuples.getTuples()) {
+        for (Tuples.Tuple tuple : tuples.getTuples()) {
             StringBuilder eqn = new StringBuilder(); // The String representation of the equation of the tuples
             eqn.append(tuple.toString()).append(" = ");
             for (Vertex vs : tuple.getSingles()) {

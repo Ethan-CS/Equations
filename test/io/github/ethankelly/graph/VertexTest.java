@@ -1,6 +1,6 @@
 package io.github.ethankelly.graph;
 
-import io.github.ethankelly.Tuple;
+import io.github.ethankelly.Tuples;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -15,19 +15,19 @@ class VertexTest {
 		S.add(new Vertex('S', 1));
 		S.add(new Vertex('S', 2));
 		S.add(new Vertex('S', 3));
-		Tuple allSusceptible = new Tuple(S);
+		Tuples.Tuple allSusceptible = new Tuples.Tuple(S);
 
 		List<Vertex> I = new ArrayList<>();
 		I.add(new Vertex('I', 1));
 		I.add(new Vertex('I', 2));
 		I.add(new Vertex('I', 3));
-		Tuple allInfected = new Tuple(I);
+		Tuples.Tuple allInfected = new Tuples.Tuple(I);
 
 		List<Vertex> SIR = new ArrayList<>();
 		SIR.add(new Vertex('S', 1));
 		SIR.add(new Vertex('I', 2));
 		SIR.add(new Vertex('R', 3));
-		Tuple differentStates = new Tuple(SIR);
+		Tuples.Tuple differentStates = new Tuples.Tuple(SIR);
 
 		Assertions.assertFalse(allSusceptible.areStatesDifferent(false),
 				"All susceptible without closures should return false");
@@ -47,13 +47,13 @@ class VertexTest {
 		same.add(new Vertex('S', 1));
 		same.add(new Vertex('I', 1));
 		same.add(new Vertex('R', 1));
-		Tuple allSameLocation = new Tuple(same);
+		Tuples.Tuple allSameLocation = new Tuples.Tuple(same);
 
 		List<Vertex> different = new ArrayList<>();
 		different.add(new Vertex('S', 1));
 		different.add(new Vertex('I', 2));
 		different.add(new Vertex('R', 3));
-		Tuple allDifferentLocation = new Tuple(different);
+		Tuples.Tuple allDifferentLocation = new Tuples.Tuple(different);
 
 		Assertions.assertFalse(allSameLocation.areLocationsDifferent(),
 				"All same location vertices should return false.");

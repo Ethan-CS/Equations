@@ -1,6 +1,6 @@
 package io.github.ethankelly.graph;
 
-import io.github.ethankelly.Tuple;
+import io.github.ethankelly.Tuples;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -99,7 +99,7 @@ public class Graph implements Cloneable {
 	 * @param toCheck the tuple we wish to check constitutes some kind of path.
 	 * @return true if the tuple forms a path in some way, false otherwise.
 	 */
-	public boolean areAllConnected(Tuple toCheck) {
+	public boolean areAllConnected(Tuples.Tuple toCheck) {
 		// If there's only one vertex in the list, required in the system of equations - ensure this returns true.
 		// If more than one vertex, return whether they all have some path between them.
 		return toCheck.size() == 1 || IntStream.range(0, toCheck.size() - 1).allMatch(

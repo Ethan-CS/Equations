@@ -1,10 +1,8 @@
 package io.github.ethankelly.graph;
 
-import io.github.ethankelly.Tuple;
 import io.github.ethankelly.symbols.Maths;
 
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * The {@code VertexState} class represents an instance of a vertex being in a particular state in a compartmental

@@ -16,9 +16,9 @@ import java.util.Map;
 public class Equation implements FirstOrderDifferentialEquations {
     private final Graph g; // Underlying graph
     private final char[] states; // States used in the model e.g. SIR
-    private final List<Tuple> tuples; // The required tuples (found using Tuples class)
+    private final List<Tuples.Tuple> tuples; // The required tuples (found using Tuples class)
     private final int dimension; // The number of equations required (i.e. number of tuples we have)
-    private final Map<Tuple, Integer> indicesMapping = new HashMap<>(); // Mapping of tuples to unique integers
+    private final Map<Tuples.Tuple, Integer> indicesMapping = new HashMap<>(); // Mapping of tuples to unique integers
     private final double[][] T; // Transmission matrix
 
     public double beta = 0.5; // Rate of transmission
@@ -47,14 +47,14 @@ public class Equation implements FirstOrderDifferentialEquations {
      *
      * @return a mapping of required tuples to unique integers.
      */
-    public Map<Tuple, Integer> getIndicesMapping() {
+    public Map<Tuples.Tuple, Integer> getIndicesMapping() {
         // If we have already created a mapping, return it;
         // Else, create a mapping and store to class attribute
         if (this.indicesMapping.size() == 0) {
-            Map<Tuple, Integer> indices = new HashMap<>(); //  The mapping we will return
-            List<Tuple> tuples = this.getTuples(); // The required tuples to assign unique integers to each
+            Map<Tuples.Tuple, Integer> indices = new HashMap<>(); //  The mapping we will return
+            List<Tuples.Tuple> tuples = this.getTuples(); // The required tuples to assign unique integers to each
             int i = 0; // Counter, to make sure we use a systematic mapping
-            for (Tuple list : tuples) indices.put(list, i++);
+            for (Tuples.Tuple list : tuples) indices.put(list, i++);
             return indices;
         } else {
             return this.indicesMapping;
@@ -64,7 +64,7 @@ public class Equation implements FirstOrderDifferentialEquations {
     /**
      * @return the tuples for which we are required to generate equations.
      */
-    public List<Tuple> getTuples() {
+    public List<Tuples.Tuple> getTuples() {
         return this.tuples;
     }
 
