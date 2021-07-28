@@ -12,19 +12,19 @@ import java.util.List;
 
 public class PrintEquations {
 
-    public static List<String> generateEquations(Tuples tuples) {
+    public static List<String> generateEquations(RequiredTuples requiredTuples) {
         List<String> equations = new ArrayList<>();
-        char[] states = tuples.getStates();
+        char[] states = requiredTuples.getStates();
         Arrays.sort(states);
-        int numVertices = tuples.getGraph().getNumVertices();
+        int numVertices = requiredTuples.getGraph().getNumVertices();
 
         if (Arrays.equals(states, States.sir.states())) states = States.si.states();
         else if (Arrays.equals(states, States.sirp.states())) states = States.sip.states();
 
-        for (Tuples.Tuple tuple : tuples.getTuples()) {
+        for (Tuple tuple : requiredTuples.getTuples()) {
             StringBuilder eqn = new StringBuilder(); // The String representation of the equation of the tuples
             eqn.append(tuple.toString()).append(" = ");
-            for (Vertex vs : tuple.getSingles()) {
+            for (Vertex vs : tuple.getVertices()) {
                 switch (Character.toUpperCase(vs.getState())) {
                     case 'S' -> {
                         if (new String(states).contains("P")) {
@@ -35,7 +35,7 @@ public class PrintEquations {
 
                         for (int j = 0; j < numVertices; j++) {
                             Vertex w = new Vertex(j);
-                            if (tuples.getGraph().hasEdge(vs.getLocation(), w.getLocation())) {
+                            if (requiredTuples.getGraph().hasEdge(vs.getLocation(), w.getLocation())) {
                                 eqn.append("- ");
                                 eqn.append(Greek.BETA.uni()).append(Maths.L_ANGLE.uni()).append("S").append(vs.getLocation())
                                         .append(" I").append(j).append(Maths.R_ANGLE.uni());
@@ -47,7 +47,7 @@ public class PrintEquations {
                     }
                     case 'I' -> {
                         for (int j = 0; j < numVertices; j++) {
-                            if (tuples.getGraph().hasEdge(vs.getLocation(), j)) {
+                            if (requiredTuples.getGraph().hasEdge(vs.getLocation(), j)) {
                                 if (eqn.length() > (tuple + " = ").length() && eqn.charAt(eqn.length() - 1) != '+')
                                     eqn.append("+ ");
                                 eqn.append(Greek.GAMMA.uni()).append(Maths.L_ANGLE.uni()).append("S").append(vs.getLocation())
@@ -76,14 +76,14 @@ public class PrintEquations {
     public static int getUpperBound(int numVertices, char[] states, boolean closures) {
         //TODO this is true iff there are no cut vertices
         Graph g = GraphGenerator.complete(numVertices);
-        Tuples tuples = new Tuples(g, states, closures);
-        return tuples.getTuples().size();
+        RequiredTuples requiredTuples = new RequiredTuples(g, states, closures);
+        return requiredTuples.getTuples().size();
     }
 
     public static int getUpperBound(Graph g, char[] states, boolean closures) {
         //TODO this is true iff there are no cut vertices
-        Tuples tuples = new Tuples(g, states, closures);
-        return tuples.getTuples().size();
+        RequiredTuples requiredTuples = new RequiredTuples(g, states, closures);
+        return requiredTuples.getTuples().size();
     }
 
     public static int getLowerBound(int numVertices, char[] states, boolean closures) {
@@ -91,14 +91,14 @@ public class PrintEquations {
         Graph g = GraphGenerator.cycle(numVertices);
         assert g.getCutVertices().isEmpty() : "Lower bound graph should have no cut vertices";
         assert g.getCCs().size() == 1 : "Lower bound graph should be connected";
-        Tuples tuples = new Tuples(g, states, closures);
-        return tuples.getTuples().size();
+        RequiredTuples requiredTuples = new RequiredTuples(g, states, closures);
+        return requiredTuples.getTuples().size();
     }
 
     public static int getLowerBound(Graph g, char[] states, boolean closures) {
         //TODO this is true iff there are no cut vertices
-        Tuples tuples = new Tuples(g, states, closures);
-        return tuples.getTuples().size();
+        RequiredTuples requiredTuples = new RequiredTuples(g, states, closures);
+        return requiredTuples.getTuples().size();
     }
 
     public static void main(String[] args) {

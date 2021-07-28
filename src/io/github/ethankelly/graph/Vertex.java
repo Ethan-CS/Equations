@@ -2,8 +2,6 @@ package io.github.ethankelly.graph;
 
 import io.github.ethankelly.symbols.Maths;
 
-import java.util.HashMap;
-
 /**
  * The {@code VertexState} class represents an instance of a vertex being in a particular state in a compartmental
  * epidemiological model. Each vertex object has a state (for instance, {@code 'S'} for "Susceptible") and a numerical
@@ -53,19 +51,11 @@ public class Vertex implements Comparable<Vertex> {
 		return this.getLocation() == vertex.getLocation() && this.getState() == vertex.getState();
 	}
 
-	/**
-	 * Returns a hash code value for the object. This method is supported for the benefit of hash tables such as those
-	 * provided by {@link HashMap}.
-	 *
-	 * @return a hash code value for this object.
-	 * @implSpec As far as is reasonably practical, the {@code hashCode} method defined by class {@code Object} returns
-	 * distinct integers for distinct objects.
-	 * @see Object#equals(Object)
-	 * @see System#identityHashCode
-	 */
 	@Override
 	public int hashCode() {
-		return super.hashCode();
+		int result = getState();
+		result = 31 * result + getLocation();
+		return result;
 	}
 
 	/**

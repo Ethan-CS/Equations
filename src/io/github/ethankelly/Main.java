@@ -20,15 +20,15 @@ public class Main {
 		String[] arguments = GraphGenerator.getUserInput();
 		char[] states = arguments[0].toUpperCase().toCharArray();
 		Graph graph = GraphGenerator.getGraph(arguments);
-		Tuples tuples = new Tuples(graph, states, false);
+		RequiredTuples requiredTuples = new RequiredTuples(graph, states, false);
 
 		// Creating a File object that represents the disk file and assign to output stream
 		PrintStream o = new PrintStream(new FileOutputStream("Equations.txt"));
 		System.setOut(o);
 		System.out.println(" *** Equations for an " + arguments[0].toUpperCase() + " model on a " + graph.getName()
 		                   + " Graph ***\n\n" + graph + "Numbers of equations of each size: "
-		                   + Arrays.toString(tuples.findNumbers(tuples.getTuples())) + "\n");
-		PrintEquations.generateEquations(tuples).forEach(System.out::println);
+		                   + Arrays.toString(requiredTuples.findNumbers(requiredTuples.getTuples())) + "\n");
+		PrintEquations.generateEquations(requiredTuples).forEach(System.out::println);
 	}
 
 }
