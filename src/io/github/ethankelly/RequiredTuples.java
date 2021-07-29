@@ -15,13 +15,15 @@ import java.util.*;
  * states can be specified when running the model.
  */
 public class RequiredTuples {
-    private List<Tuple> tuples;
-    private final Graph graph;
-    private final char[] states;
-    private final boolean closures;
+    private List<Tuple> tuples; // The list of tuples required to describe a model on the specified graph
+    private final Graph graph; // The graph representing underpinning the compartmental model
+    private final char[] states; // The compartmental model states, e.g. SIR
+    private final boolean closures; // Whether or not we are considering closures (may need to consider unusual tuples)
 
     /**
-     * Class constructor - assigns a graph and some array of states to a new Tuple object.
+     * Class constructor - assigns a graph, an array of states and a boolean representing whether or not we may need to
+     * consider to a new Tuple object.
+     *
      * @param graph  the graph of which we are interested in equations.
      * @param states the states that a vertex can be in (e.g. SIR).
      * @param closures whether to include closures in the generated tuples.
@@ -29,15 +31,12 @@ public class RequiredTuples {
     public RequiredTuples(Graph graph, char[] states, boolean closures) {
         this.graph = graph;
         this.states = states;
-        this.tuples = new ArrayList<>();
+        this.tuples = this.generateTuples(closures);
         this.closures = closures;
     }
 
 
     public List<Tuple> getTuples() {
-        if (this.tuples.isEmpty()) {
-            this.tuples = this.generateTuples(this.closures);
-        }
         return this.tuples;
     }
 

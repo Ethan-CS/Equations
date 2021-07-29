@@ -1,8 +1,6 @@
 package io.github.ethankelly;
 
-import io.github.ethankelly.graph.Graph;
-import io.github.ethankelly.graph.GraphGenerator;
-import io.github.ethankelly.graph.Vertex;
+import io.github.ethankelly.graph.*;
 import io.github.ethankelly.symbols.Greek;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.exception.MaxCountExceededException;
@@ -15,7 +13,6 @@ import java.util.stream.Collectors;
 
 public class ODESystem implements FirstOrderDifferentialEquations {
     private final Graph g; // Underlying graph
-    private final char[] states; // States used in the model e.g. SIR
     private final RequiredTuples requiredTuples; // The required requiredTuples (found using Tuples class)
     private final int dimension; // The number of equations required (i.e. number of requiredTuples we have)
     private Map<Tuple, Integer> indicesMapping = new HashMap<>(); // Mapping of requiredTuples to unique integers
@@ -25,62 +22,62 @@ public class ODESystem implements FirstOrderDifferentialEquations {
     public double beta = 0.5; // Rate of transmission
     public double gamma = 0.5; // Rate of recovery
 
-    public ODESystem(Graph g, char[] states, boolean closures) {
+    public ODESystem(Graph g, boolean closures) {
         this.g = g;
-        this.states = states;
-        this.requiredTuples = new RequiredTuples(g, states, closures);
-        this.dimension = requiredTuples.getTuples().size();
+        // States used in the model only SIR for now - code requires adaptation to allow for others
+        this.requiredTuples = new RequiredTuples(g, new char[]{'S','I','R'}, closures);
+        this.dimension = requiredTuples.size();
         this.T = new double[g.getNumVertices()][g.getNumVertices()];
         // For now, every element in transmission matrix is equal to beta (can change based on context)
         // But we do not allow self-transmission, so diagonal values are all zero
-        for (int i = 0; i < T.length; i++) {
-            for (int j = 0; j < T.length; j++) {
-                if (i == j) T[i][j] = 0;
-                else T[i][j] = beta;
-            }
-        }
+        for (int i = 0; i < T.length; i++) for (int j = 0; j < T.length; j++) if (i != j) T[i][j] = beta;
     }
 
-    public String getEquation(double[] y, double[] yDot, Tuple tuple, Graph graph, boolean closures) {
+    private String getEquation(double[] y, double[] yDot, Tuple tuple, Graph graph, boolean closures) {
         StringBuilder s = new StringBuilder();
+        // Select each individual vertex in the tuple and get the first order derivatives
         for (Vertex v : tuple.getVertices()) {
             int i = v.getLocation();
+            // Store the other vertices in the tuple to add back in later as 0th order derivative terms
             List<Vertex> extraTerms = tuple.getVertices().stream().filter(w -> !w.equals(v)).collect(Collectors.toList());
-
-            // Susceptible
+            // SUSCEPTIBLE
             if (v.getState() == 'S') {
                 // Loop through all vertices in graph
                 for (int j = 0; j < graph.getNumVertices(); j++) {
                     List<Vertex> verticesToAdd = new ArrayList<>(Arrays.asList(new Vertex('S', i), new Vertex('I', j)));
-                    Vertex w = new Vertex(j);
-                    if (graph.hasEdge(v.getLocation(), w.getLocation())) {
+                    if (graph.hasEdge(i, j)) {
                         // Add any of the remaining terms back in that aren't the current term
                         if (!extraTerms.isEmpty()) {
                             extraTerms.stream().filter(extraTerm -> !verticesToAdd.contains(extraTerm)).forEach(verticesToAdd::add);
                         }
-                        // Make a new tuple from the list of vertices and add to the string builder
+                        // Make a new tuple from the list of vertices
                         Tuple t = new Tuple(verticesToAdd);
                         if (t.isValidTuple(graph, closures)) {
+                            // Append appropriate term to the string builder
                             s.append("- ").append(Greek.TAU.uni()).append(t);
+                            // Append to the relevant yDot term
                             yDot[this.getIndicesMapping().get(tuple)] +=
                                     -T[i][j] * y[this.getIndicesMapping().get(t)];
                         }
                     }
                 }
-            // Infected
+            // INFECTED
             } else if (v.getState() == 'I') {
                 // Loop through all vertices in graph
                 for (int j = 0; j < graph.getNumVertices(); j++) {
                     List<Vertex> verticesToAdd = new ArrayList<>(Arrays.asList(new Vertex('S', i), new Vertex('I', j)));
-                    if (graph.hasEdge(v.getLocation(), j)) {
+                    if (graph.hasEdge(i, j)) {
                         // Add any of the remaining terms back in that aren't the current term
                         if (!extraTerms.isEmpty()) {
                             extraTerms.stream().filter(extraTerm -> !verticesToAdd.contains(extraTerm)).forEach(verticesToAdd::add);
                         }
+                        // Create the relevant tuple and, if it is a valid tuple, add to equations list
                         Tuple t = new Tuple(verticesToAdd);
                         if (t.isValidTuple(graph, closures)) {
                             if (s.length() > 0 && s.charAt(s.length() - 1) != '+') s.append("+ ");
+                            // Append appropriate term to the string builder
                             s.append(Greek.TAU.uni()).append(t);
+                            // Append to the relevant yDot term
                             yDot[this.getIndicesMapping().get(tuple)] +=
                                     T[i][j] * y[this.getIndicesMapping().get(t)];
                         }
@@ -92,27 +89,58 @@ public class ODESystem implements FirstOrderDifferentialEquations {
                     extraTerms.stream().filter(extraTerm -> !verticesToAdd.contains(extraTerm)).forEach(verticesToAdd::add);
                 }
                 Tuple t = new Tuple(verticesToAdd);
-                if (t.size() == 1 || t.isValidTuple(graph, closures))
+                // Append appropriate term to the string builder (if appropriate)
+                if (t.size() == 1 || t.isValidTuple(graph, closures)) {
                     s.append("- ").append(Greek.GAMMA.uni()).append(t);
-                yDot[this.getIndicesMapping().get(tuple)] +=
-                        - (gamma * y[this.getIndicesMapping().get(t)]);
+                    // Append to the relevant yDot term
+                    yDot[this.getIndicesMapping().get(tuple)] +=
+                            -(gamma * y[this.getIndicesMapping().get(t)]);
+                }
             }
         }
-        this.equations = String.valueOf(s);
+        // Return the string representation of equations
         return String.valueOf(s);
     }
 
     public static void main(String[] args) {
-        ODESystem triangle = new ODESystem(GraphGenerator.getTriangle(), new char[]{'S', 'I', 'R'}, false);
-        System.out.println(triangle.getIndicesMapping());
-        FirstOrderIntegrator integrator = new ClassicalRungeKuttaIntegrator(0.5);
+        ODESystem triangle = new ODESystem(GraphGenerator.getTriangle(), false);
+        FirstOrderIntegrator integrator = new ClassicalRungeKuttaIntegrator(0.001);
                 // DormandPrince853Integrator(1.0e-8, 100.0, 1.0e-10, 1.0e-10);
         double[] y = new double[triangle.getDimension()];
-        Arrays.fill(y, 1);
+        for (int i = 0; i < y.length; i++) y[i] = Math.random();
+        System.out.println("Initial state:\n" + Arrays.toString(y));
         integrator.integrate(triangle, 0, y, 2, y);
-        System.out.println("Final state:\n" + Arrays.toString(y));
-        ODESystem eq = new ODESystem(GraphGenerator.getTriangle(), new char[]{'S','I','R'}, false);
-        System.out.println(eq.getEquations());
+        System.out.println("Final state:\n" + Arrays.toString(y) + "\n" + triangle);
+
+        // TODO S0S1S2 prints a tuple with nothing on RHS of equation
+        ODESystem triangleClosures = new ODESystem(GraphGenerator.getTriangle(), true);
+        double[] z = new double[triangleClosures.getDimension()];
+        for (int i = 0; i < z.length; i++) z[i] = Math.random();
+        System.out.println("Initial state:\n" + Arrays.toString(z));
+        integrator.integrate(triangleClosures, 0, z, 2, z);
+        System.out.println("Final state:\n" + Arrays.toString(z));
+        System.out.println(triangleClosures);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder tMat = new StringBuilder();
+        for (double[] doubles : this.T) {
+            tMat.append("[");
+            for (int j = 0; j < this.T.length - 1; j++) {
+                tMat.append(doubles[j]).append(", ");
+            }
+            tMat.append(doubles[this.T.length-1]).append("]\n");
+        }
+
+        return "ODESystem\n" +
+                "GRAPH:\n" + g +
+                "\nREQUIRED TUPLES:\n" + requiredTuples +
+                "\nNUMBER OF TUPLES: " + dimension +
+                "\nTRANSMISSION MATRIX T = \n" + tMat +
+                "\nEQUATIONS:\n" + getEquations() +
+                "\nRATE OF TRANSMISSION = " + beta +
+                "\nRATE OF RECOVERY = " + gamma;
     }
 
     /**
@@ -152,6 +180,9 @@ public class ODESystem implements FirstOrderDifferentialEquations {
         return this.dimension;
     }
 
+    /**
+     * @return a string representation of the current system of differential equations.
+     */
     public String getEquations() {
         if (this.equations == null || this.equations.length() == 0) {
             StringBuilder s = new StringBuilder();
@@ -174,35 +205,5 @@ public class ODESystem implements FirstOrderDifferentialEquations {
         for (Tuple tuple : requiredTuples.getTuples()) {
             getEquation(y, yDot, tuple, this.g, false);
         }
-
     }
-
-    private void getSingleEquation(double[] y, double[] yDot, Tuple tuple) {
-        Vertex single = tuple.get(0);
-//        for (Vertex single : tuple.getVertices()) {
-            int i = single.getLocation();
-            // STATE IN SINGLE IS S
-            if (single.getState() == 'S') {
-                for (int j = 0; j < this.g.getNumVertices(); j++) {
-                    if (i != j) {
-                        Tuple S_iI_j = new Tuple(Arrays.asList(new Vertex('S', i), new Vertex('I', j)));
-                        try {
-                            yDot[this.getIndicesMapping().get(tuple)] +=
-                                    -T[i][j] * y[this.getIndicesMapping().get(new Tuple(S_iI_j))];
-                        } catch (NullPointerException e) {
-                            System.err.println("Couldn't find a mapping for " + S_iI_j + "\n" + e);
-                        }
-                    }
-                }
-                // STATE IN SINGLE IS I
-            } else if (single.getLocation() == 'I') {
-                for (int j = 0; j < this.T.length; j++) {
-                    Tuple S_iI_j = new Tuple(Arrays.asList(new Vertex('S', i), new Vertex('I', j)));
-                    Tuple I_j = new Tuple(new Vertex('I', j));
-
-                    yDot[this.getIndicesMapping().get(tuple)] += T[i][j] * y[this.getIndicesMapping().get(S_iI_j)]
-                            - (gamma * y[this.getIndicesMapping().get(I_j)]);
-                }
-            }
-        }
 }
