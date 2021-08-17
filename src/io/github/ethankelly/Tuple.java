@@ -13,7 +13,6 @@ import java.util.stream.IntStream;
  * A tuple represents the probability of one or more vertices of the graph being in particular states.
  */
 public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tuple> {
-
     private final List<Vertex> vertices; // List of all state-vertex pairs that make up this tuple
 
     // For when we just want to add a single vertex to the tuple
@@ -28,7 +27,7 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
     }
 
     /**
-     * Given a list of vertices (some tuple), this method checks whether all of the states are the same. If they are the
+     * Given a list of vertices (some tuple), this method checks whether all the states are the same. If they are the
      * same, we do not have to consider the associated equation of the tuple in the final system of equations that
      * describes our compartmental model.
      *
@@ -37,7 +36,7 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
     public boolean areStatesDifferent(boolean reqClosures) {
         boolean statesDifferent = false;
         // If there's only one vertex in the list, by definition we require it
-        // in the system of equations so we ensure this method returns true.
+        // in the system of equations, so we ensure this method returns true.
         if (size() == 1) statesDifferent = true;
         else {
             // We only need to find two different states to know that the states are
@@ -190,4 +189,13 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
     public static void main(String[] args) {
 
     }
+
+    @Override
+    public Tuple clone() {
+        Tuple clone = (Tuple) super.clone();
+        // TODO: copy mutable state here, so the clone can't change the internals of the original
+        return clone;
+    }
+
+
 }
