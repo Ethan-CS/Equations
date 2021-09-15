@@ -61,7 +61,7 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
     /**
      * Given some list of vertices (some tuple), this method checks whether the index locations of every element of the
      * tuple are all distinct. If even two of the vertices have the same location, it is not a valid tuple for our
-     * purposes and we will not hve to consider the associated equation in the final system of equations that describes
+     * purposes, and we will not have to consider the associated equation in the final system of equations that describes
      * our compartmental model.
      *
      * @return true if no index location is repeated in the vertices, false otherwise.
@@ -81,7 +81,7 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
 
     /**
      * Given a potential tuple, this method checks that the states of each probability are not all the same, that each
-     * probability corresponds to a different vertex and that all of the vertices involved are in fact connected. If
+     * probability corresponds to a different vertex and that all the vertices involved are in fact connected. If
      * these three conditions are met, then it is a tuple that we are required to express in the total set of equations
      * describing the system dynamics.
      *

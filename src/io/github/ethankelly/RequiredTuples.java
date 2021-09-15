@@ -41,13 +41,57 @@ public class RequiredTuples {
 	 * @param args command-line arguments (ignored).
 	 */
 	public static void main(String[] args) {
-		RequiredTuples t1 = new RequiredTuples(GraphGenerator.getTriangle(), new char[] {'S', 'I', 'R'}, false);
-		System.out.println(t1.findSingles());
-		System.out.println(t1.getTuples() + "\nSize: " + t1.getTuples().size());
+//		RequiredTuples t1 = new RequiredTuples(GraphGenerator.getTriangle(), new char[] {'S', 'I', 'R'}, false);
+//		System.out.println(t1.findSingles());
+//		System.out.println(t1.getTuples() + "\nSize: " + t1.getTuples().size());
+//
+//		RequiredTuples t2 = new RequiredTuples(GraphGenerator.getTriangle(), new char[] {'S', 'I', 'R'}, true);
+//		System.out.println(t2.findSingles());
+//		System.out.println(t2.getTuples() + "\nSize: " + t2.getTuples().size());
 
-		RequiredTuples t2 = new RequiredTuples(GraphGenerator.getTriangle(), new char[] {'S', 'I', 'R'}, true);
-		System.out.println(t2.findSingles());
-		System.out.println(t2.getTuples() + "\nSize: " + t2.getTuples().size());
+		RequiredTuples complete5 = new RequiredTuples(GraphGenerator.complete(5), new char[]{'S', 'I', 'R'}, false);
+		RequiredTuples cycle5 = new RequiredTuples(GraphGenerator.cycle(5), new char[]{'S', 'I', 'R'}, false);
+		RequiredTuples complete3 = new RequiredTuples(GraphGenerator.complete(3), new char[]{'S', 'I', 'R'}, false);
+		RequiredTuples cycle3 = new RequiredTuples(GraphGenerator.cycle(3), new char[]{'S', 'I', 'R'}, false);
+		RequiredTuples complete4 = new RequiredTuples(GraphGenerator.complete(4), new char[]{'S', 'I', 'R'}, false);
+		RequiredTuples cycle4 = new RequiredTuples(GraphGenerator.cycle(4), new char[]{'S', 'I', 'R'}, false);
+
+		System.out.println("CYCLE 3");
+//		System.out.println(cycle3.findSingles());
+		System.out.println(
+//				cycle3.getTuples() +
+				"Size: " + cycle3.getTuples().size());
+
+		System.out.println("\nCOMPLETE 3");
+//		System.out.println(complete3.findSingles());
+		System.out.println(
+//				complete3.getTuples() +
+				"Size: " +  complete3.getTuples().size());
+
+		System.out.println("\nCYCLE 4");
+//		System.out.println(cycle4.findSingles());
+		System.out.println(
+				cycle4.getTuples() +
+				"Size: " + cycle4.getTuples().size());
+
+		System.out.println("\nCOMPLETE 4");
+//		System.out.println(complete4.findSingles());
+		System.out.println(
+//				complete4.getTuples() +
+				"Size: " +  complete4.getTuples().size());
+
+		System.out.println("\nCYCLE 5");
+//		System.out.println(cycle5.findSingles());
+		System.out.println(
+				cycle5.getTuples() +
+				"Size: " + cycle5.getTuples().size());
+
+		System.out.println("\nCOMPLETE 5");
+//		System.out.println(complete5.findSingles());
+		System.out.println(
+//				complete5.getTuples() +
+				"Size: " +  complete5.getTuples().size());
+
 	}
 
 	/**

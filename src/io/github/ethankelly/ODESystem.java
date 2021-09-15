@@ -4,6 +4,7 @@ import io.github.ethankelly.graph.Graph;
 import io.github.ethankelly.graph.GraphGenerator;
 import io.github.ethankelly.graph.Vertex;
 import io.github.ethankelly.symbols.Greek;
+import io.github.ethankelly.symbols.Maths;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.exception.MaxCountExceededException;
 import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
@@ -71,24 +72,29 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 
 		// Print the initial state
 		System.out.println("Initial state:\n" + Arrays.toString(y0));
+		// Specify the initial condition used in this test
+		System.out.println("I.e. " + Maths.L_ANGLE.uni() + "S0_I1_S2" + Maths.R_ANGLE.uni());
+		// Print relevant system information
+		System.out.println(triangle);
+		// Empty array to contain derivative values
 		double[] yDot = Arrays.copyOf(y0, y0.length);
-		integrator.integrate(triangle, 0, y0, 2, yDot);
-
+		// Integrate up to specified t value
+		integrator.integrate(triangle, 0, y0, 10, yDot);
+		// Compute derivatives based on equations generation
 		triangle.computeDerivatives(0, y0, yDot);
 
+		// Print found values to 2 d.p. for clarity of system output
 		DecimalFormat df = new DecimalFormat();
 		df.setMaximumFractionDigits(2);
 
-		System.out.println("Final state:\n");
+		System.out.println("Final state at t=10:\n");
 		for (Tuple t : triangle.requiredTuples.getTuples()) {
-			System.out.print(t + " = ");
-			double result = yDot[triangle.getIndicesMapping().get(t)];
-			if (result > 1) System.out.print("1.00");
-			else if (result > 0) System.out.print(df.format(result));
-			else if (result <= 0) System.out.print("0.00");
+			System.out.print(t + Maths.PRIME.uni() + " = ");
+			double resultPrime = yDot[triangle.getIndicesMapping().get(t)];
+			System.out.print(df.format(resultPrime));
 			System.out.println();
 		}
-		System.out.println(triangle);
+
 	}
 
 	/**

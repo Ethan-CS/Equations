@@ -417,7 +417,13 @@ public class GraphGenerator {
      * @return the complete graph on the given number of vertices.
      */
     public static Graph complete(int numVertices) {
-        return erdosRenyi(numVertices, 1.0).setName("Complete");
+        Graph complete = new Graph(numVertices, "Complete");
+        for (int i = 0; i < complete.getNumVertices(); i++) {
+            for (int j = 0; j < complete.getNumVertices(); j++) {
+                if (i != j && !complete.hasEdge(i, j)) complete.addEdge(i, j);
+            }
+        }
+        return complete;
     }
 
     /**
@@ -541,9 +547,8 @@ public class GraphGenerator {
      */
     public static Graph cycle(int numVertices) {
         Graph g = new Graph(numVertices, "Cycle");
-        // Generate an array: [0, 1, ..., numVertices] and randomly shuffle it.
+        // Generate an array: [0, 1, ..., numVertices]
         int[] vertices = IntStream.range(0, numVertices).toArray();
-        Rand.shuffle(vertices);
         // Connect vertices from 0 to 2 less than the number of vertices consecutively
         for (int i = 0; i < numVertices - 1; i++) {
             g.addEdge(vertices[i], vertices[i + 1]);

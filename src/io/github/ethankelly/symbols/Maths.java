@@ -8,9 +8,10 @@ package io.github.ethankelly.symbols;
 public enum Maths {
 
     L_ANGLE("\u3008"),
-    R_ANGLE("\u3009");
+    R_ANGLE("\u3009"),
+    PRIME("\u2032");
 
-    private final String uni;
+	private final String uni;
 
     Maths(String uni) {
         this.uni = uni;
