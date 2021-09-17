@@ -1,5 +1,6 @@
 package io.github.ethankelly;
 
+import io.github.ethankelly.exceptions.UnexpectedStateException;
 import io.github.ethankelly.graph.GraphGenerator;
 import io.github.ethankelly.graph.Vertex;
 import org.junit.jupiter.api.Assertions;
@@ -75,7 +76,7 @@ public class TupleTest {
     }
 
     @Test
-    void testTriangleGenerateSingles() {
+    void testTriangleGenerateSingles() throws UnexpectedStateException {
         // Check expected and actual singles for SIR
         // With closures
         List<Tuple> actualClosedSIR = triangleTuplesClosuresSIR.findSingles();

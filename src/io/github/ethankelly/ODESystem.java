@@ -11,6 +11,8 @@ import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 import org.apache.commons.math3.ode.FirstOrderIntegrator;
 import org.apache.commons.math3.ode.nonstiff.ClassicalRungeKuttaIntegrator;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -59,7 +61,6 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 	 */
 	public static void main(String[] args) {
 		ODESystem triangle = new ODESystem(GraphGenerator.getTriangle(), false, 0.7, 0.25);
-		FirstOrderIntegrator integrator = new ClassicalRungeKuttaIntegrator(0.001);
 		double[] y0 = new double[triangle.getDimension()];
 
 		// Known state - S0I1S2, so S0, I1, S2, S0I1 and S0I1S2 all 1, others 0
@@ -70,31 +71,68 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 		y0[triangle.getIndicesMapping().get(new Tuple(Collections.singletonList(new Vertex('I', 1))))] = 1;
 		y0[triangle.getIndicesMapping().get(new Tuple(Collections.singletonList(new Vertex('S', 2))))] = 1;
 
-		// Print the initial state
-		System.out.println("Initial state:\n" + Arrays.toString(y0));
-		// Specify the initial condition used in this test
-		System.out.println("I.e. " + Maths.L_ANGLE.uni() + "S0_I1_S2" + Maths.R_ANGLE.uni());
+		int tMax = 10;
+		double[][] results = getIncrementalResults(triangle, y0, tMax);
+		outputCSVResult(triangle, results);
+	}
+
+	private static void outputCSVResult(ODESystem triangle, double[][] results) {
+		StringBuilder sb = new StringBuilder();
+		try {
+			FileWriter writer = new FileWriter("test.csv");
+			sb.append("t,");
+			for (Tuple key : triangle.getIndicesMapping().keySet()) sb.append(key).append(",");
+			int t = 1;
+			for (double[] result : results) {
+				// Get rid of extra comma on end of previous line and start new line
+				sb.setLength(Math.max(sb.length() - 1, 0));
+				sb.append("\n").append(t++).append(",");
+				// Append the next row of results
+				for (int j = 0; j < results[0].length; j++) {
+					sb.append(result[j]).append(",");
+				}
+			}
+			// Get rid of final extra comma
+			sb.setLength(Math.max(sb.length() - 1, 0));
+			// Write our results to the file
+			writer.write(String.valueOf(sb));
+			writer.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static double[][] getIncrementalResults(ODESystem triangle, double[] y0, int tMax) {
+		FirstOrderIntegrator integrator = new ClassicalRungeKuttaIntegrator(0.001);
+		double[][] results = new double[tMax][triangle.getIndicesMapping().size()];
+		// Print the initial state and specify the initial condition used in this test
+		System.out.println("Initial state:\n" + Arrays.toString(y0) + "I.e. " + Maths.L_ANGLE.uni() + "S0_I1_S2" + Maths.R_ANGLE.uni());
 		// Print relevant system information
 		System.out.println(triangle);
 		// Empty array to contain derivative values
 		double[] yDot = Arrays.copyOf(y0, y0.length);
-		// Integrate up to specified t value
-		integrator.integrate(triangle, 0, y0, 10, yDot);
-		// Compute derivatives based on equations generation
-		triangle.computeDerivatives(0, y0, yDot);
-
 		// Print found values to 2 d.p. for clarity of system output
 		DecimalFormat df = new DecimalFormat();
 		df.setMaximumFractionDigits(2);
+		df.setMinimumFractionDigits(2);
 
-		System.out.println("Final state at t=10:\n");
-		for (Tuple t : triangle.requiredTuples.getTuples()) {
-			System.out.print(t + Maths.PRIME.uni() + " = ");
-			double resultPrime = yDot[triangle.getIndicesMapping().get(t)];
-			System.out.print(df.format(resultPrime));
-			System.out.println();
+		System.out.println((triangle.getIndicesMapping().keySet()));
+
+		for (int t = 1; t <= tMax; t++) {
+			System.out.print("\n[");
+			// Integrate up to specified t value
+			integrator.integrate(triangle, 0, y0, t, yDot);
+			// Compute derivatives based on equations generation
+			triangle.computeDerivatives(t, y0, yDot);
+			// Add computed results to summary data structure
+			for (Tuple tup : triangle.getTuples().getTuples()) {
+				// t-1 so that array indexing starts at 0
+				results[t-1][triangle.getIndicesMapping().get(tup)] = yDot[triangle.getIndicesMapping().get(tup)];
+				System.out.print(df.format(yDot[triangle.getIndicesMapping().get(tup)]) + " ");
+			}
+			System.out.print("]");
 		}
-
+		return results;
 	}
 
 	/**
