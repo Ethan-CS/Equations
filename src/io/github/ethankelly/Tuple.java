@@ -14,6 +14,7 @@ import java.util.stream.IntStream;
  */
 public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tuple> {
     private final List<Vertex> vertices; // List of all state-vertex pairs that make up this tuple
+    public int length;
 
     // For when we just want to add a single vertex to the tuple
     public Tuple(Vertex v) {
@@ -24,6 +25,7 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
     public Tuple(List<Vertex> tuple) {
         Collections.sort(tuple);
         this.vertices = tuple;
+        this.length = vertices.size();
     }
 
     /**
