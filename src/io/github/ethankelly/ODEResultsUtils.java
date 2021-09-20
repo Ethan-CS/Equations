@@ -7,24 +7,40 @@ import org.apache.commons.math3.ode.nonstiff.ClassicalRungeKuttaIntegrator;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.Arrays;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class ODEResultsUtils {
-	public static void main(String[] args) {
 
+	static Map<List<Tuple>, double[][]> getResultsByLength(ODESystem system, double[][] results, int tMax) {
+		Map<List<Tuple>, double[][]> map = new HashMap<>();
+		List<Tuple> tuples = system.getTuples().getTuples();
+		int maxLength = 0;
+		for (Tuple t : tuples) if (t.length > maxLength) maxLength = t.length;
+
+		List<List<Tuple>> tuplesByLength = IntStream.range(0, maxLength).<List<Tuple>>mapToObj(i -> new ArrayList<>()).collect(Collectors.toList());
+		for (Tuple t : tuples) {
+			tuplesByLength.get(t.length-1).add(t);
+		}
+
+		for (List<Tuple> tups : tuplesByLength) {
+			double[][] thisResults = new double[tMax][tups.size()];
+			for (Tuple t : tups) {
+				for (int i = 0; i < tMax; i++) {
+					thisResults
+							[i]
+							[tups.indexOf(t)] =
+							results
+									[i]
+									[system.getIndicesMapping().get(t)];
+				}
+				map.put(tups, thisResults);
+			}
+
+		}
+		return map;
 	}
-
-//	static List<double[][]> getResultsByLength(ODESystem system, double[][] results) {
-//		List<Tuple> tuples = system.getTuples().getTuples();
-//		int maxLength = 0;
-//		for (Tuple t : tuples) if (t.length > maxLength) maxLength = t.length;
-//
-//		List<List<Tuple>> tuplesByLength = IntStream.range(0, maxLength).<List<Tuple>>mapToObj(i -> new ArrayList<>()).collect(Collectors.toList());
-//		for (Tuple t : tuples) {
-//			tuplesByLength.get(t.length).add(t);
-//		}
-//
-//	}
 
 	static double[][] getIncrementalResults(ODESystem triangle, double[] y0, int tMax) {
 		FirstOrderIntegrator integrator = new ClassicalRungeKuttaIntegrator(0.001);

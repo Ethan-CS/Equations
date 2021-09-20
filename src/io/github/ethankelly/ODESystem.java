@@ -68,6 +68,11 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 		int tMax = 10;
 		double[][] results = ODEResultsUtils.getIncrementalResults(triangle, y0, tMax);
 		ODEResultsUtils.outputCSVResult(triangle, results);
+
+		Map<List<Tuple>, double[][]> map = ODEResultsUtils.getResultsByLength(triangle, results, tMax);
+		for (List<Tuple> key : map.keySet()) {
+			System.out.println("TUPLES\n" + key + "\n" + Arrays.deepToString(map.get(key)));
+		}
 	}
 
 	/**
