@@ -21,12 +21,12 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 	private final RequiredTuples requiredTuples; // The required requiredTuples (found using Tuples class)
 	private final int dimension; // The number of equations required (i.e. number of requiredTuples we have)
 	private final double[][] T; // Transmission matrix
+	public int tMax;
 	public double tau; // Rate of transmission
 	public double gamma; // Rate of recovery
 	boolean closures; // Whether we need to consider closure-related tuples, i.e. all susceptible tuples.
 	private Map<Tuple, Integer> indicesMapping = new HashMap<>(); // Mapping of requiredTuples to unique integers
 	private String equations; // String representation of the system of equations
-
 	/**
 	 * Class constructor.
 	 *
@@ -34,18 +34,20 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 	 * @param closures whether we need to consider otherwise unnecessary tuples (i.e. all susceptible).
 	 * @param tau      the rate of transmission in the model.
 	 * @param gamma    the rate of recovery in the model.
+	 * @param tMax     the maximum value of time to be considered when calculating solutions
 	 */
-	public ODESystem(Graph g, boolean closures, double tau, double gamma) {
+	public ODESystem(Graph g, boolean closures, double tau, double gamma, int tMax) {
 		this.g = g;
 		this.closures = closures;
 		this.tau = tau;
 		this.gamma = gamma;
 		this.requiredTuples = new RequiredTuples(g, new char[] {'S', 'I', 'R'}, this.closures);
 		this.dimension = requiredTuples.size();
+		this.tMax = tMax;
 		this.T = new double[g.getNumVertices()][g.getNumVertices()];
 		// For now, every element in transmission matrix is equal to beta (can change based on context)
 		// But we do not allow self-transmission, so diagonal values are all zero
-		for (int i = 0; i < T.length; i++) for (int j = 0; j < T.length; j++) if (i != j) T[i][j] = this.tau;
+		for (int i = 0; i < T.length; i++) for (int j = 0; j < T.length; j++)  T[i][j] = this.tau;
 	}
 
 	/**
@@ -54,8 +56,9 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 	 * @param args command-line arguments, ignored.
 	 */
 	public static void main(String[] args) {
-		ODESystem triangle = new ODESystem(GraphGenerator.getTriangle(), false, 0.7, 0.25);
+		ODESystem triangle = new ODESystem(GraphGenerator.getTriangle(), false, 1, 0, 10);
 		double[] y0 = new double[triangle.getDimension()];
+		Arrays.fill(y0, 0.001);
 
 		// Known state - S0I1S2, so S0, I1, S2, S0I1 and S0I1S2 all 1, others 0
 		y0[triangle.getIndicesMapping().get(new Tuple(Arrays.asList(new Vertex('S', 0), new Vertex('I', 1), new Vertex('S', 2))))] = 1;
@@ -65,14 +68,28 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 		y0[triangle.getIndicesMapping().get(new Tuple(Collections.singletonList(new Vertex('I', 1))))] = 1;
 		y0[triangle.getIndicesMapping().get(new Tuple(Collections.singletonList(new Vertex('S', 2))))] = 1;
 
-		int tMax = 10;
-		double[][] results = ODEResultsUtils.getIncrementalResults(triangle, y0, tMax);
-		ODEResultsUtils.outputCSVResult(triangle, results);
-
-		Map<List<Tuple>, double[][]> map = ODEResultsUtils.getResultsByLength(triangle, results, tMax);
-		for (List<Tuple> key : map.keySet()) {
-			System.out.println("TUPLES\n" + key + "\n" + Arrays.deepToString(map.get(key)));
+		for (Tuple t : triangle.getTuples().getTuples()) {
+			System.out.println(t + " = " + y0[triangle.getIndicesMapping().get(t)]);
 		}
+
+		for (int i = 0; i < triangle.T.length; i++) {
+			for (int j = 0; j < triangle.T[0].length; j++) {
+				System.out.print(triangle.T[i][j] + " ");
+			}
+			System.out.println();
+		}
+//		System.out.println("ROWS: " + triangle.T.length);
+//		System.out.println("COLUMNS: " + triangle.T[0].length);
+
+		double[][] results = ODEResultsUtils.getIncrementalResults(triangle, y0);
+		System.out.println(triangle.getEquations());
+
+//		ODEResultsUtils.outputCSVResult(triangle, results);
+		ODEResultsUtils.plotResults(triangle, triangle.getIndicesMapping(), results);
+	}
+
+	public Graph getG() {
+		return g;
 	}
 
 	/**
@@ -102,7 +119,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 				for (int j = 0; j < graph.getNumVertices(); j++) {
 					List<Vertex> verticesToAdd = new ArrayList<>(Arrays.asList(new Vertex('S', i), new Vertex('I', j)));
 					if (graph.hasEdge(i, j)) {
-						// Add any of the remaining terms back in that aren't the current term
+						// Add any of the remaining terms back in that aren't the current term (chain rule)
 						if (!extraTerms.isEmpty()) {
 							extraTerms.stream().filter(extraTerm -> !verticesToAdd.contains(extraTerm)).forEach(verticesToAdd::add);
 						}
@@ -112,12 +129,10 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 							// Append appropriate term to the string builder
 							s.append("- ").append(Greek.TAU.uni()).append(t);
 							// Append to the relevant yDot term
-							yDot[this.getIndicesMapping().get(tuple)] +=
-									-T[i][j] * y[this.getIndicesMapping().get(t)];
+							yDot[this.getIndicesMapping().get(tuple)] += -T[i][j] * y[this.getIndicesMapping().get(t)];
 						}
 					}
 				}
-
 				// INFECTED
 			} else if (v.getState() == 'I') {
 				// Loop through all vertices in graph
@@ -146,11 +161,11 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 					extraTerms.stream().filter(extraTerm -> !verticesToAdd.contains(extraTerm)).forEach(verticesToAdd::add);
 				}
 				Tuple t = new Tuple(verticesToAdd);
-				// Append appropriate term to the string builder (if appropriate)
 				if (t.size() == 1 || t.isValidTuple(graph, closures)) {
+					// Append appropriate term to the string builder (if appropriate)
 					s.append("- ").append(Greek.GAMMA.uni()).append(t);
 					// Append to the relevant yDot term
-					yDot[this.getIndicesMapping().get(tuple)] -= (gamma * y[this.getIndicesMapping().get(t)]);
+					yDot[this.getIndicesMapping().get(tuple)] += (-gamma * y[this.getIndicesMapping().get(t)]);
 				}
 			}
 		}
