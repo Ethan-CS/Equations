@@ -1,8 +1,6 @@
 package io.github.ethankelly;
 
-import io.github.ethankelly.symbols.Maths;
 import org.apache.commons.math3.ode.FirstOrderIntegrator;
-import org.apache.commons.math3.ode.nonstiff.ClassicalRungeKuttaIntegrator;
 import tech.tablesaw.api.DoubleColumn;
 import tech.tablesaw.api.IntColumn;
 import tech.tablesaw.api.Table;
@@ -50,40 +48,52 @@ public class ODEResultsUtils {
 		return map;
 	}
 
-	static double[][] getIncrementalResults(ODESystem triangle, double[] y0) {
-		double[] initialConditions = y0.clone();
-		FirstOrderIntegrator integrator = new ClassicalRungeKuttaIntegrator(0.001);
-		double[][] results = new double[triangle.tMax+1][triangle.getIndicesMapping().size()];
+	static void setInitialConditions(ODESystem system, double[] y0) {
+		for (Tuple t : system.getTuples().getTuples()) {
+			y0[system.getIndicesMapping().get(t)] = y0[system.getIndicesMapping().get(new Tuple(t.getVertices().get(0)))];
+			IntStream.range(1, t.size())
+					.mapToObj(t::get)
+					.forEach(v -> y0[system.getIndicesMapping().get(t)]
+							= y0[system.getIndicesMapping().get(t)] * y0[system.getIndicesMapping().get(new Tuple(v))]);
+		}
+	}
+
+	static double[][] getIncrementalResults(ODESystem system, double[] y0, FirstOrderIntegrator integrator) {
+		// Initialise a 2D array to store the solutions to the system for each time step
+		double[][] results = new double[system.tMax+1][system.getIndicesMapping().size()];
 		// First row of results (t=0) contains initial conditions
 		System.arraycopy(y0, 0, results[0], 0, results[0].length);
-		// Print the initial state and specify the initial condition used in this test
-		System.out.println("Initial state:\n" + Arrays.toString(y0) + ", I.e. " + Maths.L_ANGLE.uni() + "S0_I1_S2" + Maths.R_ANGLE.uni());
 		// Print found values to 2 d.p. for clarity of system output
 		DecimalFormat df = new DecimalFormat();
 		df.setMaximumFractionDigits(2);
 		df.setMinimumFractionDigits(2);
-		System.out.println();
 
-		for (int t = 1; t <= triangle.tMax; t++) {
+		System.out.println(); // This method prints the results to the console as it goes
+		for (int t = 1; t <= system.tMax; t++) { // Iterate over the specified time period
 			System.out.print("\n[");
-			// Integrate from previous time-step up to specified t value
-			integrator.integrate(triangle, t-1, y0, t, y0);
+			// Integrate from previous time-step up to the current value of t
+			integrator.integrate(system, t - 1, y0, t, y0);
 			// Add computed results to summary data structure
-			for (Tuple tup : triangle.getTuples().getTuples()) {
-				// t-1 so that array indexing starts at 0
-				if (y0[triangle.getIndicesMapping().get(tup)] <= 0) {
-					results[t][triangle.getIndicesMapping().get(tup)] = 0;
-				} else if (y0[triangle.getIndicesMapping().get(tup)] > 1) {
-					results[t][triangle.getIndicesMapping().get(tup)] = 1;
-				} else if (0 < y0[triangle.getIndicesMapping().get(tup)] && y0[triangle.getIndicesMapping().get(tup)] < 0.0001) {
-					y0[triangle.getIndicesMapping().get(tup)] = 0;
-				} else {
-					results[t][triangle.getIndicesMapping().get(tup)] = y0[triangle.getIndicesMapping().get(tup)];
+			// Since we're dealing with probabilities, we need to ensure solutions are between 0 and 1
+			for (Tuple tup : system.getTuples().getTuples()) {
+				double thisResult = y0[system.getIndicesMapping().get(tup)];
+				if (thisResult <= 0) { // Less than 0 or very small
+					results[t][system.getIndicesMapping().get(tup)] = 0;
+					y0[system.getIndicesMapping().get(tup)] = 0;
+				} else if (0 < thisResult && thisResult < 0.00001) { // Less than 0 or very small
+					results[t][system.getIndicesMapping().get(tup)] = 0;
+				} else if (thisResult > 1) { // Greater than 1
+					results[t][system.getIndicesMapping().get(tup)] = 1;
+					y0[system.getIndicesMapping().get(tup)] = 1;
+				} else { // Anything else (between 0 and 1) is fine
+					results[t][system.getIndicesMapping().get(tup)] = thisResult;
 				}
-				System.out.print(df.format(y0[triangle.getIndicesMapping().get(tup)]) + " ");
+
+				System.out.print(df.format(y0[system.getIndicesMapping().get(tup)]) + " ");
 			}
 			System.out.print("]");
 		}
+		System.out.println();
 		return results;
 	}
 

@@ -1,7 +1,6 @@
 package io.github.ethankelly;
 
 import io.github.ethankelly.graph.Graph;
-import io.github.ethankelly.graph.GraphGenerator;
 import io.github.ethankelly.graph.Vertex;
 import io.github.ethankelly.symbols.Greek;
 import org.apache.commons.math3.exception.DimensionMismatchException;
@@ -19,7 +18,7 @@ import java.util.stream.Collectors;
 public class ODESystem implements FirstOrderDifferentialEquations {
 	private final Graph g; // Underlying graph
 	private final RequiredTuples requiredTuples; // The required requiredTuples (found using Tuples class)
-	private final int dimension; // The number of equations required (i.e. number of requiredTuples we have)
+	private int dimension; // The number of equations required (i.e. number of requiredTuples we have)
 	private final double[][] T; // Transmission matrix
 	public int tMax;
 	public double tau; // Rate of transmission
@@ -48,44 +47,6 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 		// For now, every element in transmission matrix is equal to beta (can change based on context)
 		// But we do not allow self-transmission, so diagonal values are all zero
 		for (int i = 0; i < T.length; i++) for (int j = 0; j < T.length; j++)  T[i][j] = this.tau;
-	}
-
-	/**
-	 * Unit testing.
-	 *
-	 * @param args command-line arguments, ignored.
-	 */
-	public static void main(String[] args) {
-		ODESystem triangle = new ODESystem(GraphGenerator.getTriangle(), false, 1, 0, 10);
-		double[] y0 = new double[triangle.getDimension()];
-		Arrays.fill(y0, 0.001);
-
-		// Known state - S0I1S2, so S0, I1, S2, S0I1 and S0I1S2 all 1, others 0
-		y0[triangle.getIndicesMapping().get(new Tuple(Arrays.asList(new Vertex('S', 0), new Vertex('I', 1), new Vertex('S', 2))))] = 1;
-		y0[triangle.getIndicesMapping().get(new Tuple(Arrays.asList(new Vertex('S', 0), new Vertex('I', 1))))] = 1;
-		y0[triangle.getIndicesMapping().get(new Tuple(Arrays.asList(new Vertex('I', 1), new Vertex('S', 2))))] = 1;
-		y0[triangle.getIndicesMapping().get(new Tuple(Collections.singletonList(new Vertex('S', 0))))] = 1;
-		y0[triangle.getIndicesMapping().get(new Tuple(Collections.singletonList(new Vertex('I', 1))))] = 1;
-		y0[triangle.getIndicesMapping().get(new Tuple(Collections.singletonList(new Vertex('S', 2))))] = 1;
-
-		for (Tuple t : triangle.getTuples().getTuples()) {
-			System.out.println(t + " = " + y0[triangle.getIndicesMapping().get(t)]);
-		}
-
-		for (int i = 0; i < triangle.T.length; i++) {
-			for (int j = 0; j < triangle.T[0].length; j++) {
-				System.out.print(triangle.T[i][j] + " ");
-			}
-			System.out.println();
-		}
-//		System.out.println("ROWS: " + triangle.T.length);
-//		System.out.println("COLUMNS: " + triangle.T[0].length);
-
-		double[][] results = ODEResultsUtils.getIncrementalResults(triangle, y0);
-		System.out.println(triangle.getEquations());
-
-//		ODEResultsUtils.outputCSVResult(triangle, results);
-		ODEResultsUtils.plotResults(triangle, triangle.getIndicesMapping(), results);
 	}
 
 	public Graph getG() {
@@ -232,6 +193,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 	 */
 	@Override
 	public int getDimension() {
+		this.dimension = this.getTuples().getTuples().size();
 		return this.dimension;
 	}
 
