@@ -3,6 +3,8 @@ package io.github.ethankelly;
 import io.github.ethankelly.exceptions.UnexpectedStateException;
 import io.github.ethankelly.graph.GraphGenerator;
 import io.github.ethankelly.graph.Vertex;
+import io.github.ethankelly.model.RequiredTuples;
+import io.github.ethankelly.model.Tuple;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

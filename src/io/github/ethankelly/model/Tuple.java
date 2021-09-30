@@ -1,4 +1,4 @@
-package io.github.ethankelly;
+package io.github.ethankelly.model;
 
 import io.github.ethankelly.graph.Graph;
 import io.github.ethankelly.graph.Vertex;

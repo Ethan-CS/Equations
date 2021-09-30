@@ -1,5 +1,6 @@
 package io.github.ethankelly;
 
+import io.github.ethankelly.model.PrintEquations;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

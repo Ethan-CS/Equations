@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <title>Plot of Probabilities Describing an SIR Epidemic on a Triangle Network</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div id='target' ></div>
+        <script>
+        var target_target = document.getElementById('target');
+        var layout = {
+    title: 'Plot of Probabilities Describing an SIR Epidemic on a Triangle Network',
+    titlefont: {
+  "color" : "black",
+  "family" : "verdana",
+  "size" : 30
+},
+    height: 1200,
+    width: 2500,
+    xaxis: {
+    title: 'Time',
+    },
+
+    yaxis: {
+    title: 'Probability',
+    },
+
+};
+
+var trace0 =
+{
+x: ["0.0","1.0","2.0","3.0","4.0","5.0"],
+y: ["0.03200000000000001","0.0","0.0","0.0","0.0","0.0"],
+mode: 'lines',
+xaxis: 'x',
+yaxis: 'y',
+type: 'scatter',
+name: '〈S0_S1_I2〉',
+};
+var trace1 =
+{
+x: ["0.0","1.0","2.0","3.0","4.0","5.0"],
+y: ["0.5120000000000001","0.0","0.0","0.0","0.0","0.0"],
+mode: 'lines',
+xaxis: 'x',
+yaxis: 'y',
+type: 'scatter',
+name: '〈S0_I1_S2〉',
+};
+var trace2 =
+{
+x: ["0.0","1.0","2.0","3.0","4.0","5.0"],
+y: ["0.12800000000000003","0.562928070638085","0.0","0.0","0.0","0.0"],
+mode: 'lines',
+xaxis: 'x',
+yaxis: 'y',
+type: 'scatter',
+name: '〈S0_I1_I2〉',
+};
+var trace3 =
+{
+x: ["0.0","1.0","2.0","3.0","4.0","5.0"],
+y: ["0.03200000000000001","0.0","0.0","0.0","0.0","0.0"],
+mode: 'lines',
+xaxis: 'x',
+yaxis: 'y',
+type: 'scatter',
+name: '〈I0_S1_S2〉',
+};
+var trace4 =
+{
+x: ["0.0","1.0","2.0","3.0","4.0","5.0"],
+y: ["0.008000000000000002","0.07190719624270812","0.0","0.0","0.0","0.0"],
+mode: 'lines',
+xaxis: 'x',
+yaxis: 'y',
+type: 'scatter',
+name: '〈I0_S1_I2〉',
+};
+var trace5 =
+{
+x: ["0.0","1.0","2.0","3.0","4.0","5.0"],
+y: ["0.12800000000000003","0.5629280706380795","0.0","0.0","0.0","0.0"],
+mode: 'lines',
+xaxis: 'x',
+yaxis: 'y',
+type: 'scatter',
+name: '〈I0_I1_S2〉',
+};
+var trace6 =
+{
+x: ["0.0","1.0","2.0","3.0","4.0","5.0"],
+y: ["0.04000000000000001","0.05798904307222836","0.0","0.0","0.0","0.0"],
+mode: 'lines',
+xaxis: 'x',
+yaxis: 'y',
+type: 'scatter',
+name: '〈S1_I2〉',
+};
+var trace7 =
+{
+x: ["0.0","1.0","2.0","3.0","4.0","5.0"],
+y: ["0.16000000000000003","1.0","0.2133135119871037","0.13056828200245985","0.07992028309066943","0.048918861054344766"],
+mode: 'lines',
+xaxis: 'x',
+yaxis: 'y',
+type: 'scatter',
+name: '〈S0_I2〉',
+};
+var trace8 =
+{
+x: ["0.0","1.0","2.0","3.0","4.0","5.0"],
+y: ["0.6400000000000001","0.0","0.0","0.0","0.0","0.0"],
+mode: 'lines',
+xaxis: 'x',
+yaxis: 'y',
+type: 'scatter',
+name: '〈I1_S2〉',
+};
+var trace9 =
+{
+x: ["0.0","1.0","2.0","3.0","4.0","5.0"],
+y: ["0.6400000000000001","0.0","0.0","0.0","0.0","0.0"],
+mode: 'lines',
+xaxis: 'x',
+yaxis: 'y',
+type: 'scatter',
+name: '〈S0_I1〉',
+};
+var trace10 =
+{
+x: ["0.0","1.0","2.0","3.0","4.0","5.0"],
+y: ["0.16000000000000003","1.0","0.21331351198709936","0.13056828200245824","0.07992028309066963","0.048918861054345765"],
+mode: 'lines',
+xaxis: 'x',
+yaxis: 'y',
+type: 'scatter',
+name: '〈I0_S2〉',
+};
+var trace11 =
+{
+x: ["0.0","1.0","2.0","3.0","4.0","5.0"],
+y: ["0.04000000000000001","0.057989043072227645","0.0","0.0","0.0","0.0"],
+mode: 'lines',
+xaxis: 'x',
+yaxis: 'y',
+type: 'scatter',
+name: '〈I0_S1〉',
+};
+var trace12 =
+{
+x: ["0.0","1.0","2.0","3.0","4.0","5.0"],
+y: ["0.8","0.5270883954802809","0.1883357072464872","0.14696309225442117","0.12163909279863466","0.10613838178054476"],
+mode: 'lines',
+xaxis: 'x',
+yaxis: 'y',
+type: 'scatter',
+name: '〈S2〉',
+};
+var trace13 =
+{
+x: ["0.0","1.0","2.0","3.0","4.0","5.0"],
+y: ["0.2","0.1724466234171586","0.1314559213478498","0.1314559213478498","0.1314559213478498","0.1314559213478498"],
+mode: 'lines',
+xaxis: 'x',
+yaxis: 'y',
+type: 'scatter',
+name: '〈S1〉',
+};
+var trace14 =
+{
+x: ["0.0","1.0","2.0","3.0","4.0","5.0"],
+y: ["0.8","0.5270883954800379","0.18833570724549645","0.14696309225330476","0.12163909279744962","0.10613838177933425"],
+mode: 'lines',
+xaxis: 'x',
+yaxis: 'y',
+type: 'scatter',
+name: '〈S0〉',
+};
+var trace15 =
+{
+x: ["0.0","1.0","2.0","3.0","4.0","5.0"],
+y: ["0.2","0.0","0.0","0.0","0.0","0.0"],
+mode: 'lines',
+xaxis: 'x',
+yaxis: 'y',
+type: 'scatter',
+name: '〈I2〉',
+};
+var trace16 =
+{
+x: ["0.0","1.0","2.0","3.0","4.0","5.0"],
+y: ["0.8","0.0","0.0","0.0","0.0","0.0"],
+mode: 'lines',
+xaxis: 'x',
+yaxis: 'y',
+type: 'scatter',
+name: '〈I1〉',
+};
+var trace17 =
+{
+x: ["0.0","1.0","2.0","3.0","4.0","5.0"],
+y: ["0.2","0.0","0.0","0.0","0.0","0.0"],
+mode: 'lines',
+xaxis: 'x',
+yaxis: 'y',
+type: 'scatter',
+name: '〈I0〉',
+};
+
+        var data = [ trace0, trace1, trace2, trace3, trace4, trace5, trace6, trace7, trace8, trace9, trace10, trace11, trace12, trace13, trace14, trace15, trace16, trace17];
+Plotly.newPlot(target_target, data, layout);            </script>
+
+</body>
+</html>

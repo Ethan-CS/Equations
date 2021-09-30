@@ -1,6 +1,6 @@
 package io.github.ethankelly.graph;
 
-import io.github.ethankelly.Tuple;
+import io.github.ethankelly.model.Tuple;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

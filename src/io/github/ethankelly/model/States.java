@@ -1,4 +1,4 @@
-package io.github.ethankelly;
+package io.github.ethankelly.model;
 
 public enum States {
     si(new char[]{'I', 'S'}),

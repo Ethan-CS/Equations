@@ -3,6 +3,7 @@ package io.github.ethankelly;
 import io.github.ethankelly.graph.Graph;
 import io.github.ethankelly.graph.GraphGenerator;
 import io.github.ethankelly.graph.Vertex;
+import io.github.ethankelly.model.*;
 import org.apache.commons.math3.ode.nonstiff.ClassicalRungeKuttaIntegrator;
 
 import java.io.FileNotFoundException;
@@ -21,18 +22,20 @@ public class Main {
 	 */
 	public static void main(String[] args) throws FileNotFoundException {
 //		testMethods();
-
-		ODESystem triangle = new ODESystem(GraphGenerator.getTriangle(), false, 0.6, 0.1, 10);
+		Model ms = new Model(Arrays.asList('S', 'I', 'R'), new boolean[]{true, false, false});
+		ms.addTransition('S', 'I', 0.75);
+		ms.addTransition('I', 'R', 0.2);
+		ODESystem triangle = new ODESystem(GraphGenerator.getTriangle(), 5, ms);
 //		triangle.getTuples().getTuples().add(new Tuple(Arrays.asList(new Vertex('I', 0), new Vertex('I', 1), new Vertex('I', 2))));
 		double[] y0 = new double[triangle.getDimension()];
 
-//		// Known state - S0I1S2, so S0, I1, S2, S0I1 and S0I1S2 all 1, others 0
-		y0[triangle.getIndicesMapping().get(new Tuple(Collections.singletonList(new Vertex('S', 0))))] = 0.9;
-		y0[triangle.getIndicesMapping().get(new Tuple(Collections.singletonList(new Vertex('I', 0))))] = 0.1;
+		// Known state - S0I1S2, so S0, I1, S2, S0I1 and S0I1S2 all 1, others 0
+		y0[triangle.getIndicesMapping().get(new Tuple(Collections.singletonList(new Vertex('S', 0))))] = 0.8;
+		y0[triangle.getIndicesMapping().get(new Tuple(Collections.singletonList(new Vertex('I', 0))))] = 0.2;
 		y0[triangle.getIndicesMapping().get(new Tuple(Collections.singletonList(new Vertex('S', 1))))] = 0.2;
 		y0[triangle.getIndicesMapping().get(new Tuple(Collections.singletonList(new Vertex('I', 1))))] = 0.8;
-		y0[triangle.getIndicesMapping().get(new Tuple(Collections.singletonList(new Vertex('S', 2))))] = 0.9;
-		y0[triangle.getIndicesMapping().get(new Tuple(Collections.singletonList(new Vertex('I', 2))))] = 0.1;
+		y0[triangle.getIndicesMapping().get(new Tuple(Collections.singletonList(new Vertex('S', 2))))] = 0.8;
+		y0[triangle.getIndicesMapping().get(new Tuple(Collections.singletonList(new Vertex('I', 2))))] = 0.2;
 
 		ODEResultsUtils.setInitialConditions(triangle, y0);
 
@@ -40,7 +43,7 @@ public class Main {
 		for (Tuple t : triangle.getTuples().getTuples()) {
 			System.out.println(t + " = " + y0[triangle.getIndicesMapping().get(t)]);
 		}
-
+		System.out.println(ms);
 		double[][] results = ODEResultsUtils.getIncrementalResults(triangle, y0, new ClassicalRungeKuttaIntegrator(0.0001));
 
 		ODEResultsUtils.outputCSVResult(triangle, results);

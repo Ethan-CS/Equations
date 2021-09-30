@@ -1,4 +1,4 @@
-package io.github.ethankelly;
+package io.github.ethankelly.model;
 
 import org.apache.commons.math3.ode.FirstOrderIntegrator;
 import tech.tablesaw.api.DoubleColumn;
@@ -48,7 +48,7 @@ public class ODEResultsUtils {
 		return map;
 	}
 
-	static void setInitialConditions(ODESystem system, double[] y0) {
+	public static void setInitialConditions(ODESystem system, double[] y0) {
 		for (Tuple t : system.getTuples().getTuples()) {
 			y0[system.getIndicesMapping().get(t)] = y0[system.getIndicesMapping().get(new Tuple(t.getVertices().get(0)))];
 			IntStream.range(1, t.size())
@@ -58,7 +58,7 @@ public class ODEResultsUtils {
 		}
 	}
 
-	static double[][] getIncrementalResults(ODESystem system, double[] y0, FirstOrderIntegrator integrator) {
+	public static double[][] getIncrementalResults(ODESystem system, double[] y0, FirstOrderIntegrator integrator) {
 		// Initialise a 2D array to store the solutions to the system for each time step
 		double[][] results = new double[system.tMax+1][system.getIndicesMapping().size()];
 		// First row of results (t=0) contains initial conditions
@@ -97,7 +97,7 @@ public class ODEResultsUtils {
 		return results;
 	}
 
-	static void outputCSVResult(ODESystem triangle, double[][] results) {
+	public static void outputCSVResult(ODESystem triangle, double[][] results) {
 		StringBuilder sb = new StringBuilder();
 		try {
 			FileWriter writer = new FileWriter("test.csv");

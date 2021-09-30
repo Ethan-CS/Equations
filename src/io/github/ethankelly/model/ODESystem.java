@@ -1,6 +1,7 @@
-package io.github.ethankelly;
+package io.github.ethankelly.model;
 
 import io.github.ethankelly.graph.Graph;
+import io.github.ethankelly.graph.GraphGenerator;
 import io.github.ethankelly.graph.Vertex;
 import io.github.ethankelly.symbols.Greek;
 import org.apache.commons.math3.exception.DimensionMismatchException;
@@ -8,7 +9,6 @@ import org.apache.commons.math3.exception.MaxCountExceededException;
 import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Represents a system of differential equations that describe a compartmental model of disease on a given graph. This
@@ -19,39 +19,118 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 	private final Graph g; // Underlying graph
 	private final RequiredTuples requiredTuples; // The required requiredTuples (found using Tuples class)
 	private int dimension; // The number of equations required (i.e. number of requiredTuples we have)
-	private final double[][] T; // Transmission matrix
 	public int tMax;
-	public double tau; // Rate of transmission
-	public double gamma; // Rate of recovery
-	boolean closures; // Whether we need to consider closure-related tuples, i.e. all susceptible tuples.
+	boolean closures = false; // Whether we need to consider closure-related tuples, i.e. all susceptible tuples.
 	private Map<Tuple, Integer> indicesMapping = new HashMap<>(); // Mapping of requiredTuples to unique integers
 	private String equations; // String representation of the system of equations
+	private final Model ms;
 	/**
 	 * Class constructor.
 	 *
 	 * @param g        the graph that underpins our compartmental model.
-	 * @param closures whether we need to consider otherwise unnecessary tuples (i.e. all susceptible).
-	 * @param tau      the rate of transmission in the model.
-	 * @param gamma    the rate of recovery in the model.
 	 * @param tMax     the maximum value of time to be considered when calculating solutions
 	 */
-	public ODESystem(Graph g, boolean closures, double tau, double gamma, int tMax) {
+	public ODESystem(Graph g, int tMax, Model ms) {
 		this.g = g;
-		this.closures = closures;
-		this.tau = tau;
-		this.gamma = gamma;
-		this.requiredTuples = new RequiredTuples(g, new char[] {'S', 'I', 'R'}, this.closures);
+		this.requiredTuples = new RequiredTuples(g, new char[]{'S', 'I', 'R'}, false);
 		this.dimension = requiredTuples.size();
 		this.tMax = tMax;
-		this.T = new double[g.getNumVertices()][g.getNumVertices()];
-		// For now, every element in transmission matrix is equal to beta (can change based on context)
-		// But we do not allow self-transmission, so diagonal values are all zero
-		for (int i = 0; i < T.length; i++) for (int j = 0; j < T.length; j++)  T[i][j] = this.tau;
+		this.ms = ms;
 	}
 
+	public static void main(String[] args) {
+		Model ms = new Model(Arrays.asList('S', 'I', 'R'), new boolean[]{true, false, false});
+		ms.addTransition('S', 'I', 0.6);
+		ms.addTransition('I', 'R', 0.1);
+		System.out.println(ms);
+		ODESystem triangle = new ODESystem(GraphGenerator.getTriangle(), 5, ms);
+		double[] y0 = new double[triangle.getDimension()];
+
+		for (Tuple t : triangle.getTuples().getTuples() ) {
+			triangle.newGetEquation(y0, y0, t);
+		}
+	}
 	public Graph getG() {
 		return g;
 	}
+
+	// TODO try starting this from scratch (see notebook notes)
+	public void newGetEquation(double[] y, double[] yDot, Tuple tuple) {
+		Graph graph = this.getG();
+
+		StringBuilder s = new StringBuilder();
+		s.append("\n").append(tuple).append(" = ");
+
+		for (Vertex v : tuple.getVertices()) {
+
+		}
+		System.out.println(s);
+	}
+
+//	public void newGetEquation(double[] y, double[] yDot, Tuple tuple) {
+//		Graph graph = this.getG();
+//
+//		StringBuilder s = new StringBuilder();
+//		s.append("\n").append(tuple).append(" = ");
+//
+//		for (Vertex v : tuple.getVertices()) {
+//			int indexV = ms.getStates().indexOf(v.getState());
+//			char state = v.getState();
+//			int location = v.getLocation();
+//			// Store the other vertices in the tuple to add back in later as 0th order derivative terms (CHAIN RULE)
+//			List<Vertex> extraTerms = new ArrayList<>();
+//			for (Vertex w : tuple.getVertices()) if (!w.equals(v)) extraTerms.add(w);
+//			for (int i = 0; i < graph.getNumVertices(); i++) {
+//				if (graph.hasEdge(location, i)) {
+//					Vertex w = new Vertex('I', i);//todo
+//					int indexW = ms.getStates().indexOf(w.getState());
+//					List<Vertex> verticesToAdd = new ArrayList<>(Arrays.asList(v, w));
+//					// Add any of the remaining terms back in that aren't the current term (chain rule)
+//					if (!extraTerms.isEmpty()) {
+//						extraTerms.stream()
+//								.filter(extraTerm -> !verticesToAdd.contains(extraTerm))
+//								.forEach(verticesToAdd::add);
+//					}
+//					// Make a new tuple from the list of vertices
+//					Tuple t = new Tuple(verticesToAdd);
+//					if (t.isValidTuple(graph, closures)) {
+//
+//						// COLUMNS - tell us if anything is entering this state
+//						 for (int row = 0; row < ms.getStates().size(); row++) {
+//							if (ms.getTransitionMatrix()[row][indexV]) {
+//								// Append to the relevant yDot term
+//								yDot[this.getIndicesMapping().get(tuple)] +=
+//										ms.getRatesMatrix()[indexV][indexW] * y[this.getIndicesMapping().get(t)];
+//								s.append("+").append(Greek.TAU.uni()).append(ms.getRatesMatrix()[row][indexV]).append(t);
+//							}
+//						}
+//					}
+//				}
+//			}
+//			List<Vertex> verticesToAdd = new ArrayList<>();
+//			verticesToAdd.add(v);
+//			if (!extraTerms.isEmpty()) {
+//				extraTerms.stream()
+//						.filter(extraTerm -> !verticesToAdd.contains(extraTerm))
+//						.forEach(verticesToAdd::add);
+//			}
+//			Tuple t = new Tuple(verticesToAdd);
+//			if (t.isValidTuple(graph, closures)) {
+//				// ROWS - tell us if anything is leaving this state
+//				for (int col = 0; col < ms.getStates().size(); col++) {
+//					if (ms.getTransitionMatrix()[indexV][col]) {
+//						if (t.size() != 1 || !ms.getRequiresPair()[indexV]) {
+//							// Append to the relevant yDot term
+//							yDot[this.getIndicesMapping().get(tuple)] +=
+//									-ms.getRatesMatrix()[indexV][col] * y[this.getIndicesMapping().get(t)];
+//							s.append("-").append(Greek.GAMMA.uni()).append(ms.getRatesMatrix()[indexV][col]).append(t);
+//						}
+//					}
+//				}
+//			}
+//		}
+//		System.out.println(s);
+//	}
 
 	/**
 	 * Returns the String representation of the specified Tuple in the context of a wider ODE system and uses the
@@ -72,13 +151,14 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 		for (Vertex v : tuple.getVertices()) {
 			int i = v.getLocation();
 			// Store the other vertices in the tuple to add back in later as 0th order derivative terms (CHAIN RULE)
-			List<Vertex> extraTerms = tuple.getVertices().stream().filter(w -> !w.equals(v)).collect(Collectors.toList());
+			List<Vertex> extraTerms = new ArrayList<>();
+			for (Vertex w : tuple.getVertices()) if (!w.equals(v)) extraTerms.add(w);
 
 			// SUSCEPTIBLE
 			if (v.getState() == 'S') {
 				// Loop through all vertices in graph
 				for (int j = 0; j < graph.getNumVertices(); j++) {
-					List<Vertex> verticesToAdd = new ArrayList<>(Arrays.asList(new Vertex('S', i), new Vertex('I', j)));
+					List<Vertex> verticesToAdd = new ArrayList<>(Arrays.asList(v, new Vertex('I', j)));
 					if (graph.hasEdge(i, j)) {
 						// Add any of the remaining terms back in that aren't the current term (chain rule)
 						if (!extraTerms.isEmpty()) {
@@ -87,10 +167,12 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 						// Make a new tuple from the list of vertices
 						Tuple t = new Tuple(verticesToAdd);
 						if (t.isValidTuple(graph, closures)) {
-							// Append appropriate term to the string builder
-							s.append("- ").append(Greek.TAU.uni()).append(t);
+							//TODO this is where we append any relevant terms, given the transition diagram
+
+							// Append appropriate term to the string builder - this is for S -> I
+							s.append("- ").append(Greek.GAMMA.uni()).append(t);
 							// Append to the relevant yDot term
-							yDot[this.getIndicesMapping().get(tuple)] += -T[i][j] * y[this.getIndicesMapping().get(t)];
+							yDot[this.getIndicesMapping().get(tuple)] += -ms.getRatesMatrix()[ms.getStates().indexOf('I')][ms.getStates().indexOf('R')] * y[this.getIndicesMapping().get(t)];
 						}
 					}
 				}
@@ -112,7 +194,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 							s.append(Greek.TAU.uni()).append(t);
 							// Append to the relevant yDot term
 							yDot[this.getIndicesMapping().get(tuple)] +=
-									T[i][j] * y[this.getIndicesMapping().get(t)];
+									ms.getRatesMatrix()[ms.getStates().indexOf('S')][ms.getStates().indexOf('I')] * y[this.getIndicesMapping().get(t)];
 						}
 					}
 				}
@@ -126,7 +208,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 					// Append appropriate term to the string builder (if appropriate)
 					s.append("- ").append(Greek.GAMMA.uni()).append(t);
 					// Append to the relevant yDot term
-					yDot[this.getIndicesMapping().get(tuple)] += (-gamma * y[this.getIndicesMapping().get(t)]);
+					yDot[this.getIndicesMapping().get(tuple)] += (-ms.getRatesMatrix()[ms.getStates().indexOf('I')][ms.getStates().indexOf('R')] * y[this.getIndicesMapping().get(t)]);
 				}
 			}
 		}
@@ -140,23 +222,11 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 	 */
 	@Override
 	public String toString() {
-		StringBuilder tMat = new StringBuilder();
-		for (double[] doubles : this.T) {
-			tMat.append("[");
-			for (int j = 0; j < this.T.length - 1; j++) {
-				tMat.append(doubles[j]).append(", ");
-			}
-			tMat.append(doubles[this.T.length - 1]).append("]\n");
-		}
-
 		return "ODESystem\n" +
 		       "GRAPH:\n" + g +
 		       "\nREQUIRED TUPLES:\n" + requiredTuples +
 		       "\nNUMBER OF TUPLES: " + dimension +
-		       "\nTRANSMISSION MATRIX T = \n" + tMat +
-		       "\nEQUATIONS:\n" + getEquations() +
-		       "\nRATE OF TRANSMISSION, " + Greek.TAU.uni() + " = " + tau +
-		       "\nRATE OF RECOVERY, " + Greek.GAMMA.uni() + " = " + gamma;
+		       "\nEQUATIONS:\n" + getEquations();
 	}
 
 	/**
