@@ -1,7 +1,6 @@
 package io.github.ethankelly.model;
 
 import io.github.ethankelly.graph.Graph;
-import io.github.ethankelly.graph.GraphGenerator;
 import io.github.ethankelly.graph.Vertex;
 
 import java.util.*;
@@ -17,20 +16,20 @@ import java.util.*;
 public class RequiredTuples {
 	private final List<Tuple> tuples; // The list of tuples required to describe a model on the specified graph
 	private final Graph graph; // The graph representing underpinning the compartmental model
-	private final char[] states; // The compartmental model states, e.g. SIR
+	private final Model modelParams; // The compartmental model states, e.g. SIR
 	private final boolean closures; // Whether we are considering closures (may need to consider unusual tuples)
+
 
 	/**
 	 * Class constructor - assigns a graph, an array of states and a boolean representing whether we may need to
 	 * consider to a new Tuple object.
-	 *
-	 * @param graph    the graph of which we are interested in equations.
-	 * @param states   the states that a vertex can be in (e.g. SIR).
+	 *  @param graph    the graph of which we are interested in equations.
+	 * @param modelParams   the parameters of the model, including which states each vertex can be.
 	 * @param closures whether to include closures in the generated tuples.
 	 */
-	public RequiredTuples(Graph graph, char[] states, boolean closures) {
+	public RequiredTuples(Graph graph, Model modelParams, boolean closures) {
 		this.graph = graph;
-		this.states = states;
+		this.modelParams = modelParams;
 		this.tuples = this.generateTuples(closures);
 		this.closures = closures;
 	}
@@ -41,56 +40,6 @@ public class RequiredTuples {
 	 * @param args command-line arguments (ignored).
 	 */
 	public static void main(String[] args) {
-//		RequiredTuples t1 = new RequiredTuples(GraphGenerator.getTriangle(), new char[] {'S', 'I', 'R'}, false);
-//		System.out.println(t1.findSingles());
-//		System.out.println(t1.getTuples() + "\nSize: " + t1.getTuples().size());
-//
-//		RequiredTuples t2 = new RequiredTuples(GraphGenerator.getTriangle(), new char[] {'S', 'I', 'R'}, true);
-//		System.out.println(t2.findSingles());
-//		System.out.println(t2.getTuples() + "\nSize: " + t2.getTuples().size());
-
-		RequiredTuples complete5 = new RequiredTuples(GraphGenerator.complete(5), new char[]{'S', 'I', 'R'}, false);
-		RequiredTuples cycle5 = new RequiredTuples(GraphGenerator.cycle(5), new char[]{'S', 'I', 'R'}, false);
-		RequiredTuples complete3 = new RequiredTuples(GraphGenerator.complete(3), new char[]{'S', 'I', 'R'}, false);
-		RequiredTuples cycle3 = new RequiredTuples(GraphGenerator.cycle(3), new char[]{'S', 'I', 'R'}, false);
-		RequiredTuples complete4 = new RequiredTuples(GraphGenerator.complete(4), new char[]{'S', 'I', 'R'}, false);
-		RequiredTuples cycle4 = new RequiredTuples(GraphGenerator.cycle(4), new char[]{'S', 'I', 'R'}, false);
-
-		System.out.println("CYCLE 3");
-//		System.out.println(cycle3.findSingles());
-		System.out.println(
-//				cycle3.getTuples() +
-				"Size: " + cycle3.getTuples().size());
-
-		System.out.println("\nCOMPLETE 3");
-//		System.out.println(complete3.findSingles());
-		System.out.println(
-//				complete3.getTuples() +
-				"Size: " +  complete3.getTuples().size());
-
-		System.out.println("\nCYCLE 4");
-//		System.out.println(cycle4.findSingles());
-		System.out.println(
-				cycle4.getTuples() +
-				"Size: " + cycle4.getTuples().size());
-
-		System.out.println("\nCOMPLETE 4");
-//		System.out.println(complete4.findSingles());
-		System.out.println(
-//				complete4.getTuples() +
-				"Size: " +  complete4.getTuples().size());
-
-		System.out.println("\nCYCLE 5");
-//		System.out.println(cycle5.findSingles());
-		System.out.println(
-				cycle5.getTuples() +
-				"Size: " + cycle5.getTuples().size());
-
-		System.out.println("\nCOMPLETE 5");
-//		System.out.println(complete5.findSingles());
-		System.out.println(
-//				complete5.getTuples() +
-				"Size: " +  complete5.getTuples().size());
 
 	}
 
@@ -136,7 +85,7 @@ public class RequiredTuples {
 		return closures == tuple.closures &&
 		       Objects.equals(getTuples(), tuple.getTuples()) &&
 		       Objects.equals(getGraph(), tuple.getGraph()) &&
-		       Arrays.equals(getStates(), tuple.getStates());
+		       this.getModelParams().getStates().containsAll(tuple.getModelParams().getStates());
 	}
 
 	/**
@@ -145,7 +94,7 @@ public class RequiredTuples {
 	@Override
 	public int hashCode() {
 		int result = Objects.hash(getTuples(), getGraph(), closures);
-		result = 31 * result + Arrays.hashCode(getStates());
+		result = 31 * result + (this.getModelParams().getStates().hashCode());
 		return result;
 	}
 
@@ -156,12 +105,13 @@ public class RequiredTuples {
 	 * @return the number of single-probability differential equations required by the model.
 	 */
 	public List<Tuple> findSingles() {
-		// Get states, graph and the vertices in the associated graph for the model
-		char[] states = this.getStates();
-		Arrays.sort(states);
-
-		if (Arrays.equals(states, States.sir.states())) states = States.si.states();
-		else if (Arrays.equals(states, States.sirp.states())) states = States.sip.states();
+		List<Character> statesToGenerateEqnsFor = new ArrayList<>(this.getModelParams().getStates());
+		for (Character state : this.getModelParams().getStates()) {
+			int i = this.getModelParams().getStates().indexOf(state);
+			if (this.modelParams.getToEnter()[i] == 1 && this.modelParams.getToExit()[i] == 0) {
+				statesToGenerateEqnsFor.remove(state);
+			}
+		}
 
 		Graph graph = this.getGraph();
 		int numVertices = graph.getNumVertices();
@@ -170,7 +120,7 @@ public class RequiredTuples {
 
 		// We need an equation for the probability of each vertex being in each state
 		List<Tuple> verticesWeNeed = new ArrayList<>();
-		for (char c : states) {
+		for (char c : statesToGenerateEqnsFor) {
 			for (int v : vertices) {
 				verticesWeNeed.add(new Tuple(new Vertex(c, v)));
 			}
@@ -224,12 +174,13 @@ public class RequiredTuples {
 
 	/**
 	 * Each vertex in the graph model can be in any of the given states, which might be 'Susceptible,' 'Infected' and
-	 * 'Recovered' (standard SIR model) for instance.
+	 * 'Recovered' (standard SIR model) for instance. The model parameters are stored in a custom data structure,
+	 * defined in the {@code Model} class.
 	 *
-	 * @return the states defined for the model in question.
+	 * @return the model parameters defined for the model in question.
 	 */
-	public char[] getStates() {
-		return this.states;
+	public Model getModelParams() {
+		return this.modelParams;
 	}
 
 	/**

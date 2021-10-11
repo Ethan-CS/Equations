@@ -81,7 +81,7 @@ public class Vertex implements Comparable<Vertex> {
 	@Override
 	public String toString() {
 		if (this.getState() == ' ') return String.valueOf(this.getLocation());
-		else return Maths.L_ANGLE.uni() + this.getState() + this.getLocation() + Maths.R_ANGLE.uni();
+		else return Maths.L_ANGLE.uni() + this.getState() + (this.getLocation()+1) + Maths.R_ANGLE.uni();
 	}
 
 	public String plainToString() {

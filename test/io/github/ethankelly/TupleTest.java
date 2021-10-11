@@ -3,6 +3,7 @@ package io.github.ethankelly;
 import io.github.ethankelly.exceptions.UnexpectedStateException;
 import io.github.ethankelly.graph.GraphGenerator;
 import io.github.ethankelly.graph.Vertex;
+import io.github.ethankelly.model.Model;
 import io.github.ethankelly.model.RequiredTuples;
 import io.github.ethankelly.model.Tuple;
 import org.junit.jupiter.api.Assertions;
@@ -15,10 +16,12 @@ import java.util.Collections;
 import java.util.List;
 
 public class TupleTest {
-    public static char[] sir = new char[]{'S', 'I', 'R'};
+    public static Character[] sir = new Character[]{'S', 'I', 'R'};
 
-    public static RequiredTuples triangleTuplesClosuresSIR = new RequiredTuples(GraphGenerator.getTriangle(), sir, true);
-    public static RequiredTuples triangleTuplesNoClosuresSIR = new RequiredTuples(GraphGenerator.getTriangle(), sir, false);
+    public static Model model = new Model(Arrays.asList(sir), new int[]{0, 2, 1}, new int[]{2, 1, 0});
+
+    public static RequiredTuples triangleTuplesClosuresSIR = new RequiredTuples(GraphGenerator.getTriangle(), model, true);
+    public static RequiredTuples triangleTuplesNoClosuresSIR = new RequiredTuples(GraphGenerator.getTriangle(), model, false);
 
     public static List<Tuple> expectedTriangleSIRSingles = new ArrayList<>();
     public static List<Tuple> expectedTriangleSIRTuples = new ArrayList<>();

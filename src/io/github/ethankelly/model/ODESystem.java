@@ -3,12 +3,13 @@ package io.github.ethankelly.model;
 import io.github.ethankelly.graph.Graph;
 import io.github.ethankelly.graph.GraphGenerator;
 import io.github.ethankelly.graph.Vertex;
-import io.github.ethankelly.symbols.Greek;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.exception.MaxCountExceededException;
 import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Represents a system of differential equations that describe a compartmental model of disease on a given graph. This
@@ -23,114 +24,43 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 	boolean closures = false; // Whether we need to consider closure-related tuples, i.e. all susceptible tuples.
 	private Map<Tuple, Integer> indicesMapping = new HashMap<>(); // Mapping of requiredTuples to unique integers
 	private String equations; // String representation of the system of equations
-	private final Model ms;
+	private final Model modelParameters;
+
 	/**
 	 * Class constructor.
 	 *
 	 * @param g        the graph that underpins our compartmental model.
 	 * @param tMax     the maximum value of time to be considered when calculating solutions
 	 */
-	public ODESystem(Graph g, int tMax, Model ms) {
+	public ODESystem(Graph g, int tMax, Model modelParameters) {
 		this.g = g;
-		this.requiredTuples = new RequiredTuples(g, new char[]{'S', 'I', 'R'}, false);
+		this.requiredTuples = new RequiredTuples(g, modelParameters, false);
 		this.dimension = requiredTuples.size();
 		this.tMax = tMax;
-		this.ms = ms;
+		this.modelParameters = modelParameters;
 	}
 
+	/**
+	 * Unit testing.
+	 *
+	 * @param args command-line arguments (ignored).
+	 */
 	public static void main(String[] args) {
-		Model ms = new Model(Arrays.asList('S', 'I', 'R'), new boolean[]{true, false, false});
+		Model ms = new Model(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
 		ms.addTransition('S', 'I', 0.6);
 		ms.addTransition('I', 'R', 0.1);
-		System.out.println(ms);
-		ODESystem triangle = new ODESystem(GraphGenerator.getTriangle(), 5, ms);
-		double[] y0 = new double[triangle.getDimension()];
 
-		for (Tuple t : triangle.getTuples().getTuples() ) {
-			triangle.newGetEquation(y0, y0, t);
-		}
+		ODESystem triangle = new ODESystem(GraphGenerator.getTriangle(), 5, ms);
+		System.out.println(triangle);
 	}
+
+	/**
+	 * @return the graph that the current system of differential equations is applied to.
+	 */
 	public Graph getG() {
 		return g;
 	}
 
-	// TODO try starting this from scratch (see notebook notes)
-	public void newGetEquation(double[] y, double[] yDot, Tuple tuple) {
-		Graph graph = this.getG();
-
-		StringBuilder s = new StringBuilder();
-		s.append("\n").append(tuple).append(" = ");
-
-		for (Vertex v : tuple.getVertices()) {
-
-		}
-		System.out.println(s);
-	}
-
-//	public void newGetEquation(double[] y, double[] yDot, Tuple tuple) {
-//		Graph graph = this.getG();
-//
-//		StringBuilder s = new StringBuilder();
-//		s.append("\n").append(tuple).append(" = ");
-//
-//		for (Vertex v : tuple.getVertices()) {
-//			int indexV = ms.getStates().indexOf(v.getState());
-//			char state = v.getState();
-//			int location = v.getLocation();
-//			// Store the other vertices in the tuple to add back in later as 0th order derivative terms (CHAIN RULE)
-//			List<Vertex> extraTerms = new ArrayList<>();
-//			for (Vertex w : tuple.getVertices()) if (!w.equals(v)) extraTerms.add(w);
-//			for (int i = 0; i < graph.getNumVertices(); i++) {
-//				if (graph.hasEdge(location, i)) {
-//					Vertex w = new Vertex('I', i);//todo
-//					int indexW = ms.getStates().indexOf(w.getState());
-//					List<Vertex> verticesToAdd = new ArrayList<>(Arrays.asList(v, w));
-//					// Add any of the remaining terms back in that aren't the current term (chain rule)
-//					if (!extraTerms.isEmpty()) {
-//						extraTerms.stream()
-//								.filter(extraTerm -> !verticesToAdd.contains(extraTerm))
-//								.forEach(verticesToAdd::add);
-//					}
-//					// Make a new tuple from the list of vertices
-//					Tuple t = new Tuple(verticesToAdd);
-//					if (t.isValidTuple(graph, closures)) {
-//
-//						// COLUMNS - tell us if anything is entering this state
-//						 for (int row = 0; row < ms.getStates().size(); row++) {
-//							if (ms.getTransitionMatrix()[row][indexV]) {
-//								// Append to the relevant yDot term
-//								yDot[this.getIndicesMapping().get(tuple)] +=
-//										ms.getRatesMatrix()[indexV][indexW] * y[this.getIndicesMapping().get(t)];
-//								s.append("+").append(Greek.TAU.uni()).append(ms.getRatesMatrix()[row][indexV]).append(t);
-//							}
-//						}
-//					}
-//				}
-//			}
-//			List<Vertex> verticesToAdd = new ArrayList<>();
-//			verticesToAdd.add(v);
-//			if (!extraTerms.isEmpty()) {
-//				extraTerms.stream()
-//						.filter(extraTerm -> !verticesToAdd.contains(extraTerm))
-//						.forEach(verticesToAdd::add);
-//			}
-//			Tuple t = new Tuple(verticesToAdd);
-//			if (t.isValidTuple(graph, closures)) {
-//				// ROWS - tell us if anything is leaving this state
-//				for (int col = 0; col < ms.getStates().size(); col++) {
-//					if (ms.getTransitionMatrix()[indexV][col]) {
-//						if (t.size() != 1 || !ms.getRequiresPair()[indexV]) {
-//							// Append to the relevant yDot term
-//							yDot[this.getIndicesMapping().get(tuple)] +=
-//									-ms.getRatesMatrix()[indexV][col] * y[this.getIndicesMapping().get(t)];
-//							s.append("-").append(Greek.GAMMA.uni()).append(ms.getRatesMatrix()[indexV][col]).append(t);
-//						}
-//					}
-//				}
-//			}
-//		}
-//		System.out.println(s);
-//	}
 
 	/**
 	 * Returns the String representation of the specified Tuple in the context of a wider ODE system and uses the
@@ -141,80 +71,121 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 	 * @param tuple the tuple we wish to generate an equation for.
 	 * @return the string representation of the equation for the specified tuple that the method has generated.
 	 */
-	private String getEquation(double[] y, double[] yDot, Tuple tuple) {
-		Graph graph = this.g; // The graph underpinning the model
-		boolean closures = this.closures; // Whether we consider all susceptible tuples
-
-		// Initialise a new string builder, used for the string representation of the generated equation
+	public String getEquation(double[] y, double[] yDot, Tuple tuple) {
 		StringBuilder s = new StringBuilder();
-		// Select each individual vertex in the tuple and get the first order derivatives
-		for (Vertex v : tuple.getVertices()) {
-			int i = v.getLocation();
-			// Store the other vertices in the tuple to add back in later as 0th order derivative terms (CHAIN RULE)
-			List<Vertex> extraTerms = new ArrayList<>();
-			for (Vertex w : tuple.getVertices()) if (!w.equals(v)) extraTerms.add(w);
+		s.append("\n").append(tuple).append("=");
+		tuple.getVertices().forEach(v -> getTerms(y, yDot, tuple, s, v));
 
-			// SUSCEPTIBLE
-			if (v.getState() == 'S') {
-				// Loop through all vertices in graph
-				for (int j = 0; j < graph.getNumVertices(); j++) {
-					List<Vertex> verticesToAdd = new ArrayList<>(Arrays.asList(v, new Vertex('I', j)));
-					if (graph.hasEdge(i, j)) {
-						// Add any of the remaining terms back in that aren't the current term (chain rule)
-						if (!extraTerms.isEmpty()) {
-							extraTerms.stream().filter(extraTerm -> !verticesToAdd.contains(extraTerm)).forEach(verticesToAdd::add);
-						}
-						// Make a new tuple from the list of vertices
-						Tuple t = new Tuple(verticesToAdd);
-						if (t.isValidTuple(graph, closures)) {
-							//TODO this is where we append any relevant terms, given the transition diagram
+		return String.valueOf(s);
+	}
 
-							// Append appropriate term to the string builder - this is for S -> I
-							s.append("- ").append(Greek.GAMMA.uni()).append(t);
-							// Append to the relevant yDot term
-							yDot[this.getIndicesMapping().get(tuple)] += -ms.getRatesMatrix()[ms.getStates().indexOf('I')][ms.getStates().indexOf('R')] * y[this.getIndicesMapping().get(t)];
-						}
+	private void getTerms(double[] y, double[] yDot, Tuple tuple, StringBuilder s, Vertex v) {
+		// Chain rule - v is derived, others re-entered as ordinary terms
+		// So we store a list of the remaining terms to enter back in later
+		getEntryTerms(y, yDot, tuple, s, v);
+		getExitTerms(y, yDot, tuple, s, v);
+	}
+
+	private void getExitTerms(double[] y, double[] yDot, Tuple tuple, StringBuilder s, Vertex v) {
+		int indexOfState = this.getModelParameters().getStates().indexOf(v.getState());
+		List<Vertex> otherTerms = getOtherTerms(tuple, v);
+		otherTerms.add(v);
+		// How do we exit this state?
+		if (getModelParameters().getToExit()[indexOfState] == 2) { // State needs another vertex to leave
+			// Store a list of states that, if a neighbouring vertex is in them,
+			// would mean we leave the state represented by the current tuple.
+			Map<Character, Double> otherStates
+					= IntStream.range(0, this.getModelParameters().getTransitionMatrix().length)
+					.filter(col -> this.getModelParameters().getTransitionMatrix()[indexOfState][col])
+					.boxed()
+					.collect(Collectors.toMap(col ->
+							this.getModelParameters().getStates().get(col),
+							col -> this.getModelParameters().getRatesMatrix()[indexOfState][col],
+							(a, b) -> b));
+
+			// Loop through our found exit-inducing states
+			for (Character state : otherStates.keySet()) {
+				// Loop through all vertices in the graph, skipping any non-neighbours of v
+				for (int i = 0; i < this.getG().getNumVertices(); i++) {
+					if (this.getG().hasEdge(i, v.getLocation())) {
+						Vertex w = new Vertex(state, i);
+						if (!otherTerms.contains(w)) otherTerms.add(w);
+						addExitTuple(y, yDot, tuple, s, otherTerms, otherStates.get(state));
+						otherTerms.remove(w);
 					}
-				}
-				// INFECTED
-			} else if (v.getState() == 'I') {
-				// Loop through all vertices in graph
-				for (int j = 0; j < graph.getNumVertices(); j++) {
-					List<Vertex> verticesToAdd = new ArrayList<>(Arrays.asList(new Vertex('S', i), new Vertex('I', j)));
-					if (graph.hasEdge(i, j)) {
-						// Add any of the remaining terms back in that aren't the current term
-						if (!extraTerms.isEmpty()) {
-							extraTerms.stream().filter(extraTerm -> !verticesToAdd.contains(extraTerm)).forEach(verticesToAdd::add);
-						}
-						// Create the relevant tuple and, if it is a valid tuple, add to equations list
-						Tuple t = new Tuple(verticesToAdd);
-						if (t.isValidTuple(graph, closures)) {
-							if (s.length() > 0 && s.charAt(s.length() - 1) != '+') s.append("+ ");
-							// Append appropriate term to the string builder
-							s.append(Greek.TAU.uni()).append(t);
-							// Append to the relevant yDot term
-							yDot[this.getIndicesMapping().get(tuple)] +=
-									ms.getRatesMatrix()[ms.getStates().indexOf('S')][ms.getStates().indexOf('I')] * y[this.getIndicesMapping().get(t)];
-						}
-					}
-				}
-				List<Vertex> verticesToAdd = new ArrayList<>();
-				verticesToAdd.add(new Vertex('I', i));
-				if (!extraTerms.isEmpty()) {
-					extraTerms.stream().filter(extraTerm -> !verticesToAdd.contains(extraTerm)).forEach(verticesToAdd::add);
-				}
-				Tuple t = new Tuple(verticesToAdd);
-				if (t.size() == 1 || t.isValidTuple(graph, closures)) {
-					// Append appropriate term to the string builder (if appropriate)
-					s.append("- ").append(Greek.GAMMA.uni()).append(t);
-					// Append to the relevant yDot term
-					yDot[this.getIndicesMapping().get(tuple)] += (-ms.getRatesMatrix()[ms.getStates().indexOf('I')][ms.getStates().indexOf('R')] * y[this.getIndicesMapping().get(t)]);
 				}
 			}
+			otherTerms.remove(v);
+		} else if (getModelParameters().getToExit()[indexOfState] == 1) { // Can exit by itself
+			double rateOfTransition = 0; // The rate at which this transition occurs
+			for (int col = 0; col < this.getModelParameters().getTransitionMatrix().length; col++) {
+				if (this.getModelParameters().getTransitionMatrix()[indexOfState][col] &&
+				    this.getModelParameters().getToEnter()[col] == 1) {
+					rateOfTransition = this.getModelParameters().getRatesMatrix()[indexOfState][col];
+				}
+			}
+			addExitTuple(y, yDot, tuple, s, otherTerms, rateOfTransition);
 		}
+	}
 
-		// Return the string representation of equations
-		return String.valueOf(s);
+	private void getEntryTerms(double[] y, double[] yDot, Tuple tuple, StringBuilder s, Vertex v) {
+		int indexOfState = this.getModelParameters().getStates().indexOf(v.getState());
+		List<Vertex> otherTerms = getOtherTerms(tuple, v);
+		char otherState= 0; // The other state we are required to consider
+		double rateOfTransition = 0; // The rate at which this transition occurs
+
+		if (getModelParameters().getToEnter()[indexOfState] != 0) {
+			for (int row = 0; row < this.getModelParameters().getTransitionMatrix().length; row++) {
+				if (this.getModelParameters().getTransitionMatrix()[row][indexOfState]) {
+					// TODO more than one possible candidate?
+					otherState = this.getModelParameters().getStates().get(row);
+					rateOfTransition = this.getModelParameters().getRatesMatrix()[row][indexOfState];
+				}
+			}
+			Vertex vComp = new Vertex(otherState, v.getLocation());
+			otherTerms.add(vComp);
+			// How do we enter this state?
+			if (getModelParameters().getToEnter()[indexOfState] == 2) {
+				// This state requires another vertex to enter, so we need to consider pair terms
+				for (int i = 0; i < this.getG().getNumVertices(); i++) {
+					if (this.getG().hasEdge(i, v.getLocation())) {
+						Vertex w = new Vertex(this.getModelParameters().getStates().get(indexOfState), i);
+						otherTerms.add(w);
+						addEntryTuple(y, yDot, tuple, s, otherTerms, rateOfTransition, w);
+					}
+				}
+				otherTerms.remove(vComp);
+			} else if (getModelParameters().getToEnter()[indexOfState] == 1) {
+				addEntryTuple(y, yDot, tuple, s, otherTerms, rateOfTransition, vComp);
+			}
+		}
+	}
+
+	private void addExitTuple(double[] y, double[] yDot, Tuple tuple, StringBuilder s, List<Vertex> otherTerms, double rateOfTransition) {
+		Tuple t = new Tuple(otherTerms);
+		if (t.isValidTuple(this.getG(), this.closures)) {
+			yDot[this.getIndicesMapping().get(tuple)] += (-rateOfTransition * y[this.getIndicesMapping().get(t)]);
+			s.append("-").append(rateOfTransition).append(t);
+		}
+	}
+
+	private void addEntryTuple(double[] y, double[] yDot, Tuple tuple, StringBuilder s, List<Vertex> otherTerms, double rateOfTransition, Vertex w) {
+		Tuple t = new Tuple(otherTerms);
+		if (t.isValidTuple(this.getG(), this.closures)) {
+			yDot[this.getIndicesMapping().get(tuple)] += (rateOfTransition * y[this.getIndicesMapping().get(t)]);
+			s.append("+").append(rateOfTransition).append(t);
+		}
+		otherTerms.remove(w);
+	}
+
+	private List<Vertex> getOtherTerms(Tuple tuple, Vertex v) {
+		List<Vertex> otherTerms = new ArrayList<>();
+		for (Vertex vertex : tuple.getVertices()) {
+			if (!v.equals(vertex)) {
+				otherTerms.add(vertex);
+			}
+		}
+		return otherTerms;
 	}
 
 	/**
@@ -275,7 +246,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 			StringBuilder s = new StringBuilder();
 			RequiredTuples tuples = this.getTuples();
 			for (Tuple t : tuples.getTuples()) {
-				s.append(t).append(" = ").append(getEquation(new double[this.getTuples().size()], new double[this.getTuples().size()], t)).append("\n");
+				s.append(getEquation(new double[this.getTuples().size()], new double[this.getTuples().size()], t));
 			}
 			this.equations = String.valueOf(s);
 			return String.valueOf(s);
@@ -317,5 +288,9 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 	@Override
 	public void computeDerivatives(double v, double[] y, double[] yDot) throws MaxCountExceededException, DimensionMismatchException {
 		this.getEquations(y, yDot);
+	}
+
+	public Model getModelParameters() {
+		return modelParameters;
 	}
 }

@@ -11,25 +11,32 @@ public class Model {
 	private double[][] ratesMatrix;
 	// Describes whether each transition can happen alone (false), e.g. recovery from
 	// disease, or requires a second individual, such as transmission of disease (true)
-	private final boolean[] requiresPair;
+	private final int[] toEnter;
 
-	public Model(List<Character> states, boolean[] requiresPair) {
+	public int[] getToExit() {
+		return toExit;
+	}
+
+	private final int[] toExit;
+
+	public Model(List<Character> states, int[] toEnter, int[] toExit) {
 		this.states = states;
-		this.requiresPair = requiresPair;
+		this.toEnter = toEnter;
+		this.toExit = toExit;
 		this.transitionMatrix = new boolean[states.size()][states.size()];
 		this.ratesMatrix = new double[states.size()][states.size()];
 	}
 
 	public static void main(String[] args) {
 		// For now, every element in transmission matrix is equal to the relevant rate (can change based on context)
-		Model m = new Model(Arrays.asList('S', 'I', 'R'), new boolean[] {true, false, false});
+		Model m = new Model(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
 		m.addTransition('S', 'I', 0.6);
 		m.addTransition('I', 'R', 0.1);
 		System.out.println(m);
 	}
 
-	public boolean[] getRequiresPair() {
-		return requiresPair;
+	public int[] getToEnter() {
+		return toEnter;
 	}
 
 	public double[][] getRatesMatrix() {

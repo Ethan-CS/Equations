@@ -1,14 +1,14 @@
 package io.github.ethankelly;
 
-import io.github.ethankelly.graph.Graph;
 import io.github.ethankelly.graph.GraphGenerator;
 import io.github.ethankelly.graph.Vertex;
-import io.github.ethankelly.model.*;
+import io.github.ethankelly.model.Model;
+import io.github.ethankelly.model.ODEResultsUtils;
+import io.github.ethankelly.model.ODESystem;
+import io.github.ethankelly.model.Tuple;
 import org.apache.commons.math3.ode.nonstiff.ClassicalRungeKuttaIntegrator;
 
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -21,8 +21,7 @@ public class Main {
 	 * @throws FileNotFoundException if the files cannot be written to.
 	 */
 	public static void main(String[] args) throws FileNotFoundException {
-//		testMethods();
-		Model ms = new Model(Arrays.asList('S', 'I', 'R'), new boolean[]{true, false, false});
+		Model ms = new Model(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
 		ms.addTransition('S', 'I', 0.75);
 		ms.addTransition('I', 'R', 0.2);
 		ODESystem triangle = new ODESystem(GraphGenerator.getTriangle(), 5, ms);
@@ -50,19 +49,19 @@ public class Main {
 		ODEResultsUtils.plotResults(triangle, triangle.getIndicesMapping(), results);
 	}
 
-	private static void testMethods() throws FileNotFoundException {
-		String[] arguments = GraphGenerator.getUserInput();
-		char[] states = arguments[0].toUpperCase().toCharArray();
-		Graph graph = GraphGenerator.getGraph(arguments);
-		RequiredTuples requiredTuples = new RequiredTuples(graph, states, false);
-
-		// Creating a File object that represents the disk file and assign to output stream
-		PrintStream o = new PrintStream(new FileOutputStream("Equations.txt"));
-		System.setOut(o);
-		System.out.println(" *** Equations for an " + arguments[0].toUpperCase() + " model on a " + graph.getName()
-		                   + " Graph ***\n\n" + graph + "Numbers of equations of each size: "
-		                   + Arrays.toString(requiredTuples.findNumbers(requiredTuples.getTuples())) + "\n");
-		PrintEquations.generateEquations(requiredTuples).forEach(System.out::println);
-	}
+//	private static void testMethods() throws FileNotFoundException {
+//		String[] arguments = GraphGenerator.getUserInput();
+//		char[] states = arguments[0].toUpperCase().toCharArray();
+//		Graph graph = GraphGenerator.getGraph(arguments);
+//		RequiredTuples requiredTuples = new RequiredTuples(graph, states, false);
+//
+//		// Creating a File object that represents the disk file and assign to output stream
+//		PrintStream o = new PrintStream(new FileOutputStream("Equations.txt"));
+//		System.setOut(o);
+//		System.out.println(" *** Equations for an " + arguments[0].toUpperCase() + " model on a " + graph.getName()
+//		                   + " Graph ***\n\n" + graph + "Numbers of equations of each size: "
+//		                   + Arrays.toString(requiredTuples.findNumbers(requiredTuples.getTuples())) + "\n");
+//		PrintEquations.generateEquations(requiredTuples).forEach(System.out::println);
+//	}
 
 }
