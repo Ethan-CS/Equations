@@ -35,15 +35,6 @@ public class RequiredTuples {
 	}
 
 	/**
-	 * Unit testing.
-	 *
-	 * @param args command-line arguments (ignored).
-	 */
-	public static void main(String[] args) {
-
-	}
-
-	/**
 	 * @return the tuples required for the specified model, generated at object construction and updated whenever
 	 * changes are made to the model that would constitute a change to the required tuples.
 	 */
@@ -158,7 +149,7 @@ public class RequiredTuples {
 
 		// The helper method gives us all combinations, so remove the ones that don't
 		// constitute valid (necessary) tuples (and sort by length of sub-arrays).
-		result.removeIf(row -> !row.isValidTuple(this.getGraph(), closures));
+		result.removeIf(row -> !row.isValidTuple(this.getModelParams(), this.getGraph(), closures));
 		this.findSingles().stream().filter(single -> !result.contains(single)).forEach(result::add);
 		Collections.sort(result);
 

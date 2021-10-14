@@ -29,13 +29,26 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
     }
 
     /**
+     * Given a potential tuple, this method checks that the states of each probability are not all the same, that each
+     * probability corresponds to a different vertex and that all the vertices involved are in fact connected. If
+     * these three conditions are met, then it is a tuple that we are required to express in the total set of equations
+     * describing the system dynamics.
+     *
+     * @return true if the tuple is essential to expressing the system dynamics, false otherwise.
+     */
+    boolean isValidTuple(Model modelParams, Graph g, boolean closures) {
+        if (size() == 1) return true;
+        else return areStatesDifferent(modelParams, closures) && areLocationsDifferent() && g.areAllConnected(this);
+    }
+
+    /**
      * Given a list of vertices (some tuple), this method checks whether all the states are the same. If they are the
      * same, we do not have to consider the associated equation of the tuple in the final system of equations that
      * describes our compartmental model.
      *
      * @return true if at least one vertex state is different to that of the others, false if they are all the same.
      */
-    public boolean areStatesDifferent(boolean reqClosures) {
+    public boolean areStatesDifferent(Model modelParams, boolean reqClosures) {
         boolean statesDifferent = false;
         // If there's only one vertex in the list, by definition we require it
         // in the system of equations, so we ensure this method returns true.
@@ -45,7 +58,9 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
             // at least not all the same, returning true.
             for (Vertex v : getVertices()) {
                 for (Vertex w : getVertices()) {
-                    if (v.getState() != w.getState()) {
+                    char vState = v.getState(), wState = w.getState();
+                    if (vState != wState && modelParams.getTransitionMatrix()
+                            [modelParams.getStates().indexOf(vState)][modelParams.getStates().indexOf(wState)]) {
                         statesDifferent = true;
                         break;
                     } else if (reqClosures) {
@@ -79,19 +94,6 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
             }
         }
         return locationsDifferent;
-    }
-
-    /**
-     * Given a potential tuple, this method checks that the states of each probability are not all the same, that each
-     * probability corresponds to a different vertex and that all the vertices involved are in fact connected. If
-     * these three conditions are met, then it is a tuple that we are required to express in the total set of equations
-     * describing the system dynamics.
-     *
-     * @return true if the tuple is essential to expressing the system dynamics, false otherwise.
-     */
-    boolean isValidTuple(Graph g, boolean closures) {
-        if (this.size() == 1) return true;
-        else return this.areStatesDifferent(closures) && this.areLocationsDifferent() && g.areAllConnected(this);
     }
 
     /**

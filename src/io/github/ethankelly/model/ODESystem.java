@@ -163,7 +163,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 
 	private void addExitTuple(double[] y, double[] yDot, Tuple tuple, StringBuilder s, List<Vertex> otherTerms, double rateOfTransition) {
 		Tuple t = new Tuple(otherTerms);
-		if (t.isValidTuple(this.getG(), this.closures)) {
+		if (t.isValidTuple(this.modelParameters, this.getG(), this.closures)) {
 			yDot[this.getIndicesMapping().get(tuple)] += (-rateOfTransition * y[this.getIndicesMapping().get(t)]);
 			s.append("-").append(rateOfTransition).append(t);
 		}
@@ -171,7 +171,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 
 	private void addEntryTuple(double[] y, double[] yDot, Tuple tuple, StringBuilder s, List<Vertex> otherTerms, double rateOfTransition, Vertex w) {
 		Tuple t = new Tuple(otherTerms);
-		if (t.isValidTuple(this.getG(), this.closures)) {
+		if (t.isValidTuple(this.modelParameters, this.getG(), this.closures)) {
 			yDot[this.getIndicesMapping().get(tuple)] += (rateOfTransition * y[this.getIndicesMapping().get(t)]);
 			s.append("+").append(rateOfTransition).append(t);
 		}
