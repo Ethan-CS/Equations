@@ -5,6 +5,7 @@ import io.github.ethankelly.model.Tuple;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -33,6 +34,8 @@ public class Graph implements Cloneable {
 	 */
 	private List<List<Vertex>> adjList = new ArrayList<>();
 
+	private List<Character> labels;
+
 	/**
 	 * Class constructor.
 	 *
@@ -46,26 +49,21 @@ public class Graph implements Cloneable {
 		this.time = 0;
 	}
 
-	public static void main(String[] args) {
-		System.out.println(" ***** LOLLIPOP ****** ");
-		Graph lollipop = GraphGenerator.getLollipop();
-		System.out.println(lollipop);
-		List<Graph> lollipopCC = lollipop.splice();
-		System.out.println("--- Spliced ---");
-		for (Graph g : lollipopCC) System.out.println(g);
-
-		System.out.println("\n ***** G1 ***** ");
-		Graph g1 = new Graph(6, "Test");
-		g1.addEdge(0, 1);
-		g1.addEdge(0, 5);
-		g1.addEdge(1, 2);
-		g1.addEdge(2, 5);
-		g1.addEdge(2, 3);
-		g1.addEdge(3, 4);
-		System.out.println(g1);
-		List<Graph> g1Spliced = g1.splice();
-		System.out.println("--- Spliced ---");
-		for (Graph g : g1Spliced) System.out.println(g);
+	public Graph(boolean[][] adjMatrix, List<Character> states) {
+		this.name = ""; // Default name
+		this.numVertices = adjMatrix.length;
+		// Initialise a new list for each vertex in the graph for the adjacency list
+		List<List<Vertex>> list = IntStream.range(0, adjMatrix.length).<List<Vertex>>mapToObj(i -> new ArrayList<>()).collect(Collectors.toList());
+		for (int i = 0; i < adjMatrix.length; i++) {
+			for (int j = 0; j < adjMatrix[0].length; j++) {
+				if (adjMatrix[i][j] && !list.get(i).contains(new Vertex(j))) {
+					list.get(i).add(new Vertex(j));
+					this.numEdges++;
+				}
+			}
+		}
+		this.labels = states;
+		this.adjList = list;
 	}
 
 	// Recursive helper method used to decompose the given graph into sub-graphs by cut-vertices
@@ -444,8 +442,14 @@ public class Graph implements Cloneable {
 	public String toString() {
 		StringBuilder s = new StringBuilder();
 		for (int i = 0; i < this.getNumVertices(); i++) {
-			s.append(i).append(" ->");
-			for (Vertex vertex : adjList.get(i)) s.append(" ").append(vertex);
+			if (labels.isEmpty()) s.append(i);
+			else s.append(labels.get(i));
+			s.append(" ->");
+			for (Vertex vertex : adjList.get(i)) {
+				s.append(" ");
+				if (labels.isEmpty()) s.append(vertex);
+				else s.append(labels.get(vertex.getLocation()));
+			}
 			s.append("\n");
 		}
 		return s.toString();
@@ -505,5 +509,14 @@ public class Graph implements Cloneable {
 		result = 31 * result + time;
 		result = 31 * result + (adjList != null ? adjList.hashCode() : 0);
 		return result;
+	}
+
+	public void addDirectedEdge(int i, int j) {
+		// Ensure we aren't trying to add an edge between a vertex and itself
+		assert i != j : "Cannot add an edge between a vertex and itself";
+		// Update adjacency list
+		adjList.get(i).add(new Vertex(j));
+		// Increment the number of edges
+		if (!this.adjList.get(j).contains(new Vertex(i))) this.numEdges++;
 	}
 }
