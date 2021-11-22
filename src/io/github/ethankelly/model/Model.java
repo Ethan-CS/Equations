@@ -39,6 +39,30 @@ public class Model {
         System.out.println(m);
     }
 
+    public boolean validStates(List<Character> states) {
+        // If there are states in input that aren't in model parameters, the input states are not valid
+        if (!this.states.containsAll(states)) return false;
+        // Store whether each state in provided states has a direct transition to at least one other state in the model
+        boolean[] atLeastOne = new boolean[states.size()];
+        for (char c : states) {
+            // If we haven't already found a transition to/from this state, check it against each other state
+            if (!atLeastOne[states.indexOf(c)]) {
+                for (char d : states) {
+                    // If states are not the same and there's a transition between them, update array
+                    if (c != d && (this.getTransitionMatrix()[this.states.indexOf(c)][this.states.indexOf(d)] ||
+                            this.getTransitionMatrix()[this.states.indexOf(d)][this.states.indexOf(c)])) {
+                        atLeastOne[states.indexOf(c)] = true;
+                        atLeastOne[states.indexOf(d)] = true;
+                        break;
+                    }
+                }
+                // c and d must not have a direct transition - enough to make the given states not valid.
+                if (!atLeastOne[states.indexOf(c)]) return false;
+            }
+        }
+        return true;
+    }
+
     public Graph getTransitionGraph() {
         return transitionGraph;
     }
@@ -117,12 +141,12 @@ public class Model {
         s.append(this.transitionGraph);
         s.append("\n ");
         for (char c : states) s.append(" ").append(c);
-		for (int i = 0; i < this.getTransitionMatrix().length; i++) {
-			s.append("\n").append(this.getStates().get(i));
-			for (int j = 0; j < this.getTransitionMatrix()[0].length; j++) {
-				s.append(" ").append(this.getRatesMatrix()[i][j]);
-			}
-		}
+        for (int i = 0; i < this.getTransitionMatrix().length; i++) {
+            s.append("\n").append(this.getStates().get(i));
+            for (int j = 0; j < this.getTransitionMatrix()[0].length; j++) {
+                s.append(" ").append(this.getRatesMatrix()[i][j]);
+            }
+        }
         return String.valueOf(s);
     }
 }

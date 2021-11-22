@@ -28,17 +28,30 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
         this.length = vertices.size();
     }
 
+    public static void main(String[] args) {
+
+    }
+
     /**
-     * Given a potential tuple, this method checks that the states of each probability are not all the same, that each
-     * probability corresponds to a different vertex and that all the vertices involved are in fact connected. If
-     * these three conditions are met, then it is a tuple that we are required to express in the total set of equations
-     * describing the system dynamics.
+     * Given a potential tuple, this method checks the tuple is valid using the following criteria:
+     * <ol>
+     *      <li> Each vertex in the tuple is distinct,</li>
+     * 	    <li> The vertices in the tuple constitute a connected subgraph,</li>
+     * 	    <li> The tuple contains two or more states and </li>
+     * 	    <li> The states in the tuple constitute a connected subgraph of the transition graph.</li>
+     * </ol>
      *
      * @return true if the tuple is essential to expressing the system dynamics, false otherwise.
      */
     boolean isValidTuple(Model modelParams, Graph g, boolean closures) {
+        List<Character> states = new ArrayList<>();
+        this.getVertices().stream().filter(v -> !states.contains(v.getState())).forEach(v -> states.add(v.getState()));
         if (size() == 1) return true;
-        else return areStatesDifferent(modelParams, closures) && areLocationsDifferent() && g.areAllConnected(this);
+        else return areLocationsDifferent() &&              // 1. each vertex is distinct
+                g.areAllConnected(this) &&          // 2. vertices constitute a connected subgraph
+                areStatesDifferent(modelParams, closures) && // 3. tuple contains two or more unique states
+                modelParams.validStates(states);             // 4. States form a complete subgraph of transition graph
+
     }
 
     /**
@@ -123,10 +136,10 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
         StringBuilder s = new StringBuilder();
         List<Vertex> vertices = this.getVertices();
 
-        s.append(Maths.L_ANGLE.uni()).append(vertices.get(0).getState()).append(vertices.get(0).getLocation()+1);
+        s.append(Maths.L_ANGLE.uni()).append(vertices.get(0).getState()).append(vertices.get(0).getLocation() + 1);
         IntStream.range(1, vertices.size())
                 .mapToObj(vertices::get)
-                .forEach(v -> s.append("_").append(v.getState()).append(v.getLocation()+1));
+                .forEach(v -> s.append("_").append(v.getState()).append(v.getLocation() + 1));
         s.append(Maths.R_ANGLE.uni());
 
         return String.valueOf(s);
@@ -188,10 +201,6 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
     @Override
     public Vertex get(int i) {
         return this.getVertices().get(i);
-    }
-
-    public static void main(String[] args) {
-
     }
 
     @Override

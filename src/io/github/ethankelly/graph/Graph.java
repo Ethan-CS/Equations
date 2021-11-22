@@ -442,12 +442,12 @@ public class Graph implements Cloneable {
 	public String toString() {
 		StringBuilder s = new StringBuilder();
 		for (int i = 0; i < this.getNumVertices(); i++) {
-			if (labels.isEmpty()) s.append(i);
+			if (labels == null || labels.isEmpty()) s.append(i);
 			else s.append(labels.get(i));
 			s.append(" ->");
 			for (Vertex vertex : adjList.get(i)) {
 				s.append(" ");
-				if (labels.isEmpty()) s.append(vertex);
+				if (labels == null || labels.isEmpty()) s.append(vertex);
 				else s.append(labels.get(vertex.getLocation()));
 			}
 			s.append("\n");
