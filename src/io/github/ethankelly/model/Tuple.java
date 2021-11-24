@@ -136,11 +136,13 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
         StringBuilder s = new StringBuilder();
         List<Vertex> vertices = this.getVertices();
 
-        s.append(Maths.L_ANGLE.uni()).append(vertices.get(0).getState()).append(vertices.get(0).getLocation() + 1);
-        IntStream.range(1, vertices.size())
-                .mapToObj(vertices::get)
-                .forEach(v -> s.append("_").append(v.getState()).append(v.getLocation() + 1));
-        s.append(Maths.R_ANGLE.uni());
+        if (vertices != null && !vertices.isEmpty()) {
+            s.append(Maths.L_ANGLE.uni()).append(vertices.get(0).plainToString());
+            IntStream.range(1, vertices.size())
+                    .mapToObj(vertices::get)
+                    .forEach(v -> s.append(" ").append(v.plainToString()));
+            s.append(Maths.R_ANGLE.uni());
+        }
 
         return String.valueOf(s);
     }

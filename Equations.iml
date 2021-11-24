@@ -63,5 +63,14 @@
     <orderEntry type="library" name="org.apache.commons:commons-math3:3.6.11" level="project" />
     <orderEntry type="library" name="tech.tablesaw.core" level="project" />
     <orderEntry type="library" name="tech.tablesaw.jsplot" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/annotations/20.1.0/annotations-20.1.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>
