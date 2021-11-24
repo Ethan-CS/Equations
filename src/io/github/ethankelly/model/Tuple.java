@@ -13,7 +13,7 @@ import java.util.stream.IntStream;
  * A tuple represents the probability of one or more vertices of the graph being in particular states.
  */
 public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tuple> {
-    private final List<Vertex> vertices; // List of all state-vertex pairs that make up this tuple
+    private List<Vertex> vertices; // List of all state-vertex pairs that make up this tuple
     public int length;
 
     // For when we just want to add a single vertex to the tuple
@@ -26,10 +26,6 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
         Collections.sort(tuple);
         this.vertices = tuple;
         this.length = vertices.size();
-    }
-
-    public static void main(String[] args) {
-
     }
 
     /**
@@ -45,12 +41,17 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
      */
     boolean isValidTuple(Model modelParams, Graph g, boolean closures) {
         List<Character> states = new ArrayList<>();
-        this.getVertices().stream().filter(v -> !states.contains(v.getState())).forEach(v -> states.add(v.getState()));
+        for (Vertex v : this.getVertices()) {
+            if (!states.contains(v.getState())) {
+                states.add(v.getState());
+            }
+        }
         if (size() == 1) return true;
-        else return areLocationsDifferent() &&              // 1. each vertex is distinct
+        else if (size() > g.getNumVertices() || !modelParams.getStates().containsAll(states)) return false;
+        else return locationsAreDifferent() &&              // 1. each vertex is distinct
                 g.areAllConnected(this) &&          // 2. vertices constitute a connected subgraph
-                areStatesDifferent(modelParams, closures) && // 3. tuple contains two or more unique states
-                modelParams.validStates(states);             // 4. States form a complete subgraph of transition graph
+                validStates(modelParams, closures) &&       // 3. tuple contains two or more unique states
+                modelParams.validStates(states, closures);            // 4. States form a complete subgraph of transition graph
 
     }
 
@@ -61,31 +62,24 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
      *
      * @return true if at least one vertex state is different to that of the others, false if they are all the same.
      */
-    public boolean areStatesDifferent(Model modelParams, boolean reqClosures) {
-        boolean statesDifferent = false;
+    public boolean validStates(Model modelParams, boolean reqClosures) {
         // If there's only one vertex in the list, by definition we require it
         // in the system of equations, so we ensure this method returns true.
-        if (size() == 1) statesDifferent = true;
+        if (size() == 1) return true;
         else {
             // We only need to find two different states to know that the states are
             // at least not all the same, returning true.
             for (Vertex v : getVertices()) {
                 for (Vertex w : getVertices()) {
                     char vState = v.getState(), wState = w.getState();
-                    if (vState != wState && modelParams.getTransitionMatrix()
-                            [modelParams.getStates().indexOf(vState)][modelParams.getStates().indexOf(wState)]) {
-                        statesDifferent = true;
-                        break;
-                    } else if (reqClosures) {
-                        if ((v.getState() == 'S') || (w.getState() == 'S')) {
-                            statesDifferent = true;
-                            break;
-                        }
-                    }
+                    if (vState != wState && modelParams.getTransitionGraph().hasEdge(
+                            modelParams.getStates().indexOf(vState), modelParams.getStates().indexOf(wState))
+                            || reqClosures && (v.getState() == 'S') || (w.getState() == 'S'))
+                        return true;
                 }
             }
         }
-        return statesDifferent;
+        return false;
     }
 
     /**
@@ -96,17 +90,15 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
      *
      * @return true if no index location is repeated in the vertices, false otherwise.
      */
-    public boolean areLocationsDifferent() {
-        boolean locationsDifferent = true;
+    public boolean locationsAreDifferent() {
         // Only need to find two vertices in the list with same index location
         // to know we don't have a required tuple, returning false.
         for (Vertex v : getVertices()) {
             if (getVertices().stream().anyMatch(w -> v.getLocation() == w.getLocation() && v != w)) {
-                locationsDifferent = false;
-                break;
+                return false;
             }
         }
-        return locationsDifferent;
+        return true;
     }
 
     /**
@@ -136,11 +128,13 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
         StringBuilder s = new StringBuilder();
         List<Vertex> vertices = this.getVertices();
 
-        s.append(Maths.L_ANGLE.uni()).append(vertices.get(0).getState()).append(vertices.get(0).getLocation() + 1);
-        IntStream.range(1, vertices.size())
-                .mapToObj(vertices::get)
-                .forEach(v -> s.append("_").append(v.getState()).append(v.getLocation() + 1));
-        s.append(Maths.R_ANGLE.uni());
+        if (vertices != null && !vertices.isEmpty()) {
+            s.append(Maths.L_ANGLE.uni()).append(vertices.get(0).plainToString());
+            IntStream.range(1, vertices.size())
+                    .mapToObj(vertices::get)
+                    .forEach(v -> s.append(" ").append(v.plainToString()));
+            s.append(Maths.R_ANGLE.uni());
+        }
 
         return String.valueOf(s);
     }

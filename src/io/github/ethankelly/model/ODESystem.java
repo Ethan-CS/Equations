@@ -95,8 +95,8 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 			// Store a list of states that, if a neighbouring vertex is in them,
 			// would mean we leave the state represented by the current tuple.
 			Map<Character, Double> otherStates
-					= IntStream.range(0, this.getModelParameters().getTransitionMatrix().length)
-					.filter(col -> this.getModelParameters().getTransitionMatrix()[indexOfState][col])
+					= IntStream.range(0, this.getModelParameters().getStates().size())
+					.filter(col -> this.getModelParameters().getTransitionGraph().hasEdge(indexOfState, col))
 					.boxed()
 					.collect(Collectors.toMap(col ->
 							this.getModelParameters().getStates().get(col),
@@ -118,8 +118,8 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 			otherTerms.remove(v);
 		} else if (getModelParameters().getToExit()[indexOfState] == 1) { // Can exit by itself
 			double rateOfTransition = 0; // The rate at which this transition occurs
-			for (int col = 0; col < this.getModelParameters().getTransitionMatrix().length; col++) {
-				if (this.getModelParameters().getTransitionMatrix()[indexOfState][col] &&
+			for (int col = 0; col < this.getModelParameters().getStates().size(); col++) {
+				if (this.getModelParameters().getTransitionGraph().hasEdge(indexOfState, col) &&
 				    this.getModelParameters().getToEnter()[col] == 1) {
 					rateOfTransition = this.getModelParameters().getRatesMatrix()[indexOfState][col];
 				}
@@ -135,8 +135,8 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 		double rateOfTransition = 0; // The rate at which this transition occurs
 
 		if (getModelParameters().getToEnter()[indexOfState] != 0) {
-			for (int row = 0; row < this.getModelParameters().getTransitionMatrix().length; row++) {
-				if (this.getModelParameters().getTransitionMatrix()[row][indexOfState]) {
+			for (int row = 0; row < this.getModelParameters().getStates().size(); row++) {
+				if (this.getModelParameters().getTransitionGraph().hasEdge(row, indexOfState)) {
 					// TODO more than one possible candidate?
 					otherState = this.getModelParameters().getStates().get(row);
 					rateOfTransition = this.getModelParameters().getRatesMatrix()[row][indexOfState];

@@ -19,7 +19,6 @@ import java.util.NoSuchElementException;
  * @param <Key> the generic type of key on the priority queue.
  * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
  */
-@SuppressWarnings({"unused", "unchecked"})
 public class MinPriorityQueue<Key> implements Iterable<Key> {
     private Key[] pq;                    // Store items at indices 1 to n
     private int n;                       // Number of items on priority queue

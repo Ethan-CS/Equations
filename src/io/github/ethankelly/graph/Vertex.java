@@ -8,7 +8,7 @@ import io.github.ethankelly.symbols.Maths;
  * location in the graph we are interested in.
  */
 public class Vertex implements Comparable<Vertex> {
-	private final char state;
+	private char state = ' ';
 	private final int location;
 
 	/**
@@ -23,7 +23,6 @@ public class Vertex implements Comparable<Vertex> {
 	}
 
 	public Vertex(int location) {
-		this.state = ' ';
 		this.location = location;
 	}
 
@@ -48,7 +47,8 @@ public class Vertex implements Comparable<Vertex> {
 
 		Vertex vertex = (Vertex) o;
 
-		return this.getLocation() == vertex.getLocation() && this.getState() == vertex.getState();
+		if (this.state == ' ') return this.getLocation() == vertex.getLocation();
+		else return this.getLocation() == vertex.getLocation() && this.getState() == vertex.getState();
 	}
 
 	@Override

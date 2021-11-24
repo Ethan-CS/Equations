@@ -41,7 +41,6 @@ package io.github.ethankelly.std;
  *
  * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
  */
-@SuppressWarnings("unused")
 public final class Rand {
 
     private static java.util.Random random;    // pseudo-random number generator

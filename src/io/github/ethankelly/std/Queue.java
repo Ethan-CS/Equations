@@ -135,20 +135,20 @@ public class Queue<Item> implements Iterable<Item> {
     }
 
 
-    /**
-     * Unit tests the {@code Queue} data type.
-     *
-     * @param args the command-line arguments
-     */
-    public static void main(String[] args) {
-        Queue<String> queue = new Queue<String>();
-        while (!In.isEmpty()) {
-            String item = In.readString();
-            if (!item.equals("-"))
-                queue.enqueue(item);
-            else if (!queue.isEmpty())
-                Out.print(queue.dequeue() + " ");
-        }
-        Out.println("(" + queue.size() + " left on queue)");
-    }
+//    /**
+//     * Unit tests the {@code Queue} data type.
+//     *
+//     * @param args the command-line arguments
+//     */
+//    public static void main(String[] args) {
+//        Queue<String> queue = new Queue<String>();
+//        while (!In.isEmpty()) {
+//            String item = In.readString();
+//            if (!item.equals("-"))
+//                queue.enqueue(item);
+//            else if (!queue.isEmpty())
+//                Out.print(queue.dequeue() + " ");
+//        }
+//        Out.println("(" + queue.size() + " left on queue)");
+//    }
 }

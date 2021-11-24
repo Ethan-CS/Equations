@@ -2,13 +2,14 @@ package io.github.ethankelly.graph;
 
 import io.github.ethankelly.std.MinPriorityQueue;
 import io.github.ethankelly.std.Rand;
-import io.github.ethankelly.std.Set;
 
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.util.HashSet;
 import java.util.InputMismatchException;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 /**
@@ -376,7 +377,7 @@ public class GraphGenerator {
         assert numEdges >= 0 : "Too few edges.";
         Graph g = new Graph(numVertices, "Simple");
         g.setNumEdges(0);
-        Set<Edge> set = new Set<>();
+        Set<Edge> set = new HashSet<>();
         while (g.getNumEdges() < numEdges) {
             int v = Rand.uniform(numVertices);
             int w = Rand.uniform(numVertices);
@@ -460,7 +461,7 @@ public class GraphGenerator {
         int[] vertices = IntStream.range(0, numVer1 + numVer2).toArray();
         Rand.shuffle(vertices);
 
-        Set<Edge> set = new Set<>();
+        Set<Edge> set = new HashSet<>();
         while (g.getNumEdges() < numEdges) {
             int i = Rand.uniform(numVer1);
             int j = numVer1 + Rand.uniform(numVer2);

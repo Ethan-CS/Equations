@@ -6,6 +6,9 @@ import io.github.ethankelly.graph.Graph;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Stores data representing the parameters of a compartmental model of disease.
+ */
 public class Model {
     // Describe how many neighbours are required to enter/exit each state
     private final int[] toEnter;
@@ -14,7 +17,6 @@ public class Model {
     // List of characters representing states in the model
     private List<Character> states;
 
-    private boolean[][] transitionMatrix;
     private double[][] ratesMatrix;
     private Graph transitionGraph;
 
@@ -26,8 +28,7 @@ public class Model {
                 "Number of states different to the number of exit requirements provided";
         this.toEnter = toEnter;
         this.toExit = toExit;
-        this.transitionMatrix = new boolean[states.size()][states.size()];
-        this.transitionGraph = new Graph(transitionMatrix, states);
+        this.transitionGraph = new Graph(new boolean[states.size()][states.size()], states);
         this.ratesMatrix = new double[states.size()][states.size()];
     }
 
@@ -39,18 +40,18 @@ public class Model {
         System.out.println(m);
     }
 
-    public boolean validStates(List<Character> states) {
+    public boolean validStates(List<Character> states, boolean closures) {
         // If there are states in input that aren't in model parameters, the input states are not valid
-        if (!this.states.containsAll(states)) return false;
+        if (!this.states.containsAll(states) || this.states.equals(List.of('S')) && closures) return true;
         // Store whether each state in provided states has a direct transition to at least one other state in the model
         boolean[] atLeastOne = new boolean[states.size()];
+        if (closures) atLeastOne[this.states.indexOf('S')] = true;
         for (char c : states) {
             // If we haven't already found a transition to/from this state, check it against each other state
             if (!atLeastOne[states.indexOf(c)]) {
                 for (char d : states) {
                     // If states are not the same and there's a transition between them, update array
-                    if (c != d && (this.getTransitionMatrix()[this.states.indexOf(c)][this.states.indexOf(d)] ||
-                            this.getTransitionMatrix()[this.states.indexOf(d)][this.states.indexOf(c)])) {
+                    if (c != d && (this.getTransitionGraph().hasEdge(getStates().indexOf(c), getStates().indexOf(d)))) {
                         atLeastOne[states.indexOf(c)] = true;
                         atLeastOne[states.indexOf(d)] = true;
                         break;
@@ -99,7 +100,6 @@ public class Model {
         assert !String.valueOf(from).equals(String.valueOf(to)) :
                 "The 'to' and 'from' characters should not have been the same, but were: " + to + " = " + from;
 
-        boolean[][] transitions = this.getTransitionMatrix().clone();
         double[][] rates = this.getRatesMatrix().clone();
         Graph g = this.getTransitionGraph().clone();
 
@@ -118,35 +118,18 @@ public class Model {
                 e.printStackTrace();
             }
         } else {
-            transitions[indexFrom][indexTo] = true;
             rates[indexFrom][indexTo] = rate;
             g.addDirectedEdge(indexFrom, indexTo);
         }
-        this.setTransitionMatrix(transitions);
         this.setRatesMatrix(rates);
         this.setTransitionGraph(g);
-    }
-
-    public boolean[][] getTransitionMatrix() {
-        return transitionMatrix;
-    }
-
-    public void setTransitionMatrix(boolean[][] transitionMatrix) {
-        this.transitionMatrix = transitionMatrix;
     }
 
     @Override
     public String toString() {
         StringBuilder s = new StringBuilder();
         s.append(this.transitionGraph);
-        s.append("\n ");
-        for (char c : states) s.append(" ").append(c);
-        for (int i = 0; i < this.getTransitionMatrix().length; i++) {
-            s.append("\n").append(this.getStates().get(i));
-            for (int j = 0; j < this.getTransitionMatrix()[0].length; j++) {
-                s.append(" ").append(this.getRatesMatrix()[i][j]);
-            }
-        }
+        s.append("\n");
         return String.valueOf(s);
     }
 }
