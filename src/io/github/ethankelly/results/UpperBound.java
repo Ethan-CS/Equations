@@ -1,15 +1,18 @@
-package io.github.ethankelly.model;
+package io.github.ethankelly.results;
 
 import io.github.ethankelly.graph.Graph;
 import io.github.ethankelly.graph.GraphGenerator;
 import io.github.ethankelly.graph.Vertex;
+import io.github.ethankelly.model.ModelParams;
+import io.github.ethankelly.model.ODESystem;
+import io.github.ethankelly.model.RequiredTuples;
 
 import java.util.Arrays;
 import java.util.Map;
 
 public class UpperBound {
 	long ub = 0;
-	public UpperBound(Graph g, Model mp) {
+	public UpperBound(Graph g, ModelParams mp) {
 		// Find all cut vertices using DFS - runs in O(|E|+|V|)
 		// And splice by cut-vertices
 
@@ -39,7 +42,7 @@ public class UpperBound {
 	}
 
 	public static void main(String[] args) {
-		Model ms = new Model(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
+		ModelParams ms = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
 		ms.addTransition('S', 'I', 0.75);
 		ms.addTransition('I', 'R', 0.2);
 

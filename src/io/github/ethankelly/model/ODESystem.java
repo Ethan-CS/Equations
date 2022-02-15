@@ -34,7 +34,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 	/** String representation of the system of equations. */
 	private String equations;
 	/** Parameters of the model. */
-	private final Model modelParameters;
+	private final ModelParams modelParamsParameters;
 
 	/**
 	 * Class constructor.
@@ -42,12 +42,12 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 	 * @param g        the graph that underpins our compartmental model.
 	 * @param tMax     the maximum value of time to be considered when calculating solutions
 	 */
-	public ODESystem(Graph g, int tMax, Model modelParameters) {
+	public ODESystem(Graph g, int tMax, ModelParams modelParamsParameters) {
 		this.g = g;
-		this.requiredTuples = new RequiredTuples(g, modelParameters, false);
+		this.requiredTuples = new RequiredTuples(g, modelParamsParameters, false);
 		this.dimension = requiredTuples.size();
 		this.tMax = tMax;
-		this.modelParameters = modelParameters;
+		this.modelParamsParameters = modelParamsParameters;
 	}
 
 	/**
@@ -158,7 +158,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 
 	private void addExitTuple(double[] y, double[] yDot, Tuple tuple, StringBuilder s, List<Vertex> otherTerms, double rateOfTransition) {
 		Tuple t = new Tuple(otherTerms);
-		if (t.isValidTuple(this.modelParameters, this.getG(), this.closures)) {
+		if (t.isValidTuple(this.modelParamsParameters, this.getG(), this.closures)) {
 			yDot[this.getIndicesMapping().get(tuple)] += (-rateOfTransition * y[this.getIndicesMapping().get(t)]);
 			s.append("-").append(rateOfTransition).append(t);
 		}
@@ -166,7 +166,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 
 	private void addEntryTuple(double[] y, double[] yDot, Tuple tuple, StringBuilder s, List<Vertex> otherTerms, double rateOfTransition, Vertex w) {
 		Tuple t = new Tuple(otherTerms);
-		if (t.isValidTuple(this.modelParameters, this.getG(), this.closures)) {
+		if (t.isValidTuple(this.modelParamsParameters, this.getG(), this.closures)) {
 			yDot[this.getIndicesMapping().get(tuple)] += (rateOfTransition * y[this.getIndicesMapping().get(t)]);
 			s.append("+").append(rateOfTransition).append(t);
 		}
@@ -285,7 +285,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 		this.getEquations(y, yDot);
 	}
 
-	public Model getModelParameters() {
-		return modelParameters;
+	public ModelParams getModelParameters() {
+		return modelParamsParameters;
 	}
 }

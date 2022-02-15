@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Stores data representing the parameters of a compartmental model of disease.
  */
-public class Model {
+public class ModelParams {
     // Describe how many neighbours are required to enter/exit each state
     private final int[] toEnter;
     private final int[] toExit;
@@ -20,7 +20,7 @@ public class Model {
     private double[][] ratesMatrix;
     private Graph transitionGraph;
 
-    public Model(List<Character> states, int[] toEnter, int[] toExit) {
+    public ModelParams(List<Character> states, int[] toEnter, int[] toExit) {
         this.states = states;
         assert (toEnter.length == states.size()) :
                 "Number of states different to the number of entry requirements provided";
@@ -34,7 +34,7 @@ public class Model {
 
     public static void main(String[] args) {
         // For now, every element in transmission matrix is equal to the relevant rate (can change based on context)
-        Model m = new Model(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
+        ModelParams m = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
         m.addTransition('S', 'I', 0.6);
         m.addTransition('I', 'R', 0.1);
         System.out.println(m);

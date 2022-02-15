@@ -16,7 +16,7 @@ import java.util.*;
 public class RequiredTuples {
 	private final List<Tuple> tuples; // The list of tuples required to describe a model on the specified graph
 	private final Graph graph; // The graph representing underpinning the compartmental model
-	private final Model modelParams; // The compartmental model states, e.g. SIR
+	private final ModelParams modelParams; // The compartmental model states, e.g. SIR
 	private final boolean closures; // Whether we are considering closures (may need to consider unusual tuples)
 
 
@@ -27,7 +27,7 @@ public class RequiredTuples {
 	 * @param modelParams   the parameters of the model, including which states each vertex can be.
 	 * @param closures whether to include closures in the generated tuples.
 	 */
-	public RequiredTuples(Graph graph, Model modelParams, boolean closures) {
+	public RequiredTuples(Graph graph, ModelParams modelParams, boolean closures) {
 		this.graph = graph;
 		this.modelParams = modelParams;
 		this.tuples = this.generateTuples(closures);
@@ -170,7 +170,7 @@ public class RequiredTuples {
 	 *
 	 * @return the model parameters defined for the model in question.
 	 */
-	public Model getModelParams() {
+	public ModelParams getModelParams() {
 		return this.modelParams;
 	}
 

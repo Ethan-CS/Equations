@@ -16,7 +16,7 @@ class RequiredTuplesTest {
 
     @Test
     void findNumbers() {
-        Model m = new Model(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
+        ModelParams m = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
         m.addTransition('S', 'I', 0.6);
         m.addTransition('I', 'R', 0.1);
 

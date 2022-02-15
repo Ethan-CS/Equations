@@ -13,11 +13,11 @@ import java.util.Random;
 
 class TupleTest {
 
-    public static Model m;
+    public static ModelParams m;
 
     @BeforeEach
     void setUp() {
-        m = new Model(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
+        m = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
         m.addTransition('S', 'I', 0.6);
         m.addTransition('I', 'R', 0.1);
     }

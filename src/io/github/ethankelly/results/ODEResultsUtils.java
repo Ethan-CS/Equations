@@ -1,5 +1,7 @@
-package io.github.ethankelly.model;
+package io.github.ethankelly.results;
 
+import io.github.ethankelly.model.ODESystem;
+import io.github.ethankelly.model.Tuple;
 import org.apache.commons.math3.ode.FirstOrderIntegrator;
 import tech.tablesaw.api.DoubleColumn;
 import tech.tablesaw.api.IntColumn;
