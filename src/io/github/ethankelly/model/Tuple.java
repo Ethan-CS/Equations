@@ -7,21 +7,24 @@ import io.github.ethankelly.symbols.Maths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
  * A tuple represents the probability of one or more vertices of the graph being in particular states.
  */
 public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tuple> {
-    private List<Vertex> vertices; // List of all state-vertex pairs that make up this tuple
+    /** List of all state-vertex pairs that make up this tuple */
+    private final List<Vertex> vertices;
+    /** Length of the current tuple. */
     public int length;
 
-    // For when we just want to add a single vertex to the tuple
+    /** Constructor - creates a tuple containing only a single (specified) vertex. */
     public Tuple(Vertex v) {
         this.vertices = Collections.singletonList(v);
     }
 
-    // When we have a list of vertices that we want to form a tuple from
+    /** Constructor - creates a tuple from a list of vertices. */
     public Tuple(List<Vertex> tuple) {
         Collections.sort(tuple);
         this.vertices = tuple;
@@ -29,57 +32,29 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
     }
 
     /**
-     * Given a potential tuple, this method checks the tuple is valid using the following criteria:
+     * Given a potential tuple, checks it is valid using the following criteria:
      * <ol>
-     *      <li> Each vertex in the tuple is distinct,</li>
-     * 	    <li> The vertices in the tuple constitute a connected subgraph,</li>
-     * 	    <li> The tuple contains two or more states and </li>
-     * 	    <li> The states in the tuple constitute a connected subgraph of the transition graph.</li>
+     *      <li> Each vertex in the tuple is distinct;</li>
+     * 	    <li> The vertices in the tuple constitute a connected subgraph; and</li>
+     * 	    <li> The states in the tuple constitute a walk in the filter graph.</li>
      * </ol>
      *
      * @return true if the tuple is essential to expressing the system dynamics, false otherwise.
      */
     boolean isValidTuple(Model modelParams, Graph g, boolean closures) {
+        // TODO update this based on new validity criteria definition (i.e. filter graph definition)
         List<Character> states = new ArrayList<>();
         for (Vertex v : this.getVertices()) {
+            System.out.println(v);
             if (!states.contains(v.getState())) {
                 states.add(v.getState());
             }
         }
         if (size() == 1) return true;
-        else if (size() > g.getNumVertices() || !modelParams.getStates().containsAll(states)) return false;
         else return locationsAreDifferent() &&              // 1. each vertex is distinct
-                g.areAllConnected(this) &&          // 2. vertices constitute a connected subgraph
-                validStates(modelParams, closures) &&       // 3. tuple contains two or more unique states
-                modelParams.validStates(states, closures);            // 4. States form a complete subgraph of transition graph
+                areAllConnected(g) &&                       // 2. vertices constitute a connected subgraph
+                modelParams.validStates(states, closures);  // 3. States form a walk in the filter graph
 
-    }
-
-    /**
-     * Given a list of vertices (some tuple), this method checks whether all the states are the same. If they are the
-     * same, we do not have to consider the associated equation of the tuple in the final system of equations that
-     * describes our compartmental model.
-     *
-     * @return true if at least one vertex state is different to that of the others, false if they are all the same.
-     */
-    public boolean validStates(Model modelParams, boolean reqClosures) {
-        // If there's only one vertex in the list, by definition we require it
-        // in the system of equations, so we ensure this method returns true.
-        if (size() == 1) return true;
-        else {
-            // We only need to find two different states to know that the states are
-            // at least not all the same, returning true.
-            for (Vertex v : getVertices()) {
-                for (Vertex w : getVertices()) {
-                    char vState = v.getState(), wState = w.getState();
-                    if (vState != wState && modelParams.getTransitionGraph().hasEdge(
-                            modelParams.getStates().indexOf(vState), modelParams.getStates().indexOf(wState))
-                            || reqClosures && (v.getState() == 'S') || (w.getState() == 'S'))
-                        return true;
-                }
-            }
-        }
-        return false;
     }
 
     /**
@@ -93,12 +68,8 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
     public boolean locationsAreDifferent() {
         // Only need to find two vertices in the list with same index location
         // to know we don't have a required tuple, returning false.
-        for (Vertex v : getVertices()) {
-            if (getVertices().stream().anyMatch(w -> v.getLocation() == w.getLocation() && v != w)) {
-                return false;
-            }
-        }
-        return true;
+        return getVertices().stream()
+                .noneMatch(v -> getVertices().stream().anyMatch(w -> v.getLocation() == w.getLocation() && v != w));
     }
 
     /**
@@ -139,6 +110,7 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
         return String.valueOf(s);
     }
 
+    @SuppressWarnings("unused")
     public String plainToString(int howPlain) {
         StringBuilder s = new StringBuilder();
         List<Vertex> vertices = this.getVertices();
@@ -159,12 +131,6 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
         this.vertices.add(v);
         Collections.sort(this.vertices);
         return !this.getVertices().equals(copy.getVertices());
-    }
-
-    public void addAll(List<Vertex> vertices) {
-        Tuple copy = new Tuple(this.vertices);
-        this.vertices.addAll(vertices);
-        Collections.sort(this.vertices);
     }
 
     /**
@@ -204,5 +170,19 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
         return clone;
     }
 
-
+    /**
+     * Given some list of vertices (tuple), this method verifies that all vertices in the graph given are in fact
+     * connected. That is, we are only interested in a tuple of vertices that constitute some manner of path (cycle or
+     * such like) - if not, then we do not have to consider the associated equation in the final system of equations
+     * that describes our compartmental model, and we can discount the given tuple.
+     *
+     * @param graph the graph on which we are checking the vertices of the current tuple are connected.
+     * @return true if the tuple forms a path, false otherwise.
+     */
+    public boolean areAllConnected(Graph graph) {
+        System.out.println("CHECKING: " + this + ", GRAPH VERTICES: " + graph.getVertices());
+        return graph.getVertices().containsAll(this) && graph.areAllConnected(
+                stream().map(vertex -> new Vertex(vertex.getLocation())).collect(Collectors.toList())
+        );
+    }
 }

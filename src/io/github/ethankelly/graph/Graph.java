@@ -1,19 +1,18 @@
 package io.github.ethankelly.graph;
 
-import io.github.ethankelly.model.Tuple;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The {@code Graph} class represents a graph - a collection of vertices connected by edges in some meaningful
- * configuration.
+ * The {@code Graph} class represents a graph - a mathematical structure consisting of a collection of vertices
+ * connected by edges in some specified configuration.
  *
  * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
  */
 public class Graph implements Cloneable {
-	private int time; // Discovery time for cut-vertex identification
+	/** Discovery time for cut-vertex identification */
+	private int time;
 	/** Name of the graph - generally corresponds to graph class. */
 	private String name;
 	/** Vertices in the current graph. */
@@ -24,6 +23,17 @@ public class Graph implements Cloneable {
 	private int numEdges;
 	/** A linked list representation of the graph (known as an adjacency list). */
 	private List<List<Vertex>> adjList = new ArrayList<>();
+
+	/**
+	 * Permits a list of labels to be assigned to the current graph instance, where labels are used for assigning
+	 * vertices more meaningful names than default indices.
+	 *
+	 * @param labels the labels to assign to vertices in like index locations in the graph.
+	 */
+	public void setLabels(List<Character> labels) {
+		this.labels = labels;
+	}
+
 	/** Labels for vertices, if required (otherwise null entries). */
 	private List<Character> labels;
 	/** The list of connected components after cut-vertex-based splicing. */
@@ -32,6 +42,7 @@ public class Graph implements Cloneable {
 	private Map<Graph, Integer> subGraphFreq = new HashMap<>();
 	/** The number of sub-graphs the cut vertex belongs to after splicing . */
 	private final Map<Vertex, Integer> cutVertexFreq = new HashMap<>();
+
 	/**
 	 * Class constructor.
 	 *
@@ -49,6 +60,12 @@ public class Graph implements Cloneable {
 		this.time = 0;
 	}
 
+	/**
+	 * Class constructor - used to create transmission graphs.
+	 *
+	 * @param adjMatrix the adjacency matrix of the graph.
+	 * @param states the states in the model, e.g. S for susceptible, R for recovered.
+	 */
 	public Graph(boolean[][] adjMatrix, List<Character> states) {
 		this.name = ""; // Default name
 		this.numVertices = adjMatrix.length;
@@ -68,7 +85,7 @@ public class Graph implements Cloneable {
 		this.adjList = list;
 	}
 
-	// Recursive helper method used to decompose the given graph into sub-graphs by cut-vertices
+	// Recursive helper method - used to decompose the given graph into sub-graphs by cut-vertices
 	private static void spliceUtil(List<Graph> subGraphs, List<Vertex> cutVertices, Graph clone, Graph original) {
 		Vertex cutVertex = cutVertices.get(0);
 		// Remove the cut vertex from the graph
@@ -133,15 +150,15 @@ public class Graph implements Cloneable {
 		for (int i = 0; i < subGraphs.size(); i++) {
 			Graph sub = subGraphs.get(i);
 			subGraphFreq.put(sub, 1);
-			for (int j = 0; j < subGraphs.size(); j++) {
-				Graph otherSub = subGraphs.get(j);
-				// If they are not the exact same graph and are isomorphic,
-				// Remove the duplicate instance and increase frequency of the subgraph
-				if (i != j && sub.isIsomorphic(otherSub)) {
-					subGraphs.remove(otherSub);
-					subGraphFreq.put(sub, subGraphFreq.get(sub) + 1);
-				}
-			}
+//			for (int j = 0; j < subGraphs.size(); j++) {
+//				Graph otherSub = subGraphs.get(j);
+//				// If they are not the exact same graph and are isomorphic,
+//				// Remove the duplicate instance and increase frequency of the subgraph
+//				if (i != j && sub.isIsomorphic(otherSub)) {
+//					subGraphs.remove(otherSub);
+//					subGraphFreq.put(sub, subGraphFreq.get(sub) + 1);
+//				}
+//			}
 		}
 
 		this.subGraphFreq = subGraphFreq;
@@ -169,28 +186,9 @@ public class Graph implements Cloneable {
 		return (this.vertices.contains(v));
 	}
 
-	/**
-	 * Given some list of vertices (tuple), this method verifies that all of the vertices in the graph given are in fact
-	 * connected. That is, we are only interested in a tuple of vertices that constitute some manner of path (cycle or
-	 * such like) - if not, then we do not have to consider the associated equation in the final system of equations
-	 * that describes our compartmental model, and we can discount the given tuple.
-	 *
-	 * @param toCheck the tuple we wish to check constitutes some kind of path.
-	 * @return true if the tuple forms a path in some way, false otherwise.
-	 */
-	public boolean areAllConnected(Tuple toCheck) {
-		List<Vertex> vertexList = new ArrayList<>();
-		for (int i = 0; i < toCheck.size(); i++) {
-			vertexList.add(new Vertex(toCheck.get(i).getLocation()));
-		}
-		return this.areAllConnected(vertexList);
-	}
-
 	public boolean areAllConnected(List<Vertex> toCheck) {
 		// If there's only one vertex in the list, required in the system of equations - ensure this returns true.
 		// If more than one vertex, return whether they all have some path between them.
-
-//		System.out.println(this.makeSubGraph(toCheck) + "\n ^ SIZE " +  this.makeSubGraph(toCheck).getCCs().size());
 		return toCheck.size() == 1 || this.makeSubGraph(toCheck).getCCs().size() == 1;
 	}
 
@@ -215,8 +213,8 @@ public class Graph implements Cloneable {
 			int thisDeg = 0;
 			int thatDeg = 0;
 			for (int j = 0; j < this.getNumVertices(); j++) {
-				if (this.hasEdge(i, j)) thisDeg++;
-				if (that.hasEdge(i, j)) thatDeg++;
+				if (this.hasEdge(vertices.get(i), vertices.get(j))) thisDeg++;
+				if (that.hasEdge(vertices.get(i), vertices.get(j))) thatDeg++;
 			}
 			thisDegrees.add(thisDeg);
 			thatDegrees.add(thatDeg);
@@ -450,7 +448,9 @@ public class Graph implements Cloneable {
 	 * @param adjList the adjacency list to assign to the current graph
 	 */
 	void setAdjList(List<List<Vertex>> adjList) {
-		assert adjList.size() == this.getNumVertices() : "The provided adjacency list does not contain enough lists";
+		assert adjList.size() == this.getNumVertices() : "The provided adjacency list does not contain enough lists." +
+				" Expected " + this.getNumVertices() + " but got " + adjList.size() +
+				"\n" +  adjList;
 		this.adjList = adjList;
 		clearSpliceFields();
 	}
@@ -582,6 +582,7 @@ public class Graph implements Cloneable {
 		} catch (CloneNotSupportedException e) {
 			cloned = new Graph(this.getNumVertices(), this.getName());
 		}
+
 		List<List<Vertex>> newList = new ArrayList<>();
 		int i = 0;
 		for (List<Vertex> list : this.getAdjList()) {
@@ -606,23 +607,18 @@ public class Graph implements Cloneable {
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
-		Graph that = (Graph) o;
-		// TODO this should check that adjacency lists are equal as well
-		boolean adjListsEqual = false;
-		for (List<Vertex> thisList : this.getAdjList())
-			for (List<Vertex> thatList : that.getAdjList())
-				adjListsEqual = thisList.containsAll(thatList);
 
-		return getNumVertices() == that.getNumVertices() &&
-		       getNumEdges() == that.getNumEdges() && getName().equals(that.getName()) && adjListsEqual;
+		Graph graph = (Graph) o;
+
+		if (getNumVertices() != graph.getNumVertices()) return false;
+
+		return getAdjList() != null ? getAdjList().equals(graph.getAdjList()) : graph.getAdjList() == null;
 	}
 
 	@Override
 	public int hashCode() {
-		int result = getName() != null ? getName().hashCode() : 0;
-		result = 31 * result + getNumVertices();
-		result = 31 * result + getNumEdges();
-		result = 31 * result + (adjList != null ? adjList.hashCode() : 0);
+		int result = getNumVertices();
+		result = 31 * result + (getAdjList() != null ? getAdjList().hashCode() : 0);
 		return result;
 	}
 

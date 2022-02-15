@@ -18,17 +18,73 @@ import java.util.stream.IntStream;
  *
  * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
  */
-public class GraphGenerator {
-    private static long seed;
+public final class GraphGenerator {
+    private static final long seed;
+
+    private static final Graph edge;
+    private static final Graph triangle;
+    private static final Graph toast;
+    private static final Graph lollipop;
+    private static final Graph bowTie;
+    private static final Graph bowTieWithBridge;
 
     static {
-        setSeed();
+        // Set the random generation seed
+        seed = Rand.getSeed();
+
+        // EDGE
+        edge = new Graph(2, "Edge");
+        edge.addEdge(0,1);
+
+
+        // TRIANGLE
+        triangle = new Graph(3, "Triangle");
+        triangle.addEdge(0, 1);
+        triangle.addEdge(1, 2);
+        triangle.addEdge(2, 0);
+
+        // TOAST
+        toast = new Graph(4, "Toast");
+        toast.addEdge(0, 1);
+        toast.addEdge(0, 2);
+        toast.addEdge(0, 3);
+        toast.addEdge(1, 2);
+        toast.addEdge(2, 3);
+
+        // LOLLIPOP
+        lollipop = new Graph(4, "Lollipop");
+        lollipop.addEdge(0, 1);
+        lollipop.addEdge(0, 2);
+        lollipop.addEdge(0, 3);
+        lollipop.addEdge(2, 3);
+        // something strange was happening where methods later thought this had 5 vertices, not 4, so moved this to the
+        // getter method itself.
+
+        // BOWTIE
+        bowTie = new Graph(5, "Bow tie");
+        bowTie.addEdge(0, 1);
+        bowTie.addEdge(0, 2);
+        bowTie.addEdge(1, 2);
+        bowTie.addEdge(2, 3);
+        bowTie.addEdge(2, 4);
+        bowTie.addEdge(3, 4);
+
+        // BOW TIE WITH BRIDGE
+        bowTieWithBridge = new Graph(6, "Bow tie with bridge");
+        bowTieWithBridge.addEdge(0, 1);
+        bowTieWithBridge.addEdge(0, 2);
+        bowTieWithBridge.addEdge(1, 2);
+        bowTieWithBridge.addEdge(2, 3);
+        bowTieWithBridge.addEdge(3, 4);
+        bowTieWithBridge.addEdge(3, 5);
+        bowTieWithBridge.addEdge(4, 5);
     }
 
+    /**
+     * @return a graph consisting of two vertices connected by an undirected edge - the Edge Graph.
+     */
     public static Graph getEdge() {
         // EDGE
-        Graph edge = new Graph(2, "Edge");
-        edge.addEdge(0,1);
         return edge;
     }
 
@@ -37,12 +93,6 @@ public class GraphGenerator {
      */
     public static Graph getToast() {
         // TOAST
-        Graph toast = new Graph(4, "Toast");
-        toast.addEdge(0, 1);
-        toast.addEdge(0, 2);
-        toast.addEdge(0, 3);
-        toast.addEdge(1, 2);
-        toast.addEdge(2, 3);
         return toast;
     }
 
@@ -50,13 +100,13 @@ public class GraphGenerator {
      * @return the Lollipop graph.
      */
     public static Graph getLollipop() {
-        // LOLLIPOP
-        Graph lollipop = new Graph(4, "Lollipop");
-        lollipop.addEdge(0, 1);
-        lollipop.addEdge(0, 2);
-        lollipop.addEdge(0, 3);
-        lollipop.addEdge(2, 3);
-        return lollipop;
+        Graph l = new Graph(4, "Lollipop");
+        l.addEdge(0, 1);
+        l.addEdge(0, 2);
+        l.addEdge(0, 3);
+        l.addEdge(2, 3);
+
+        return l;
     }
 
     /**
@@ -64,26 +114,11 @@ public class GraphGenerator {
      */
     public static Graph getBowTie() {
         // BOW TIE
-        Graph bowTie = new Graph(5, "Bow tie");
-        bowTie.addEdge(0, 1);
-        bowTie.addEdge(0, 2);
-        bowTie.addEdge(1, 2);
-        bowTie.addEdge(2, 3);
-        bowTie.addEdge(2, 4);
-        bowTie.addEdge(3, 4);
         return bowTie;
     }
 
     public static Graph getBowTieWithBridge() {
         // BOW TIE WITH BRIDGE
-        Graph bowTieWithBridge = new Graph(6, "Bow tie with bridge");
-        bowTieWithBridge.addEdge(0, 1);
-        bowTieWithBridge.addEdge(0, 2);
-        bowTieWithBridge.addEdge(1, 2);
-        bowTieWithBridge.addEdge(2, 3);
-        bowTieWithBridge.addEdge(3, 4);
-        bowTieWithBridge.addEdge(3, 5);
-        bowTieWithBridge.addEdge(4, 5);
         return bowTieWithBridge;
     }
 
@@ -92,10 +127,6 @@ public class GraphGenerator {
      */
     public static Graph getTriangle() {
         // TRIANGLE
-        Graph triangle = new Graph(3, "Triangle");
-        triangle.addEdge(0, 1);
-        triangle.addEdge(1, 2);
-        triangle.addEdge(2, 0);
         return triangle;
     }
 
@@ -723,13 +754,5 @@ public class GraphGenerator {
     @SuppressWarnings("unused")
     public static long getSeed() {
         return seed;
-    }
-
-    /**
-     * Sets the seed attribute of this class to the seed attribute of the StdRandom instance used to generate random
-     * graphs.
-     */
-    public static void setSeed() {
-        seed = Rand.getSeed();
     }
 }

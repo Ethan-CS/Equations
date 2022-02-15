@@ -1,13 +1,15 @@
 package io.github.ethankelly.model;
 
 import io.github.ethankelly.graph.Graph;
-import io.github.ethankelly.graph.GraphGenerator;
 import io.github.ethankelly.graph.Vertex;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.exception.MaxCountExceededException;
 import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -17,13 +19,21 @@ import java.util.stream.IntStream;
  * and specified initial conditions to solve the system of equations.
  */
 public class ODESystem implements FirstOrderDifferentialEquations {
-	private final Graph g; // Underlying graph
-	private final RequiredTuples requiredTuples; // The required requiredTuples (found using Tuples class)
-	private int dimension; // The number of equations required (i.e. number of requiredTuples we have)
+	/** Underlying graph. */
+	private final Graph g;
+	/** Tuples we need to generate equations for. */
+	private final RequiredTuples requiredTuples;
+	/** Number of equations required (same as number of tuples). */
+	private int dimension;
+	/** Maximum value of t, for equation solving. */
 	public int tMax;
-	boolean closures = false; // Whether we need to consider closure-related tuples, i.e. all susceptible tuples.
-	private Map<Tuple, Integer> indicesMapping = new HashMap<>(); // Mapping of requiredTuples to unique integers
-	private String equations; // String representation of the system of equations
+	/** Whether we need to consider closure-related tuples, i.e. all susceptible tuples. */
+	boolean closures = false;
+	/** Mapping of requiredTuples to unique integers. */
+	private Map<Tuple, Integer> indicesMapping = new HashMap<>();
+	/** String representation of the system of equations. */
+	private String equations;
+	/** Parameters of the model. */
 	private final Model modelParameters;
 
 	/**
@@ -41,26 +51,11 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 	}
 
 	/**
-	 * Unit testing.
-	 *
-	 * @param args command-line arguments (ignored).
-	 */
-	public static void main(String[] args) {
-		Model ms = new Model(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
-		ms.addTransition('S', 'I', 0.6);
-		ms.addTransition('I', 'R', 0.1);
-
-		ODESystem triangle = new ODESystem(GraphGenerator.getTriangle(), 5, ms);
-		System.out.println(triangle);
-	}
-
-	/**
 	 * @return the graph that the current system of differential equations is applied to.
 	 */
 	public Graph getG() {
 		return g;
 	}
-
 
 	/**
 	 * Returns the String representation of the specified Tuple in the context of a wider ODE system and uses the

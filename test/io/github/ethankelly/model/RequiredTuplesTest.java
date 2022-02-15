@@ -21,10 +21,10 @@ class RequiredTuplesTest {
         m.addTransition('I', 'R', 0.1);
 
         RequiredTuples edge = new RequiredTuples(GraphGenerator.getEdge(), m, false);
-        assertEquals(edge.size(), 6);
+        assertEquals(6, edge.size(), edge.toString());
 
         RequiredTuples triangle = new RequiredTuples(GraphGenerator.getTriangle(), m, false);
-        assertEquals(triangle.size(), 18);
+        assertEquals(18, triangle.size());
 
         // TODO this is different to result in paper but req tuples look correct...
 //        RequiredTuples square = new RequiredTuples(GraphGenerator.cycle(4), m, false);
