@@ -166,4 +166,28 @@ class GraphTest {
         h.appendVertices(1);
         Assertions.assertNotEquals(g, h, "When passed different graphs, equals method should return false");
     }
+
+	@Test
+	void hasDirectedEdge() {
+        Graph g = new Graph(4, "");
+        g.addDirectedEdge(0,1);
+        g.addDirectedEdge(1,2);
+        g.addDirectedEdge(2,3);
+        g.addDirectedEdge(3,0);
+
+        Assertions.assertTrue(g.hasDirectedEdge(0,1));
+        Assertions.assertTrue(g.hasDirectedEdge(1,2));
+        Assertions.assertTrue(g.hasDirectedEdge(2,3));
+        Assertions.assertTrue(g.hasDirectedEdge(3,0));
+
+        Assertions.assertFalse(g.hasDirectedEdge(0, 2));
+        Assertions.assertFalse(g.hasDirectedEdge(0, 3));
+        Assertions.assertFalse(g.hasDirectedEdge(1, 0));
+        Assertions.assertFalse(g.hasDirectedEdge(1, 3));
+        Assertions.assertFalse(g.hasDirectedEdge(2, 1));
+        Assertions.assertFalse(g.hasDirectedEdge(2, 0));
+        Assertions.assertFalse(g.hasDirectedEdge(3, 2));
+        Assertions.assertFalse(g.hasDirectedEdge(3, 1));
+
+        }
 }

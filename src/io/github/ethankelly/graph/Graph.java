@@ -23,6 +23,8 @@ public class Graph implements Cloneable {
 	private int numEdges;
 	/** A linked list representation of the graph (known as an adjacency list). */
 	private List<List<Vertex>> adjList = new ArrayList<>();
+	/** Number of walks of each length in the graph */
+	protected List<Integer[][]> walks = new ArrayList<>();
 
 	/**
 	 * Permits a list of labels to be assigned to the current graph instance, where labels are used for assigning
@@ -412,6 +414,7 @@ public class Graph implements Cloneable {
 			this.spliced.clear();
 			this.subGraphFreq.clear();
 		}
+		this.walks = new ArrayList<>();
 	}
 
 	/**
@@ -630,5 +633,9 @@ public class Graph implements Cloneable {
 		// Increment the number of edges
 		if (!this.adjList.get(j).contains(new Vertex(i))) this.numEdges++;
 		clearSpliceFields();
+	}
+
+	public boolean hasDirectedEdge(int i, int j) {
+		return this.adjList.get(i).contains(new Vertex(j));
 	}
 }
