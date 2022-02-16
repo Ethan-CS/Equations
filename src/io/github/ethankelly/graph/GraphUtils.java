@@ -92,4 +92,41 @@ public class GraphUtils {
 			}
 		}
 	}
+
+    /*
+     * Recursive helper function that finds cut-vertices using the depth-first search algorithm.
+     */
+    static void findCutVertices(Graph graph, Vertex vertex,
+                                boolean[] visited,
+                                int[] times,
+                                int[] low,
+                                int[] parent,
+                                boolean[] cutVertices) {
+        int NIL = -1;
+        int u = graph.getVertices().indexOf(vertex);
+        int children = 0; // Counter for children in the DFS Tree
+        visited[u] = true; // Mark the current node visited
+        times[u] = low[u] = ++graph.time; // Initialise discovery time and low value
+        List<Vertex> adj = graph.getAdjList().get(u);
+        // v is current adjacent of u
+        for (Vertex otherVertex : adj) {
+            int v = graph.getVertices().indexOf(otherVertex);
+            // If v is not visited yet, make it a child of u in DFS tree and recurse
+            if (!visited[v]) {
+                children++;
+                parent[v] = u;
+                findCutVertices(graph, otherVertex, visited, times, low, parent, cutVertices);
+                // Check if the subtree rooted with v has a connection to one of the ancestors of u
+                low[u] = Math.min(low[u], low[v]);
+                // u is a cut vertex if either (1) it is a root of DFS tree and has two or more children,
+                // or (2) the low value of one of its children is more than its own discovery value.
+                if (parent[u] == NIL && children > 1) cutVertices[u] = true; // (1)
+                if (parent[u] != NIL && low[v] >= times[u])
+                    cutVertices[u] = true; // (2)
+            } else if (v != parent[u]) {
+                // Update the low value of u for parent function calls.
+                low[u] = Math.min(low[u], times[v]);
+            }
+        }
+    }
 }

@@ -41,7 +41,7 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
      *
      * @return true if the tuple is essential to expressing the system dynamics, false otherwise.
      */
-    boolean isValidTuple(ModelParams modelParams, Graph g, boolean closures) {
+    public boolean isValidTuple(ModelParams modelParams, Graph g, boolean closures) {
         // TODO update this based on new validity criteria definition (i.e. filter graph definition)
         List<Character> states = new ArrayList<>();
         for (Vertex v : this.getVertices()) {

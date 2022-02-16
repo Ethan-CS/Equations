@@ -4,9 +4,12 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class GraphTest {
     private static final Graph g1 = new Graph(6, "Test");
@@ -33,7 +36,7 @@ class GraphTest {
 
     @Test
     void testCutVerticesG1() {
-        Assertions.assertEquals(g1.getCutVertices(), Arrays.asList(new Vertex(2), new Vertex(3)),
+        assertEquals(g1.getCutVertices(), Arrays.asList(new Vertex(2), new Vertex(3)),
                 "Should have identified 2 and 3 as the only cut-vertices for G1.");
     }
 
@@ -68,14 +71,14 @@ class GraphTest {
             }
         } else test = false;
 
-        Assertions.assertEquals(correctSubGraphs.length, foundSubGraphs.length,
+        assertEquals(correctSubGraphs.length, foundSubGraphs.length,
                 "Splice method did not find the right number of sub-graphs for G1.");
         Assertions.assertTrue(test, "Each sub-graph is of different lengths - check this.");
     }
 
     @Test
     void testCutVerticesG2() {
-        Assertions.assertEquals(g2.getCutVertices(), Arrays.asList(new Vertex(1), new Vertex(2)),
+        assertEquals(g2.getCutVertices(), Arrays.asList(new Vertex(1), new Vertex(2)),
                 "Should have identified 1 and 2 as cut-vertices for G2.");
     }
 
@@ -88,7 +91,7 @@ class GraphTest {
         List<Graph> correctSubGraphs = Arrays.asList(subA, subB, subB);
         List<Graph> foundSubGraphs = g2clone.splice();
 
-        Assertions.assertEquals(correctSubGraphs.size(), foundSubGraphs.size(),
+        assertEquals(correctSubGraphs.size(), foundSubGraphs.size(),
                 "Splice method did not find the right number of sub-graphs for G2.");
 
         boolean test = true;
@@ -108,7 +111,7 @@ class GraphTest {
     @Test
     void testCutVerticesLollipop() {
         // Get the cut vertices - should just be vertex 0
-        Assertions.assertEquals(GraphGenerator.getLollipop().getCutVertices(), Collections.singletonList(new Vertex(0)),
+        assertEquals(GraphGenerator.getLollipop().getCutVertices(), Collections.singletonList(new Vertex(0)),
                 "Lollipop has exactly one cut vertex at location 0");
     }
 
@@ -126,7 +129,7 @@ class GraphTest {
         // Add both to a list
         List<Graph> correctSplice = Arrays.asList(edge, triangle);
         // Now, assert expected and actual are equal - bit convoluted, so we can ignore order of graphs in list
-        Assertions.assertEquals(correctSplice.size(), lollipopSplice.size(), "Splices were different sizes");
+        assertEquals(correctSplice.size(), lollipopSplice.size(), "Splices were different sizes");
 //        Assertions.assertTrue(correctSplice.containsAll(lollipopSplice),
 //                "The lollipop splice contains too much");
 //        Assertions.assertTrue(lollipopSplice.containsAll(correctSplice),
@@ -136,14 +139,14 @@ class GraphTest {
     @Test
     void testCutVerticesToast() {
         // Get the cut vertices - should just be vertex 0
-        Assertions.assertEquals(toast.getCutVertices(), Collections.emptyList(),
+        assertEquals(toast.getCutVertices(), Collections.emptyList(),
                 "Toast has no cut vertices");
     }
 
     @Test
     void testSpliceToast() {
         // Now, assert expected and actual are equal - bit convoluted so we can ignore order of graphs in list
-        Assertions.assertEquals(Collections.singletonList(GraphGenerator.getToast()), toast.clone().splice(),
+        assertEquals(Collections.singletonList(GraphGenerator.getToast()), toast.clone().splice(),
                 "Toast cannot be spliced into sub-graphs.");
     }
 
@@ -152,7 +155,7 @@ class GraphTest {
         // Make sure clone() creates an identical instance
         Graph g = GraphGenerator.getLollipop();
         Graph h = g.clone();
-        Assertions.assertEquals(g, h, "The clone() method did not make an identical instance.");
+        assertEquals(g, h, "The clone() method did not make an identical instance.");
         // Now, ensure that changing an attribute of the clone makes it not equal the original
         g.appendVertices(1);
         Assertions.assertNotEquals(g, h, "Expected instances to be different.");
@@ -162,7 +165,7 @@ class GraphTest {
     void testEquals() {
         Graph g = GraphGenerator.erdosRenyi(50, 0.5);
         Graph h = g.clone();
-        Assertions.assertEquals(g, h, "Identical graphs were not returned true.");
+        assertEquals(g, h, "Identical graphs were not returned true.");
         h.appendVertices(1);
         Assertions.assertNotEquals(g, h, "When passed different graphs, equals method should return false");
     }
@@ -180,14 +183,29 @@ class GraphTest {
         Assertions.assertTrue(g.hasDirectedEdge(2,3));
         Assertions.assertTrue(g.hasDirectedEdge(3,0));
 
-        Assertions.assertFalse(g.hasDirectedEdge(0, 2));
-        Assertions.assertFalse(g.hasDirectedEdge(0, 3));
-        Assertions.assertFalse(g.hasDirectedEdge(1, 0));
-        Assertions.assertFalse(g.hasDirectedEdge(1, 3));
-        Assertions.assertFalse(g.hasDirectedEdge(2, 1));
-        Assertions.assertFalse(g.hasDirectedEdge(2, 0));
-        Assertions.assertFalse(g.hasDirectedEdge(3, 2));
-        Assertions.assertFalse(g.hasDirectedEdge(3, 1));
+        assertFalse(g.hasDirectedEdge(0, 2));
+        assertFalse(g.hasDirectedEdge(0, 3));
+        assertFalse(g.hasDirectedEdge(1, 0));
+        assertFalse(g.hasDirectedEdge(1, 3));
+        assertFalse(g.hasDirectedEdge(2, 1));
+        assertFalse(g.hasDirectedEdge(2, 0));
+        assertFalse(g.hasDirectedEdge(3, 2));
+        assertFalse(g.hasDirectedEdge(3, 1));
 
         }
+
+    @Test
+    void makeSubGraph() {
+        Graph K5 = GraphGenerator.complete(5);
+
+        List<Vertex> subG = new ArrayList<>();
+        subG.add(new Vertex(2));
+        subG.add(new Vertex(3));
+        subG.add(new Vertex(4));
+
+        Graph K5_sub = K5.makeSubGraph(subG);
+        Graph triangle = GraphGenerator.getTriangle();
+
+        assertTrue(K5_sub.isIsomorphic(triangle));
+    }
 }

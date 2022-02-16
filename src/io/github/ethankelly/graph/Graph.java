@@ -12,7 +12,7 @@ import java.util.stream.IntStream;
  */
 public class Graph implements Cloneable {
 	/** Discovery time for cut-vertex identification. */
-	private int time;
+	int time = 0;
 	/** Name of the graph - generally corresponds to graph class. */
 	private String name;
 	/** Vertices in the graph. */
@@ -48,7 +48,6 @@ public class Graph implements Cloneable {
 			adjList.add(i, new ArrayList<>());
 			vertices.add(new Vertex(i));
 		});
-		this.time = 0;
 	}
 
 	/**
@@ -95,6 +94,9 @@ public class Graph implements Cloneable {
 		System.out.println("CUT VERTEX FREQUENCIES:\n" + g.cutVertexFreq);
 	}
 
+	/**
+	 * @return the vertices in the graph as a list.
+	 */
 	public List<Vertex> getVertices() {
 		return vertices;
 	}
@@ -144,14 +146,18 @@ public class Graph implements Cloneable {
 	}
 
 	// Given a list of vertices, creates a sub-graph from them with all relevant edges from the original graph
-	Graph makeSubGraph(List<Vertex> subList) {
+	public Graph makeSubGraph(List<Vertex> subList) {
 		subList.sort(null);
 		// Make a new graph with appropriate number of vertices, name and adjacency matrices
-		Graph subGraph = new Graph(subList.size(), getName() + " Subgraph");
+		Graph subGraph = new Graph(subList.size(), getName().equals("") ? "" : getName() + " Subgraph");
 		subGraph.vertices = subList;
-		subList.forEach(v -> subList.stream()
-				.filter(w -> !v.equals(w) && adjList.get(v.getLocation()).contains(w))
-				.forEach(w -> subGraph.addEdge(v, w)));
+		for (Vertex v : subList) {
+			for (Vertex w : subList) {
+				if (!v.equals(w) && adjList.get(v.getLocation()).contains(w)) {
+					subGraph.addEdge(v, w);
+				}
+			}
+		}
 		return subGraph;
 	}
 
@@ -180,9 +186,10 @@ public class Graph implements Cloneable {
 		return this.subGraphFreq;
 	}
 
-	@SuppressWarnings("unused")
 	public boolean isIsomorphic(Graph that) {
-		if (this.getNumVertices() != that.getNumVertices() || this.getNumEdges() != that.getNumEdges()) return false;
+		if (this.getNumVertices() != that.getNumVertices() || this.getNumEdges() != that.getNumEdges()) {
+			return false;
+		}
 
 		Set<Integer> thisDegrees = new HashSet<>();
 		Set<Integer> thatDegrees = new HashSet<>();
@@ -192,49 +199,22 @@ public class Graph implements Cloneable {
 			int thatDeg = 0;
 			for (int j = 0; j < this.getNumVertices(); j++) {
 				if (this.hasEdge(vertices.get(i), vertices.get(j))) thisDeg++;
-				if (that.hasEdge(vertices.get(i), vertices.get(j))) thatDeg++;
+				if (that.hasEdge(that.getVertices().get(i), that.getVertices().get(j))) thatDeg++;
 			}
 			thisDegrees.add(thisDeg);
 			thatDegrees.add(thatDeg);
 		}
-		return thisDegrees.containsAll(thatDegrees);
-	}
+		System.out.println(thisDegrees);
+		System.out.println(thatDegrees);
 
-	/*
-	 * Recursive helper function that finds cut-vertices using the depth-first search algorithm.
-	 */
-	private void findCutVertices(Vertex vertex,
-	                             boolean[] visited,
-	                             int[] times,
-	                             int[] low,
-	                             int[] parent,
-	                             boolean[] cutVertices) {
-		int NIL = -1;
-		int u = this.vertices.indexOf(vertex);
-		int children = 0; // Counter for children in the DFS Tree
-		visited[u] = true; // Mark the current node visited
-		times[u] = low[u] = ++time; // Initialise discovery time and low value
-		List<Vertex> adj = adjList.get(u);
-		// v is current adjacent of u
-		for (Vertex otherVertex : adj) {
-			int v = this.vertices.indexOf(otherVertex);
-			// If v is not visited yet, make it a child of u in DFS tree and recurse
-			if (!visited[v]) {
-				children++;
-				parent[v] = u;
-				findCutVertices(otherVertex, visited, times, low, parent, cutVertices);
-				// Check if the subtree rooted with v has a connection to one of the ancestors of u
-				low[u] = Math.min(low[u], low[v]);
-				// u is a cut vertex if either (1) it is a root of DFS tree and has two or more children,
-				// or (2) the low value of one of its children is more than its own discovery value.
-				if (parent[u] == NIL && children > 1) cutVertices[u] = true; // (1)
-				if (parent[u] != NIL && low[v] >= times[u])
-					cutVertices[u] = true; // (2)
-			} else if (v != parent[u]) {
-				// Update the low value of u for parent function calls.
-				low[u] = Math.min(low[u], times[v]);
-			}
+		for (Integer i : thisDegrees) {
+			if (!thatDegrees.contains(i)) return false;
 		}
+		for (Integer j : thatDegrees) {
+			if (!thisDegrees.contains(j)) return false;
+		}
+
+		return true;
 	}
 
 	// Recursive helper method that uses a depth-first search to find connected components
@@ -270,11 +250,10 @@ public class Graph implements Cloneable {
 	}
 
 	/**
-	 * This method uses the depth-first search algorithm to traverse the given graph and return, with the use of a
-	 * helper method, a list of cut-vertices (if any exist) in the current graph.
+	 * Traverses the graph and returns a list of cut-vertices (if any) in the current graph.
 	 * <p>
-	 * The method uses depth-first search with additional arrays, hence the time complexity is the same as DFS, which is
-	 * O(V+E) for an adjacency list representation of the given graph.
+	 * Uses depth-first search with additional arrays, so time complexity is the same as DFS i.e. O(V+E) for an
+	 * adjacency list representation of the graph.
 	 *
 	 * @return the cut-vertices present in the graph, if any.
 	 */
@@ -297,7 +276,7 @@ public class Graph implements Cloneable {
 
 		// Call the recursive helper function to find articulation points in DFS tree rooted with vertex 'i'
 		for (int i = 0; i < getNumVertices(); i++)
-			if (!visited[i]) findCutVertices(vertices.get(i), visited, disc, low, parent, cutVertices);
+			if (!visited[i]) GraphUtils.findCutVertices(this, vertices.get(i), visited, disc, low, parent, cutVertices);
 
 		List<Vertex> list = new ArrayList<>();
 		for (int i = 0; i < cutVertices.length; i++) {
@@ -317,20 +296,22 @@ public class Graph implements Cloneable {
 	public void addEdge(Vertex v, Vertex w) {
 		// Ensure we aren't trying to add an edge between a vertex and itself
 		assert !v.equals(w) : "Cannot add an edge between a vertex and itself";
-		// Update adjacency list
-		if (!adjList.get(vertices.indexOf(v)).contains(w)) {
-			adjList
-					.get(vertices.indexOf(v))
-					.add(w);
+		if (!this.hasEdge(v, w)) {
+			// Update adjacency list
+			if (!adjList.get(vertices.indexOf(v)).contains(w)) {
+				adjList
+						.get(vertices.indexOf(v))
+						.add(w);
+			}
+			if (!adjList.get(vertices.indexOf(w)).contains(v)) {
+				adjList
+						.get(vertices.indexOf(w))
+						.add(v);
+			}
+			// Increment the number of edges
+			this.numEdges++;
+			clearSpliceFields();
 		}
-		if (!adjList.get(vertices.indexOf(w)).contains(v)) {
-			adjList
-					.get(vertices.indexOf(w))
-					.add(v);
-		}
-		// Increment the number of edges
-		this.numEdges++;
-		clearSpliceFields();
 	}
 
 	/**
