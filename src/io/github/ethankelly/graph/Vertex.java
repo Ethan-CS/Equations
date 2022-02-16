@@ -8,8 +8,8 @@ import io.github.ethankelly.symbols.Maths;
  * location in the graph we are interested in.
  */
 public class Vertex implements Comparable<Vertex> {
-	private char state = ' ';
 	private final int location;
+	private char state = ' ';
 
 	/**
 	 * Class constructor, assigning a state and location to a vertex instance object.
@@ -81,7 +81,7 @@ public class Vertex implements Comparable<Vertex> {
 	@Override
 	public String toString() {
 		if (this.getState() == ' ') return String.valueOf(this.getLocation());
-		else return Maths.L_ANGLE.uni() + this.getState() + (this.getLocation()+1) + Maths.R_ANGLE.uni();
+		else return Maths.L_ANGLE.uni() + this.getState() + (this.getLocation() + 1) + Maths.R_ANGLE.uni();
 	}
 
 	public String plainToString() {
@@ -95,7 +95,7 @@ public class Vertex implements Comparable<Vertex> {
 	 *
 	 * @param that the object to be compared.
 	 * @return a negative integer, zero, or a positive integer as this object is less than, equal to, or greater than
-	 * the specified object.
+	 * 		the specified object.
 	 * @throws NullPointerException if the specified object is null
 	 * @throws ClassCastException   if the specified object's type prevents it from being compared to this object.
 	 */
@@ -107,15 +107,8 @@ public class Vertex implements Comparable<Vertex> {
 
 		int locations = SAME;
 
-//		int states = SAME;
-//		if (this.getState() < that.getState()) states = BEFORE;
-//		else if (this.getState() > that.getState()) states = AFTER;
-
 		if (this.getLocation() < that.getLocation()) locations = BEFORE;
 		else if (this.getState() > that.getLocation()) locations = AFTER;
-
-//		if (states == SAME) return locations;
-//		else return states;
 
 		return locations;
 	}

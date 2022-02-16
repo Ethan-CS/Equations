@@ -55,7 +55,6 @@ public class GraphUtils {
 		return String.valueOf(sb);
 	}
 
-	// Driver method
 	public static void main(String[] args) {
 		Graph g = new Graph(4, "");
 		g.addDirectedEdge(0, 1);
@@ -63,14 +62,34 @@ public class GraphUtils {
 		g.addDirectedEdge(2, 3);
 		g.addDirectedEdge(3, 1);
 
-		int k = 2;
-		countWalks(g, k);
-		System.out.println(printWalks(g));
-
-		k=5;
+		int k = 5;
 		countWalks(g, k);
 		System.out.println(printWalks(g));
 
 	}
 
+	// Recursive helper method - used to decompose the given graph into sub-graphs by cut-vertices
+	static void spliceUtil(List<Graph> subGraphs, List<Vertex> cutVertices, Graph clone, Graph original) {
+		Vertex cutVertex = cutVertices.get(0);
+		// Remove the cut vertex from the graph
+		clone.removeVertex(cutVertex);
+		// Get the remaining connected components
+		List<List<Vertex>> CCs = clone.getCCs();
+		// Iterate over the connected components
+		for (List<Vertex> cc : CCs) {
+			// Replace the cut vertex into any connected components that don't have it after removal
+			if (!cc.contains(cutVertex)) cc.add(cutVertex);
+			// Make a sub-graph from the found connected component
+			Graph subGraph = original.makeSubGraph(cc);
+			if (cc.size() > 1) {
+				List<Vertex> cutVerticesOfSubgraph = subGraph.getCutVertices();
+				// If the graph cannot be spliced further, then add it to the list to return
+				// Otherwise, send it back through the util method to obtain its connected components
+				if (cutVerticesOfSubgraph.isEmpty()) {
+					original.getCutVertexFreq().put(cutVertex, original.getCutVertexFreq().get(cutVertex) + 1);
+					subGraphs.add(subGraph);
+				} else spliceUtil(subGraphs, cutVerticesOfSubgraph, subGraph, original);
+			}
+		}
+	}
 }

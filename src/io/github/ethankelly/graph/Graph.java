@@ -11,39 +11,28 @@ import java.util.stream.IntStream;
  * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
  */
 public class Graph implements Cloneable {
-	/** Discovery time for cut-vertex identification */
+	/** Discovery time for cut-vertex identification. */
 	private int time;
 	/** Name of the graph - generally corresponds to graph class. */
 	private String name;
-	/** Vertices in the current graph. */
+	/** Vertices in the graph. */
 	private List<Vertex> vertices;
-	/** The number of vertices in the given graph. */
+	/** The number of vertices in the graph. */
 	private int numVertices;
-	/** The number of edges in the given graph. */
+	/** The number of edges in the graph. */
 	private int numEdges;
-	/** A linked list representation of the graph (known as an adjacency list). */
+	/** A linked-list representation of the graph (adjacency list). */
 	private List<List<Vertex>> adjList = new ArrayList<>();
-	/** Number of walks of each length in the graph */
-	protected List<Integer[][]> walks = new ArrayList<>();
-
-	/**
-	 * Permits a list of labels to be assigned to the current graph instance, where labels are used for assigning
-	 * vertices more meaningful names than default indices.
-	 *
-	 * @param labels the labels to assign to vertices in like index locations in the graph.
-	 */
-	public void setLabels(List<Character> labels) {
-		this.labels = labels;
-	}
-
 	/** Labels for vertices, if required (otherwise null entries). */
 	private List<Character> labels;
 	/** The list of connected components after cut-vertex-based splicing. */
 	private List<Graph> spliced = new ArrayList<>();
 	/** Frequencies of each of the sub-graphs in the spliced graph. */
 	private Map<Graph, Integer> subGraphFreq = new HashMap<>();
-	/** The number of sub-graphs the cut vertex belongs to after splicing . */
+	/** Number of sub-graphs the cut vertex belongs to after splicing . */
 	private final Map<Vertex, Integer> cutVertexFreq = new HashMap<>();
+	/** Number of walks of each length in the graph. */
+	protected List<Integer[][]> walks = new ArrayList<>();
 
 	/**
 	 * Class constructor.
@@ -73,7 +62,8 @@ public class Graph implements Cloneable {
 		this.numVertices = adjMatrix.length;
 		this.vertices = new ArrayList<>();
 		// Initialise a new list for each vertex in the graph for the adjacency list
-		List<List<Vertex>> list = IntStream.range(0, adjMatrix.length).<List<Vertex>>mapToObj(i -> new ArrayList<>()).collect(Collectors.toList());
+		List<List<Vertex>> list = IntStream.range(0, adjMatrix.length)
+				.<List<Vertex>>mapToObj(i -> new ArrayList<>()).collect(Collectors.toList());
 		for (int i = 0; i < adjMatrix.length; i++) {
 			vertices.add(new Vertex(i));
 			for (int j = 0; j < adjMatrix[0].length; j++) {
@@ -87,29 +77,14 @@ public class Graph implements Cloneable {
 		this.adjList = list;
 	}
 
-	// Recursive helper method - used to decompose the given graph into sub-graphs by cut-vertices
-	private static void spliceUtil(List<Graph> subGraphs, List<Vertex> cutVertices, Graph clone, Graph original) {
-		Vertex cutVertex = cutVertices.get(0);
-		// Remove the cut vertex from the graph
-		clone.removeVertex(cutVertex);
-		// Get the remaining connected components
-		List<List<Vertex>> CCs = clone.getCCs();
-		// Iterate over the connected components
-		for (List<Vertex> cc : CCs) {
-			// Replace the cut vertex into any connected components that don't have it after removal
-			if (!cc.contains(cutVertex)) cc.add(cutVertex);
-			// Make a sub-graph from the found connected component
-			Graph subGraph = original.makeSubGraph(cc);
-			if (cc.size() > 1) {
-				List<Vertex> cutVerticesOfSubgraph = subGraph.getCutVertices();
-				// If the graph cannot be spliced further, then add it to the list to return
-				// Otherwise, send it back through the util method to obtain its connected components
-				if (cutVerticesOfSubgraph.isEmpty()) {
-					original.cutVertexFreq.put(cutVertex, original.cutVertexFreq.get(cutVertex) + 1);
-					subGraphs.add(subGraph);
-				} else spliceUtil(subGraphs, cutVerticesOfSubgraph, subGraph, original);
-			}
-		}
+	/**
+	 * Permits a list of labels to be assigned to the current graph instance, where labels are used for assigning
+	 * vertices more meaningful names than default indices.
+	 *
+	 * @param labels the labels to assign to vertices in like index locations in the graph.
+	 */
+	public void setLabels(List<Character> labels) {
+		this.labels = labels;
 	}
 
 	public static void main(String[] args) {
@@ -146,12 +121,13 @@ public class Graph implements Cloneable {
 		List<Vertex> cutVertices = clone.getCutVertices();
 		if (!cutVertices.isEmpty()) {
 			cutVertices.forEach(cv -> this.cutVertexFreq.put(cv, 0));
-			spliceUtil(subGraphs, cutVertices, this.clone(), this.clone());
+			GraphUtils.spliceUtil(subGraphs, cutVertices, this.clone(), this.clone());
 		} else subGraphs.add(this);
 
 		for (int i = 0; i < subGraphs.size(); i++) {
 			Graph sub = subGraphs.get(i);
 			subGraphFreq.put(sub, 1);
+			// TODO why was this commented out?
 //			for (int j = 0; j < subGraphs.size(); j++) {
 //				Graph otherSub = subGraphs.get(j);
 //				// If they are not the exact same graph and are isomorphic,
@@ -162,14 +138,13 @@ public class Graph implements Cloneable {
 //				}
 //			}
 		}
-
 		this.subGraphFreq = subGraphFreq;
 		this.spliced = subGraphs;
 		return subGraphs;
 	}
 
 	// Given a list of vertices, creates a sub-graph from them with all relevant edges from the original graph
-	private Graph makeSubGraph(List<Vertex> subList) {
+	Graph makeSubGraph(List<Vertex> subList) {
 		subList.sort(null);
 		// Make a new graph with appropriate number of vertices, name and adjacency matrices
 		Graph subGraph = new Graph(subList.size(), getName() + " Subgraph");
@@ -205,6 +180,7 @@ public class Graph implements Cloneable {
 		return this.subGraphFreq;
 	}
 
+	@SuppressWarnings("unused")
 	public boolean isIsomorphic(Graph that) {
 		if (this.getNumVertices() != that.getNumVertices() || this.getNumEdges() != that.getNumEdges()) return false;
 
@@ -476,7 +452,8 @@ public class Graph implements Cloneable {
 				}
 			}
 		}
-		assert !minConnected || (this.getNumEdges() - 1 == this.getNumVertices()) : "There are n-1 edges in a minimally connected graph.";
+		assert !minConnected || (this.getNumEdges() - 1 == this.getNumVertices()) :
+				"There are n-1 edges in a minimally connected graph.";
 		return minConnected;
 	}
 

@@ -51,13 +51,15 @@ public class ModelParams {
             if (!atLeastOne[states.indexOf(c)]) {
                 for (char d : states) {
                     // If states are not the same and there's a transition between them, update array
-                    if (c != d && (this.getTransitionGraph().hasEdge(getStates().indexOf(c), getStates().indexOf(d)))) {
+                    if (c != d && (this.getTransitionGraph().hasEdge(getStates().indexOf(c), getStates().indexOf(d))) &&
+                        (toEnter[states.indexOf(c)]>1 || toEnter[states.indexOf(d)]>1 ||
+                         toExit[states.indexOf(c)]>1 || toExit[states.indexOf(d)]>1)) {
                         atLeastOne[states.indexOf(c)] = true;
                         atLeastOne[states.indexOf(d)] = true;
                         break;
                     }
                 }
-                // c and d must not have a direct transition - enough to make the given states not valid.
+                // c and d don't have a direct transition - enough to make the given states not valid.
                 if (!atLeastOne[states.indexOf(c)]) return false;
             }
         }
@@ -127,9 +129,7 @@ public class ModelParams {
 
     @Override
     public String toString() {
-        StringBuilder s = new StringBuilder();
-        s.append(this.transitionGraph);
-        s.append("\n");
-        return String.valueOf(s);
+        String s = this.transitionGraph + "\n";
+        return s;
     }
 }
