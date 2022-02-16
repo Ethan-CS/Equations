@@ -41,6 +41,9 @@ public class ModelParams {
     }
 
     public boolean validStates(List<Character> states, boolean closures) {
+        // TODO this may be incorrect but also we should take a different approach to generation anyway -
+        //  build up system rather than tear down full list of all possible combinations
+
         // If there are states in input that aren't in model parameters, the input states are not valid
         if (!this.states.containsAll(states) || this.states.equals(List.of('S')) && closures) return true;
         // Store whether each state in provided states has a direct transition to at least one other state in the model

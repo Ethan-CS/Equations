@@ -129,16 +129,15 @@ public class Graph implements Cloneable {
 		for (int i = 0; i < subGraphs.size(); i++) {
 			Graph sub = subGraphs.get(i);
 			subGraphFreq.put(sub, 1);
-			// TODO why was this commented out?
-//			for (int j = 0; j < subGraphs.size(); j++) {
-//				Graph otherSub = subGraphs.get(j);
-//				// If they are not the exact same graph and are isomorphic,
-//				// Remove the duplicate instance and increase frequency of the subgraph
-//				if (i != j && sub.isIsomorphic(otherSub)) {
-//					subGraphs.remove(otherSub);
-//					subGraphFreq.put(sub, subGraphFreq.get(sub) + 1);
-//				}
-//			}
+			for (int j = 0; j < subGraphs.size(); j++) {
+				Graph otherSub = subGraphs.get(j);
+				// If they are not the exact same graph and are isomorphic,
+				// Remove the duplicate instance and increase frequency of the subgraph
+				if (i != j && sub.isIsomorphic(otherSub)) {
+					subGraphs.remove(otherSub);
+					subGraphFreq.put(sub, subGraphFreq.get(sub) + 1);
+				}
+			}
 		}
 		this.subGraphFreq = subGraphFreq;
 		this.spliced = subGraphs;
@@ -172,7 +171,7 @@ public class Graph implements Cloneable {
 	public boolean areAllConnected(List<Vertex> toCheck) {
 		// If there's only one vertex in the list, required in the system of equations - ensure this returns true.
 		// If more than one vertex, return whether they all have some path between them.
-		return toCheck.size() == 1 || this.makeSubGraph(toCheck).getCCs().size() == 1;
+		return (toCheck.size() == 1) || (this.makeSubGraph(toCheck).getCCs().size() == 1);
 	}
 
 	public List<Graph> getSpliced() {

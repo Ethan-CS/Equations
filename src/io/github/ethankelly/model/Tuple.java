@@ -7,7 +7,6 @@ import io.github.ethankelly.symbols.Maths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -68,8 +67,14 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
     public boolean locationsAreDifferent() {
         // Only need to find two vertices in the list with same index location
         // to know we don't have a required tuple, returning false.
-        return getVertices().stream()
-                .noneMatch(v -> getVertices().stream().anyMatch(w -> v.getLocation() == w.getLocation() && v != w));
+        for (Vertex v : getVertices()) {
+            for (Vertex w : getVertices()) {
+                if ((v.getLocation() == w.getLocation()) && (getVertices().indexOf(v) != getVertices().indexOf(w))) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
@@ -181,8 +186,8 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
      */
     public boolean areAllConnected(Graph graph) {
         System.out.println("CHECKING: " + this + ", GRAPH VERTICES: " + graph.getVertices());
-        return graph.getVertices().containsAll(this) && graph.areAllConnected(
-                stream().map(vertex -> new Vertex(vertex.getLocation())).collect(Collectors.toList())
-        );
+        if ((!graph.getVertices().containsAll(this.getVertices()))) return false;
+        List<Vertex> list = new ArrayList<>(this.getVertices());
+        return graph.areAllConnected(list);
     }
 }

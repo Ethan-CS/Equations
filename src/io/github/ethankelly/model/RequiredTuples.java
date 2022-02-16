@@ -30,7 +30,7 @@ public class RequiredTuples {
 	public RequiredTuples(Graph graph, ModelParams modelParams, boolean closures) {
 		this.graph = graph;
 		this.modelParams = modelParams;
-		this.tuples = this.generateTuples(closures);
+		this.tuples = new ArrayList<>();
 		this.closures = closures;
 	}
 
@@ -39,6 +39,7 @@ public class RequiredTuples {
 	 * changes are made to the model that would constitute a change to the required tuples.
 	 */
 	public List<Tuple> getTuples() {
+		if (this.tuples.isEmpty()) generateTuples(closures);
 		return this.tuples;
 	}
 
@@ -99,15 +100,14 @@ public class RequiredTuples {
 		List<Character> statesToGenerateEqnsFor = new ArrayList<>(this.getModelParams().getStates());
 		for (Character state : this.getModelParams().getStates()) {
 			int i = this.getModelParams().getStates().indexOf(state);
-			if (this.modelParams.getToEnter()[i] == 1 && this.modelParams.getToExit()[i] == 0) {
-				statesToGenerateEqnsFor.remove(state);
-			}
+			// If we can leave this state without any other vertices being involved,
+			// Singles containing the state are not dynamically significant
+			if (this.getModelParams().getToExit()[i] == 0) statesToGenerateEqnsFor.remove(state);
 		}
+		List<Vertex> vertexList = getGraph().getVertices();
+		int[] vertices = new int[vertexList.size()];
+		for(int i = 0; i < vertexList.size(); i++) vertices[i] = vertexList.get(i).getLocation();
 
-		Graph graph = this.getGraph();
-		int numVertices = graph.getNumVertices();
-		int[] vertices = new int[numVertices];
-		Arrays.setAll(vertices, i -> i);
 
 		// We need an equation for the probability of each vertex being in each state
 		List<Tuple> verticesWeNeed = new ArrayList<>();
@@ -118,6 +118,12 @@ public class RequiredTuples {
 		}
 		Collections.sort(verticesWeNeed);
 		return verticesWeNeed;
+	}
+
+	private void genTuples() {
+		// First, add all singles (always need these)
+		List<Tuple> tuples = new ArrayList<>(this.findSingles());
+
 	}
 
 	// Recursive helper method to generate the total equations we need
@@ -180,14 +186,14 @@ public class RequiredTuples {
 	 */
 	@Override
 	public String toString() {
-		return String.valueOf(tuples);
+		return String.valueOf(getTuples());
 	}
 
 	/**
 	 * @return the number of tuples in the current object of required tuples.
 	 */
 	public int size() {
-		return this.tuples.size();
+		return this.getTuples().size();
 	}
 
 	/**

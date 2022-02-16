@@ -26,10 +26,9 @@ class TupleTest {
     void isValidTuple() {
         /*
          * This must test the following:
-         * (1) Each vertex in the tuple is distinct,
-         * (2) The vertices in the tuple constitute a connected subgraph,
-         * (3) The tuple contains two or more states and
-         * (4) The states in the tuple constitute a connected subgraph of the transition graph.
+         *   1. Each vertex in the tuple is distinct;
+         * 	 2. The vertices in the tuple constitute a connected subgraph; and
+         * 	 3. The states in the tuple constitute a walk in the filter graph.
          */
 
         Tuple t1 = new Tuple(Arrays.asList(
@@ -55,12 +54,12 @@ class TupleTest {
 
         // (2) Vertices in tuple constitute a connected subgraph
         Tuple t4 = new Tuple(Arrays.asList(new Vertex('A', 0), new Vertex('B', 1), new Vertex('C', 2)));
-        Assertions.assertTrue(t4.areAllConnected(GraphGenerator.complete(3)),
+        Assertions.assertTrue(t4.areAllConnected(GraphGenerator.complete(4)),
                 "Connected subgraph of vertices not accepted as valid");
         Assertions.assertFalse(t4.areAllConnected(new Graph(3, "")),
                 "Disjoint components incorrectly accepted as a valid single tuple");
 
-        // (3) and (4) tested in validStates test
+        // (3) tested in validStates test
     }
 
     @Test
