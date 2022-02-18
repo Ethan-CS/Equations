@@ -21,6 +21,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+@SuppressWarnings("unused")
 public class ODEUtils {
 	public static Map<List<Tuple>, double[][]> getResultsByLength(ODESystem system, double[][] results, int tMax) {
 		Map<List<Tuple>, double[][]> map = new HashMap<>();
@@ -194,7 +195,7 @@ public class ODEUtils {
      * Returns the String representation of the specified Tuple in the context of a wider ODE system and uses the
      * initial conditions provided to update the calculated equations ready for solving for the Tuple provided.
      *
-     * @param ode
+     * @param ode the ODE system for which we would like to generate equations.
      * @param y     array representing initial conditions of the system.
      * @param yDot  array that will be written to based on the generation of the system of equations.
      * @param tuple the tuple we wish to generate an equation for.

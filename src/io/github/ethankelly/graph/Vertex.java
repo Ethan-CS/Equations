@@ -3,7 +3,7 @@ package io.github.ethankelly.graph;
 import io.github.ethankelly.symbols.Maths;
 
 /**
- * The {@code VertexState} class represents an instance of a vertex being in a particular state in a compartmental
+ * The {@code Vertex} class represents an instance of a vertex being in a particular state in a compartmental
  * epidemiological model. Each vertex object has a state (for instance, {@code 'S'} for "Susceptible") and a numerical
  * location in the graph we are interested in.
  */

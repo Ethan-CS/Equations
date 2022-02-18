@@ -15,19 +15,14 @@ import java.util.Map;
  * and specified initial conditions to solve the system of equations.
  */
 public class ODESystem implements FirstOrderDifferentialEquations {
-	/** Underlying graph. */
+	/** Contact network. */
 	private final Graph g;
-	/** Tuples we need to generate equations for. */
+	/** Tuples requiring equations in the ODE system. */
 	private final RequiredTuples requiredTuples;
-	/** Number of equations required (same as number of tuples). */
+	/** Number of equations required (i.e. number of tuples). */
 	private int dimension;
-	/** Maximum value of t, for equation solving. */
+	/** Maximum value of t (time), for equation solving. */
 	public int tMax;
-
-	public boolean isClosures() {
-		return closures;
-	}
-
 	/** Whether we need to consider closure-related tuples, i.e. all susceptible tuples. */
 	boolean closures = false;
 	/** Mapping of requiredTuples to unique integers. */
@@ -56,18 +51,6 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 	 */
 	public Graph getG() {
 		return g;
-	}
-
-	/**
-	 * @return a string (textual) summary representation of the current system of equations to print to the console.
-	 */
-	@Override
-	public String toString() {
-		return "ODESystem\n" +
-		       "GRAPH:\n" + g +
-		       "\nREQUIRED TUPLES:\n" + requiredTuples +
-		       "\nNUMBER OF TUPLES: " + dimension +
-		       "\nEQUATIONS:\n" + getEquations();
 	}
 
 	/**
@@ -126,7 +109,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 	}
 
 	/**
-	 * Used to generate the system of equations given the parameters provided for the current model.
+	 * Generates the system of equations given the parameters provided for the current model.
 	 *
 	 * @param y    double array containing the current value of the state vector
 	 * @param yDot placeholder double array to contain the time derivative of the state vector
@@ -146,6 +129,14 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 		}
 	}
 
+	public ModelParams getModelParameters() {
+		return this.modelParamsParameters;
+	}
+
+	public boolean isClosures() {
+		return this.closures;
+	}
+
 	/**
 	 * Computes the current time derivatives of the state vector corresponding to the current system of equations.
 	 *
@@ -160,7 +151,16 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 		this.getEquations(y, yDot);
 	}
 
-	public ModelParams getModelParameters() {
-		return modelParamsParameters;
+	/**
+	 * @return a string (textual) summary representation of the current system of equations to print to the console.
+	 */
+	@Override
+	public String toString() {
+		return "ODESystem\n" +
+				"GRAPH:\n" + g +
+				"\nREQUIRED TUPLES:\n" + requiredTuples +
+				"\nNUMBER OF TUPLES: " + dimension +
+				"\nEQUATIONS:\n" + getEquations();
 	}
+
 }

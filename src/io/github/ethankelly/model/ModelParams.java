@@ -2,7 +2,9 @@ package io.github.ethankelly.model;
 
 import io.github.ethankelly.exceptions.UnexpectedStateException;
 import io.github.ethankelly.graph.Graph;
+import io.github.ethankelly.graph.Vertex;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -10,15 +12,18 @@ import java.util.List;
  * Stores data representing the parameters of a compartmental model of disease.
  */
 public class ModelParams {
-    // Describe how many neighbours are required to enter/exit each state
+    /** How many neighbours are required to enter/exit each state */
     private final int[] toEnter;
+    /** How many neighbours are required to enter/exit each state */
     private final int[] toExit;
-
-    // List of characters representing states in the model
-    private List<Character> states;
-
+    /** List of characters representing states in the model */
+    private final List<Character> states;
+    /** Array of rates representing transition probabilities $A_{ij}$ for each edge $(i,j)$ */
     private double[][] ratesMatrix;
+    /** Graph representing state transitions in the model */
     private Graph transitionGraph;
+    /** Sub-graph of the transition graph containing only states which require 1 or more other states to induce. */
+    private Graph filter;
 
     public ModelParams(List<Character> states, int[] toEnter, int[] toExit) {
         this.states = states;
@@ -97,10 +102,6 @@ public class ModelParams {
         return states;
     }
 
-    public void setStates(List<Character> states) {
-        this.states = states;
-    }
-
     public void addTransition(char from, char to, double rate) {
         assert !String.valueOf(from).equals(String.valueOf(to)) :
                 "The 'to' and 'from' characters should not have been the same, but were: " + to + " = " + from;
@@ -132,7 +133,36 @@ public class ModelParams {
 
     @Override
     public String toString() {
-        String s = this.transitionGraph + "\n";
-        return s;
+        return this.transitionGraph + "\n";
+    }
+
+    /**
+     * A filter graph is a sub-graph of the transition graph with only the edges between states that require at least
+     * one other vertex being in another state to occur. Any states where entry or exit requires fewer than 2 states
+     * in adjacent vertices to induce are not included in the filter graph.
+     * @return
+     */
+    public Graph getFilterGraph() {
+        if (filter == null) {
+            Graph contactNetwork = this.getTransitionGraph();
+            List<Vertex> filterVertices = new ArrayList<>();
+            List<Character> filterStates = new ArrayList<>();
+            for (Vertex v : contactNetwork.getVertices()) {
+                if (this.getToEnter()[contactNetwork.getVertices().indexOf(v)] == 2 ||
+                        this.getToExit()[contactNetwork.getVertices().indexOf(v)] == 2) {
+                    filterVertices.add(v);
+                    filterStates.add(contactNetwork.getLabels().get(contactNetwork.getVertices()
+                            .indexOf(v)));
+                }
+            }
+            filter = getTransitionGraph().makeSubGraph(filterVertices);
+            filter.setLabels(filterStates);
+
+            System.out.println("ORIGINAL");
+            System.out.println(this.getTransitionGraph());
+            System.out.println("FILTER");
+            System.out.println(filter);
+        }
+        return filter;
     }
 }

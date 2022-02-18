@@ -207,4 +207,29 @@ class GraphTest {
 
         assertTrue(K5_sub.isIsomorphic(triangle));
     }
+
+    @Test
+    void isConnected() {
+        // Connected graph
+        Graph graph = new Graph(5, "");
+        graph.addEdge(0,1);
+        graph.addEdge(0,4);
+        graph.addEdge(1,4);
+        graph.addEdge(1,3);
+        graph.addEdge(3,4);
+        graph.addEdge(2,1);
+        graph.addEdge(2,3);
+
+        assertTrue(graph.isConnected());
+
+        // Disconnected graph
+        graph = new Graph(5, "");
+        graph.addEdge(0,1);
+        graph.addEdge(0,4);
+        graph.addEdge(1,4);
+        graph.addEdge(1,3);
+        graph.addEdge(3,4);
+
+        assertFalse(graph.isConnected());
+    }
 }

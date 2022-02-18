@@ -20,7 +20,8 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
 
     /** Constructor - creates a tuple containing only a single (specified) vertex. */
     public Tuple(Vertex v) {
-        this.vertices = Collections.singletonList(v);
+        // Parameterised ArrayList construction because singletonList returns an immutable list
+        this.vertices = new ArrayList<>(Collections.singletonList(v));
     }
 
     /** Constructor - creates a tuple from a list of vertices. */

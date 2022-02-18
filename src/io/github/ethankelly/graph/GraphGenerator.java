@@ -130,6 +130,7 @@ public final class GraphGenerator {
         return triangle;
     }
 
+    @SuppressWarnings("unused")
     public static String[] getUserInput() {
         Scanner scan = new Scanner(System.in);
         String[] arguments = new String[5];
@@ -270,6 +271,7 @@ public final class GraphGenerator {
         }
     }
 
+    @SuppressWarnings("unused")
     public static Graph getGraph(String[] args) {
         Graph graph;
         switch (args[1].toLowerCase()) {
@@ -459,7 +461,7 @@ public final class GraphGenerator {
     }
 
     /**
-     * A bipartite graph (or simply bigraph) is a graph where the vertices can be divided into two disjoint, independent
+     * A bipartite graph (or simply bi-graph) is a graph where the vertices can be divided into two disjoint, independent
      * sets such that every edge connects a vertex in the first set to one in the second set. This method generates and
      * returns a complete bipartite graph with {@code numVer1} vertices in the first set and {@code numVer2} vertices in
      * the second set.
@@ -604,7 +606,7 @@ public final class GraphGenerator {
         assert numEdges >= 0 : "negative number of edges";
         assert numVertices > 0 : "An Eulerian path must have at least one vertex";
         Graph g = new Graph(numVertices, "Eulerian Path");
-        // Fill an array of length equal to the number of edges with uniformly random values
+        // Fill array of length equal to number of edges with uniformly random values
         int[] vertices = IntStream.range(0, numEdges + 1).map(i -> Rand.uniform(numVertices)).toArray();
         // Connect consecutive (i, i+1) vertices
         IntStream.range(0, numEdges).forEach(i -> g.addEdge(vertices[i], vertices[i + 1]));
@@ -624,7 +626,7 @@ public final class GraphGenerator {
         assert numEdges > 0 : "An Eulerian cycle must have at least one edge";
         assert numVertices > 0 : "An Eulerian cycle must have at least one vertex";
         Graph G = new Graph(numVertices, "Eulerian Cycle");
-        // Fill an array of length equal to the number of edges with uniformly random values
+        // Fill array of length equal to the number of edges with uniformly random values
         int[] vertices = IntStream.range(0, numEdges).map(i -> Rand.uniform(numVertices)).toArray();
         // Connect consecutive (i, i+1) vertices
         IntStream.range(0, numEdges - 1).forEach(i -> G.addEdge(vertices[i], vertices[i + 1]));
@@ -722,7 +724,7 @@ public final class GraphGenerator {
 
         // Cayley's theorem: there are numVertices^(numVertices-2) labeled trees on numVertices vertices
         // Prüfer sequence: sequence of numVertices-2 values between 0 and numVertices-1
-        // Prüfer's proof of Cayley's theorem: Prufer sequences are in 1-1 with labeled trees on numVertices vertices
+        // Prüfer's proof of Cayley's theorem: Prüfer sequences are in 1-1 with labeled trees on numVertices vertices
 
         // Fill a new array of size two less than numVertices with uniformly random integers
         int[] prufer = IntStream.range(0, numVertices - 2).map(i -> Rand.uniform(numVertices)).toArray();
@@ -735,7 +737,7 @@ public final class GraphGenerator {
         MinPriorityQueue<Integer> pq = new MinPriorityQueue<>();
         IntStream.range(0, numVertices).filter(v -> degree[v] == 1).forEach(pq::insert);
 
-        // Repeatedly call delMin() (removes and returns smallest key on the priority queue)
+        // Repeatedly call delMin() (removes and returns the smallest key on the priority queue)
         // on each degree 1 vertex that has the current minimum index
         for (int i = 0; i < numVertices - 2; i++) {
             int v = pq.delMin();

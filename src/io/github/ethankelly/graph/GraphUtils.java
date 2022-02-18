@@ -3,73 +3,80 @@ package io.github.ethankelly.graph;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class GraphUtils {
-	// Prints all paths from 's' to 'd'
-	public static List<List<Integer>> printAllPaths(Graph g, int l) {
+	// Prints all paths
+	public static List<List<Vertex>> printAllPaths(Graph g, int maxLength) {
+		List<List<Vertex>> allPaths = new ArrayList<>();
 		boolean[] isVisited = new boolean[g.getNumVertices()];
-		List<List<Integer>> paths = new ArrayList<>();
-		for (Vertex v : g.getVertices()) {
-			ArrayList<Integer> pathList = new ArrayList<>();
-			// Add source to path array
-			pathList.add(v.getLocation());
-			for (Vertex w : g.getVertices()) {
-				// Call recursive utility
-				List<List<Integer>> results = printAllPathsUtil(g, v.getLocation(), w.getLocation(), l, isVisited, pathList, new ArrayList<>());
-				if (results != null) {
-					for (List<Integer> result : results) {
-						if (!paths.contains(result)) paths.add(result);
-					}
+		for (int l = 1; l <= maxLength; l++) {
+			for (int i = 0; i < g.getNumVertices(); i++) {
+				List<Vertex> pathList = new ArrayList<>();
+				// add source to path list
+				pathList.add(g.getVertices().get(i));
+				for (int j = 0; j < g.getNumVertices(); j++) {
+					// Call recursive utility
+					printAllPathsUtil(g, i, j, l, isVisited, pathList, allPaths);
 				}
 			}
 		}
-		return paths;
+		return allPaths;
 	}
 
 	// A recursive function to print all paths from 'u' to 'd'.
 	// isVisited[] keeps track of vertices in current path.
-	// localPathList<> stores actual vertices in the current path.
-	private static List<List<Integer>> printAllPathsUtil(Graph g, Integer u, Integer d, Integer l, boolean[] isVisited, List<Integer> localPathList, List<List<Integer>> paths) {
-		if (localPathList.size() == l) {
-			System.out.println(localPathList);
-			if (!paths.contains(localPathList)) paths.add(localPathList);
-			// if match found then no need to traverse more till depth
-			return null;
+	// localPathList<> stores actual vertices in the current path
+	private static void printAllPathsUtil(Graph g, Integer u, Integer d, int maxLength, boolean[] isVisited, List<Vertex> localPathList, List<List<Vertex>> allPaths) {
+		if (localPathList.size() == maxLength) {
+			if (!allPaths.contains(localPathList)) {
+				System.out.println("ACCEPTED " + localPathList + " FOR LENGTH " + maxLength);
+				// if match found then no need to traverse more till depth
+				allPaths.add(localPathList.size() - 1, localPathList);
+				return;
+			}
 		}
+
 		// Mark the current node
 		isVisited[u] = true;
-		// Recur for all the vertices adjacent to current vertex
-		for (Vertex v : g.getAdjList().get(u)) {
-			Integer i = v.getLocation();
-			if (!isVisited[i]) {
-				// store current node in path list
-				localPathList.add(i);
-				printAllPathsUtil(g, i, d, l, isVisited, localPathList, paths);
-				// remove current node in path list
-				localPathList.remove(i);
-			}
-			// Mark the current node
-			isVisited[u] = false;
-		}
-		return paths;
 
+		// Recur for all the vertices
+		// adjacent to current vertex
+		for (Vertex v : g.getAdjList().get(u)) {
+			int i = g.getVertices().indexOf(v);
+			boolean[] newVisited = new boolean[g.getNumVertices()];
+			if (!isVisited[i] && g.hasEdge(u, i)) {
+				// store current node in path[]
+				localPathList.add(v);
+				newVisited[u]=true;
+				printAllPathsUtil(g, i, d, maxLength, newVisited, localPathList, allPaths);
+				newVisited[u]=false;
+				// remove current node in path[]
+				localPathList.remove(v);
+			}
+		}
+		// Mark the current node
+		isVisited[u] = false;
 	}
+
+
 	// Driver program
 	public static void main(String[] args) {
 		// Create a sample graph
 		Graph g = new Graph(4, "");
-		g.addDirectedEdge(0, 1);
-		g.addDirectedEdge(0, 2);
-		g.addDirectedEdge(0, 3);
-		g.addDirectedEdge(2, 0);
-		g.addDirectedEdge(2, 1);
-		g.addDirectedEdge(1, 3);
+		g.addEdge(0, 1);
+		g.addEdge(1, 2);
+		g.addEdge(2, 3);
 
 		System.out.println(g);
 
-		for (int i = 0; i < 10; i++) {
-			System.out.println("The following are all the different paths of length " + i);
-			System.out.println(printAllPaths(g, i));
-		}
+		printAllPaths(g, 10);
+//			System.out.println("The following are all the different paths");
+//			for (List<Vertex> p : ) {
+//				for (Vertex v : p) {
+//					System.out.print(v);
+//				}
+//				System.out.println();
+//			}
 	}
 
 	/*
@@ -79,11 +86,11 @@ public class GraphUtils {
 	 Auxiliary Space: O(V^3).
 	 To store the table, O(V^3) space is needed.
 	*/
-	private static void countWalks(Graph graph, int k) {
+	public static void countWalks(Graph graph, int k) {
 		// Loop for number of edges from 0 to k
 		for (int e = 0; e <= k; e++) {
 			// Ensure we don't recalculate matrices if they are already stored in walks field
-			if (graph.walks.size() <= e) {
+			if (graph.numWalks.size() <= e) {
 				// Value count[i][j] is the number of possible walks from i to j with e-many edges
 				Integer[][] count = new Integer[graph.getNumVertices()][graph.getNumVertices()];
 				for (int i = 0; i < graph.getNumVertices(); i++) { // source
@@ -97,19 +104,27 @@ public class GraphUtils {
 						if (e > 1) {
 							for (int a = 0; a < graph.getNumVertices(); a++) { // adjacent to i
 								if (graph.hasDirectedEdge(i, a))
-									count[i][j] += graph.walks.get(e - 1)[a][j];
+									count[i][j] += graph.numWalks.get(e - 1)[a][j];
 							}
 						}
 					}
 				}
-				graph.walks.add(e, count);
+				graph.numWalks.add(e, count);
 			}
 		}
+		// No reflexive vertices (e.g. avoids all I or all S walks in SIR)
+		Integer[][] zeroWalks = new Integer[graph.getNumVertices()][graph.getNumVertices()];
+		for (int i = 0; i < zeroWalks.length; i++) {
+			for (int j = 0; j < zeroWalks[0].length; j++) {
+				zeroWalks[i][j] = 0;
+			}
+		}
+		graph.numWalks.set(0, zeroWalks);
 	}
 
 	private static String printWalks(Graph g) {
 		StringBuilder sb = new StringBuilder();
-		List<Integer[][]> walks = g.walks;
+		List<Integer[][]> walks = g.numWalks;
 		for (int i = 0; i < walks.size(); i++) {
 			Integer[][] count = walks.get(i);
 			sb.append("Walks of length ").append(i).append(":\n");
@@ -188,4 +203,24 @@ public class GraphUtils {
 			}
         }
     }
+
+
+	public static <T> List<List<T>> powerSet(List<T> originalSet) {
+		List<List<T>> sets = new ArrayList<>();
+		if (originalSet.isEmpty()) {
+			sets.add(new ArrayList<T>());
+			return sets;
+		}
+		List<T> list = new ArrayList<T>(originalSet);
+		T head = list.get(0);
+		List<T> rest = new ArrayList<T>(list.subList(1, list.size()));
+		for (List<T> set : powerSet(rest)) {
+			List<T> newSet = new ArrayList<>();
+			newSet.add(head);
+			newSet.addAll(set);
+			sets.add(newSet);
+			sets.add(set);
+		}
+		return sets;
+	}
 }

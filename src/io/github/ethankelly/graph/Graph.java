@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The {@code Graph} class represents a graph - a mathematical structure consisting of a collection of vertices
+ * The {@code Graph} class represents a mathematical structure consisting of a collection of vertices
  * connected by edges in some specified configuration.
  *
  * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
@@ -23,6 +23,11 @@ public class Graph implements Cloneable {
 	private int numEdges;
 	/** A linked-list representation of the graph (adjacency list). */
 	private List<List<Vertex>> adjList = new ArrayList<>();
+
+	public List<Character> getLabels() {
+		return labels;
+	}
+
 	/** Labels for vertices, if required (otherwise null entries). */
 	private List<Character> labels;
 	/** The list of connected components after cut-vertex-based splicing. */
@@ -32,7 +37,12 @@ public class Graph implements Cloneable {
 	/** Number of sub-graphs the cut vertex belongs to after splicing . */
 	private final Map<Vertex, Integer> cutVertexFreq = new HashMap<>();
 	/** Number of walks of each length in the graph. */
-	protected List<Integer[][]> walks = new ArrayList<>();
+	protected List<Integer[][]> numWalks = new ArrayList<>();
+
+	public List<Integer[][]> getNumWalks(int length) {
+		GraphUtils.countWalks(this, length);
+		return numWalks;
+	}
 
 	/**
 	 * Class constructor.
@@ -82,6 +92,7 @@ public class Graph implements Cloneable {
 	 *
 	 * @param labels the labels to assign to vertices in like index locations in the graph.
 	 */
+	@SuppressWarnings("unused")
 	public void setLabels(List<Character> labels) {
 		this.labels = labels;
 	}
@@ -152,9 +163,16 @@ public class Graph implements Cloneable {
 		subGraph.vertices = subList;
 		for (Vertex v : subList) {
 			for (Vertex w : subList) {
-				if (!v.equals(w) && adjList.get(v.getLocation()).contains(w)) {
+				if (!v.equals(w) && adjList.get(v.getLocation()).contains(w) || adjList.get(w.getLocation()).contains(v)) {
 					subGraph.addEdge(v, w);
 				}
+/*				TODO implement this in future, but leads to incorrect walk calculations for time being
+				else if (!v.equals(w) && (adjList.get(v.getLocation()).contains(w))) {
+					subGraph.addDirectedEdge(v, w);
+				} else if (!v.equals(w) && (adjList.get(w.getLocation()).contains(v))) {
+					subGraph.addDirectedEdge(w, v);
+				}
+*/
 			}
 		}
 		return subGraph;
@@ -216,19 +234,6 @@ public class Graph implements Cloneable {
 		return true;
 	}
 
-	// Recursive helper method that uses a depth-first search to find connected components
-	private List<Vertex> DFSUtil(Vertex v, boolean[] visited, List<Vertex> thisComponent) {
-		// Mark the current node as visited and print it
-		visited[this.vertices.indexOf(v)] = true;
-		thisComponent.add(v);
-		// Recur for all vertices adjacent to this vertex
-		for (Vertex w : this.vertices) {
-			int i = this.vertices.indexOf(w);
-			if (!visited[i] && this.hasEdge(v, w)) DFSUtil(w, visited, thisComponent);
-		}
-		return thisComponent;
-	}
-
 	/**
 	 * Finds the connected components in the current graph and returns them as a list of lists of integers, each sub-
 	 * list representing a sub-graph (connected component).
@@ -242,7 +247,7 @@ public class Graph implements Cloneable {
 		for (Vertex v : this.vertices) {
 			if (!visited[this.vertices.indexOf(v)]) {
 				// Get all reachable vertices from v
-				components.add(DFSUtil(v, visited, new ArrayList<>()));
+				components.add(DFS_CC_Util(v, visited, new ArrayList<>()));
 			}
 		}
 		return components;
@@ -251,7 +256,7 @@ public class Graph implements Cloneable {
 	/**
 	 * Traverses the graph and returns a list of cut-vertices (if any) in the current graph.
 	 * <p>
-	 * Uses depth-first search with additional arrays, so time complexity is the same as DFS i.e. O(V+E) for an
+	 * Uses depth-first search with additional arrays, so time complexity is the same as DFS_ConnectedUtil i.e. O(V+E) for an
 	 * adjacency list representation of the graph.
 	 *
 	 * @return the cut-vertices present in the graph, if any.
@@ -273,7 +278,7 @@ public class Graph implements Cloneable {
 			cutVertices[i] = false;
 		}
 
-		// Call the recursive helper function to find articulation points in DFS tree rooted with vertex 'i'
+		// Call the recursive helper function to find articulation points in DFS_ConnectedUtil tree rooted with vertex 'i'
 		for (int i = 0; i < getNumVertices(); i++)
 			if (!visited[i]) GraphUtils.findCutVertices(this, vertices.get(i), visited, disc, low, parent, cutVertices);
 
@@ -370,7 +375,7 @@ public class Graph implements Cloneable {
 			this.spliced.clear();
 			this.subGraphFreq.clear();
 		}
-		this.walks = new ArrayList<>();
+		this.numWalks = new ArrayList<>();
 	}
 
 	/**
@@ -592,7 +597,77 @@ public class Graph implements Cloneable {
 		clearSpliceFields();
 	}
 
+	public void addDirectedEdge(Vertex v, Vertex w) {
+		// Ensure we aren't trying to add an edge between a vertex and itself
+		assert !v.equals(w) : "Cannot add an edge between a vertex and itself";
+
+		if (!adjList.get(getVertices().indexOf(v)).contains(w)) {
+			// Update adjacency list
+			adjList.get(getVertices().indexOf(v)).add(w);
+			// Increment the number of edges if appropriate
+			if (!this.adjList.get(getVertices().indexOf(w)).contains(v)) this.numEdges++;
+		}
+		clearSpliceFields();
+	}
+
 	public boolean hasDirectedEdge(int i, int j) {
 		return this.adjList.get(i).contains(new Vertex(j));
+	}
+
+	public boolean isConnected() {
+		int vertices = this.getNumVertices();
+		List<List<Vertex>> adjacencyList= this.getAdjList();
+		// Take a boolean visited array
+		boolean[] visited = new boolean[vertices];
+
+		// Start the DFS_ConnectedUtil from vertex 0
+		DFS_ConnectedUtil(0, adjacencyList, visited);
+
+		// Check if all the vertices are visited
+		// Return false if at least one is not visited
+		for (boolean b : visited) if (!b) return false;
+		return true;
+	}
+	// Recursive helper method - Depth First Search to determine whether graph is connected
+	private void DFS_ConnectedUtil(int source, List<List<Vertex>> adjacencyList, boolean[] visited){
+		// Mark the vertex visited as True
+		visited[source] = true;
+		// Travel the adjacent neighbours
+		for (int i = 0; i <adjacencyList.get(source).size() ; i++) {
+			int neighbour = this.getVertices().indexOf(adjacencyList.get(source).get(i));
+			if(!visited[neighbour]){
+				// Call DFS_ConnectedUtil from neighbour
+				DFS_ConnectedUtil(neighbour, adjacencyList, visited);
+			}
+		}
+	}
+	// Recursive helper method that uses a depth-first search to find connected components
+	private List<Vertex> DFS_CC_Util(Vertex v, boolean[] visited, List<Vertex> thisComponent) {
+		// Mark the current node as visited and print it
+		visited[this.getVertices().indexOf(v)] = true;
+		thisComponent.add(v);
+		// Recur for all vertices adjacent to this vertex
+		for (Vertex w : this.getVertices()) {
+			int i = this.getVertices().indexOf(w);
+			if (!visited[i] && this.hasEdge(v, w)) DFS_CC_Util(w, visited, thisComponent);
+		}
+		return thisComponent;
+	}
+
+	public List<List<Character>> getCharWalks(int maxLength) {
+		System.out.println("Getting character walks");
+		List<List<Vertex>> allVertexWalks = GraphUtils.printAllPaths(this, 10);
+		List<List<Character>> allCharWalks = new ArrayList<>();
+
+		for (List<Vertex> walk : allVertexWalks) {
+			List<Character> charWalk = new ArrayList<>();
+			for (Vertex v : walk) {
+				System.out.print(v);
+				charWalk.add(this.getLabels().get(this.getVertices().indexOf(v)));
+			}
+			System.out.println();
+			allCharWalks.add(charWalk);
+		}
+		return allCharWalks;
 	}
 }
