@@ -541,9 +541,8 @@ public final class GraphGenerator {
      */
     public static Graph path(int numVertices) {
         Graph g = new Graph(numVertices, "Path");
-        // Generate an array: [0, 1, ..., numVertices] and randomly shuffle it.
+        // Generate an array: [0, 1, ..., numVertices]
         int[] vertices = IntStream.range(0, numVertices).toArray();
-        Rand.shuffle(vertices);
         // Connect the consecutive vertices to generate the random path graph
         for (int i = 0; i < numVertices - 1; i++) {
             g.addEdge(vertices[i], vertices[i + 1]);

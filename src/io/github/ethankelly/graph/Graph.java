@@ -524,12 +524,13 @@ public class Graph implements Cloneable {
 		StringBuilder s = new StringBuilder();
 		s.append("\n");
 		for (int i = 0; i < this.getNumVertices(); i++) {
-			if (labels == null || labels.isEmpty()) s.append(vertices.get(i));
+			List<Character> allBlank = IntStream.range(0, this.getNumVertices()).mapToObj(j -> ' ').collect(Collectors.toList());
+			if (labels == null || labels.equals(allBlank)) s.append(vertices.get(i));
 			else s.append(labels.get(i));
 			s.append(" ->");
 			for (Vertex vertex : adjList.get(i)) {
 				s.append(" ");
-				if (labels == null || labels.isEmpty()) s.append(vertex);
+				if (labels == null || labels.equals(allBlank)) s.append(vertex);
 				else s.append(labels.get(vertex.getLocation()));
 			}
 			s.append("\n");
@@ -599,6 +600,7 @@ public class Graph implements Cloneable {
 		clearSpliceFields();
 	}
 
+	@SuppressWarnings("unused")
 	public void addDirectedEdge(Vertex v, Vertex w) {
 		// Ensure we aren't trying to add an edge between a vertex and itself
 		assert !v.equals(w) : "Cannot add an edge between a vertex and itself";
@@ -616,6 +618,7 @@ public class Graph implements Cloneable {
 		return this.adjList.get(i).contains(new Vertex(j));
 	}
 
+	@SuppressWarnings("unused")
 	public boolean hasDirectedEdge(Vertex v, Vertex w) {
 		return this.adjList.get(this.vertices.indexOf(v)).contains(w);
 	}
@@ -635,24 +638,28 @@ public class Graph implements Cloneable {
 		return true;
 	}
 
-	public List<List<Character>> getCharWalks(int maxLength) {
+	public List<List<List<Character>>> getCharWalks(int maxLength) {
+		List<List<List<Character>>> allCharWalks = new ArrayList<>();
+
 		System.out.println("Getting character walks");
+		for (int i = 1; i <= maxLength; i++) {
+			PathFinder pf = new PathFinder(this);
+			List<List<Vertex>> allWalks = pf.findWalksOfLength(i);
 
-		PathFinder pf = new PathFinder(this);
-		List<List<Vertex>> allWalks = pf.findWalksOfLength(maxLength);
-
-		List<List<Character>> list = new ArrayList<>();
-		for (List<Vertex> walk : allWalks) {
-			List<Character> collect = new ArrayList<>();
-			char prev = 'a';
-			for (Vertex vertex : walk) {
-				char state = this.getLabels().get(this.getVertices().indexOf(vertex));
-				if (state != prev) collect.add(state);
-				else break;
-				prev = state;
+			List<List<Character>> list = new ArrayList<>();
+			for (List<Vertex> walk : allWalks) {
+				List<Character> collect = new ArrayList<>();
+				char prev = 'a';
+				for (Vertex vertex : walk) {
+					char state = this.getLabels().get(this.getVertices().indexOf(vertex));
+					if (state != prev) collect.add(state);
+					else break;
+					prev = state;
+				}
+				if (collect.size() == i) list.add(collect);
 			}
-			if (collect.size() == maxLength) list.add(collect);
+			allCharWalks.add(i-1, list);
 		}
-		return list;
+		return allCharWalks;
 	}
 }

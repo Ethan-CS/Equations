@@ -140,7 +140,8 @@ public class ModelParams {
      * A filter graph is a sub-graph of the transition graph with only the edges between states that require at least
      * one other vertex being in another state to occur. Any states where entry or exit requires fewer than 2 states
      * in adjacent vertices to induce are not included in the filter graph.
-     * @return
+     *
+     * @return the filter graph of the transition graph.
      */
     public Graph getFilterGraph() {
         if (filter == null) {

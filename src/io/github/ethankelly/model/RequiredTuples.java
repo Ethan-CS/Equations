@@ -134,26 +134,15 @@ public class RequiredTuples {
 		Graph filter = modelParams.getFilterGraph();
 		// Get all walks in the filter graph up to length of contact network
 		List<Integer[][]> numWalks = filter.getNumWalks(this.getGraph().getNumVertices());
-		List<List<Character>> charWalks = filter.getCharWalks(this.getGraph().getNumVertices());
+		List<List<List<Character>>> charWalks = filter.getCharWalks(this.getGraph().getNumVertices());
 
-		for (List<Character> cList : charWalks) {
-			System.out.print("[");
-			for (Character c : cList) System.out.print(c);
-			System.out.print("]\n");
+		for (List<List<Character>> charWalksOfLength : charWalks) {
+			for (List<Character> cList : charWalksOfLength) {
+				System.out.print("[");
+				for (Character c : cList) System.out.print(c);
+				System.out.print("]\n");
+			}
 		}
-
-//		int k = 0;
-//		for (Integer[][] walk : numWalks) {
-//			System.out.println("Walks of length " + k++);
-//			// Print matrices
-//			for (Integer[] integers : walk) {
-//				for (int j = 0; j < walk[0].length; j++) {
-//					System.out.print(integers[j]);
-//				}
-//				System.out.println();
-//			}
-//			// End print matrices
-//		}
 
 		// Get all connected sub-graphs of contact network
 		// 1. Generate power set of vertices in the graph
@@ -166,23 +155,23 @@ public class RequiredTuples {
 				if (candidate.isConnected()) connectedSubGraphs.add(candidate);
 			}
 		}
-
 		// Create a tuple for each connected sub-graph with states from list of walks of that length
 		List<List<Vertex>> tuplesToMake = new ArrayList<>();
-		for (List<Character> walk : charWalks) {
-			for (Graph g : connectedSubGraphs) {
+		for (Graph g : connectedSubGraphs) {
+			for (List<Character> walk : charWalks.get(g.getNumVertices()-1)) {
 				List<Vertex> tupleToMake = new ArrayList<>();
-				for (Character c : walk) {
-					for (Vertex v : g.getVertices()) {
-						tupleToMake.add(new Vertex(c, v.getLocation()));
-					}
+				for (int i = 0; i < g.getNumVertices(); i++) {
+					tupleToMake.add(new Vertex(walk.get(i), g.getVertices().get(i).getLocation()));
 				}
 				tuplesToMake.add(tupleToMake);
 			}
 		}
+
+		System.out.println("TUPLES");
 		for (List<Vertex> t : tuplesToMake) {
 			Tuple tuple = new Tuple(t);
 			tuples.add(tuple);
+			System.out.println(tuple);
 		}
 
 	}
@@ -191,7 +180,8 @@ public class RequiredTuples {
 		ModelParams m = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
 		m.addTransition('S', 'I', 0.6);
 		m.addTransition('I', 'R', 0.1);
-		RequiredTuples rt = new RequiredTuples(GraphGenerator.erdosRenyi(10, 0.3), m, false);
+		RequiredTuples rt = new RequiredTuples(GraphGenerator.path(10), m, false);
+		System.out.println(rt.graph);
 
 		rt.genTuples();
 	}
