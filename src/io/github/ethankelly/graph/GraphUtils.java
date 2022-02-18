@@ -161,4 +161,31 @@ public class GraphUtils {
 		}
 		return sets;
 	}
+
+	// Recursive helper method that uses a depth-first search to find connected components
+	static List<Vertex> DFS_CC_Util(Graph graph, Vertex v, boolean[] visited, List<Vertex> thisComponent) {
+		// Mark the current node as visited and print it
+		visited[graph.getVertices().indexOf(v)] = true;
+		thisComponent.add(v);
+		// Recur for all vertices adjacent to this vertex
+		for (Vertex w : graph.getVertices()) {
+			int i = graph.getVertices().indexOf(w);
+			if (!visited[i] && graph.hasEdge(v, w)) DFS_CC_Util(graph, w, visited, thisComponent);
+		}
+		return thisComponent;
+	}
+
+    // Recursive helper method - Depth First Search to determine whether graph is connected
+    static void DFS_ConnectedUtil(Graph graph, int source, List<List<Vertex>> adjacencyList, boolean[] visited){
+        // Mark the vertex visited as True
+        visited[source] = true;
+        // Travel the adjacent neighbours
+        for (int i = 0; i <adjacencyList.get(source).size() ; i++) {
+            int neighbour = graph.getVertices().indexOf(adjacencyList.get(source).get(i));
+            if(!visited[neighbour]){
+                // Call DFS_ConnectedUtil from neighbour
+                DFS_ConnectedUtil(graph, neighbour, adjacencyList, visited);
+            }
+        }
+    }
 }

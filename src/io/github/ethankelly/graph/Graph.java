@@ -58,6 +58,8 @@ public class Graph implements Cloneable {
 			adjList.add(i, new ArrayList<>());
 			vertices.add(new Vertex(i));
 		});
+		this.labels = new ArrayList<>();
+		IntStream.range(0, numVertices).forEach(i -> this.labels.add(' '));
 	}
 
 	/**
@@ -247,7 +249,7 @@ public class Graph implements Cloneable {
 		for (Vertex v : this.vertices) {
 			if (!visited[this.vertices.indexOf(v)]) {
 				// Get all reachable vertices from v
-				components.add(DFS_CC_Util(v, visited, new ArrayList<>()));
+				components.add(GraphUtils.DFS_CC_Util(this, v, visited, new ArrayList<>()));
 			}
 		}
 		return components;
@@ -614,6 +616,10 @@ public class Graph implements Cloneable {
 		return this.adjList.get(i).contains(new Vertex(j));
 	}
 
+	public boolean hasDirectedEdge(Vertex v, Vertex w) {
+		return this.adjList.get(this.vertices.indexOf(v)).contains(w);
+	}
+
 	public boolean isConnected() {
 		int vertices = this.getNumVertices();
 		List<List<Vertex>> adjacencyList= this.getAdjList();
@@ -621,43 +627,32 @@ public class Graph implements Cloneable {
 		boolean[] visited = new boolean[vertices];
 
 		// Start the DFS_ConnectedUtil from vertex 0
-		DFS_ConnectedUtil(0, adjacencyList, visited);
+		GraphUtils.DFS_ConnectedUtil(this, 0, adjacencyList, visited);
 
 		// Check if all the vertices are visited
 		// Return false if at least one is not visited
 		for (boolean b : visited) if (!b) return false;
 		return true;
 	}
-	// Recursive helper method - Depth First Search to determine whether graph is connected
-	private void DFS_ConnectedUtil(int source, List<List<Vertex>> adjacencyList, boolean[] visited){
-		// Mark the vertex visited as True
-		visited[source] = true;
-		// Travel the adjacent neighbours
-		for (int i = 0; i <adjacencyList.get(source).size() ; i++) {
-			int neighbour = this.getVertices().indexOf(adjacencyList.get(source).get(i));
-			if(!visited[neighbour]){
-				// Call DFS_ConnectedUtil from neighbour
-				DFS_ConnectedUtil(neighbour, adjacencyList, visited);
-			}
-		}
-	}
-	// Recursive helper method that uses a depth-first search to find connected components
-	private List<Vertex> DFS_CC_Util(Vertex v, boolean[] visited, List<Vertex> thisComponent) {
-		// Mark the current node as visited and print it
-		visited[this.getVertices().indexOf(v)] = true;
-		thisComponent.add(v);
-		// Recur for all vertices adjacent to this vertex
-		for (Vertex w : this.getVertices()) {
-			int i = this.getVertices().indexOf(w);
-			if (!visited[i] && this.hasEdge(v, w)) DFS_CC_Util(w, visited, thisComponent);
-		}
-		return thisComponent;
-	}
 
 	public List<List<Character>> getCharWalks(int maxLength) {
 		System.out.println("Getting character walks");
-		List<List<Character>> allCharWalks = new ArrayList<>();
 
-		return allCharWalks;
+		PathFinder pf = new PathFinder(this);
+		List<List<Vertex>> allWalks = pf.findWalksOfLength(maxLength);
+
+		List<List<Character>> list = new ArrayList<>();
+		for (List<Vertex> walk : allWalks) {
+			List<Character> collect = new ArrayList<>();
+			char prev = 'a';
+			for (Vertex vertex : walk) {
+				char state = this.getLabels().get(this.getVertices().indexOf(vertex));
+				if (state != prev) collect.add(state);
+				else break;
+				prev = state;
+			}
+			if (collect.size() == maxLength) list.add(collect);
+		}
+		return list;
 	}
 }
