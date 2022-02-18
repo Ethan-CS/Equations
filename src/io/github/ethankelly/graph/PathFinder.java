@@ -14,16 +14,18 @@ public class PathFinder {
     private final List<List<List<Integer>>> allPaths;
 
     // Get all simple paths from s to t - use DFS
-    public PathFinder(Graph G) {
-        onPath = new boolean[G.getNumVertices()];
-        graph = G;
+    public PathFinder(Graph graph) {
+        onPath = new boolean[graph.getNumVertices()];
+        this.graph = graph;
         path   = new ArrayDeque<>();
         allPaths = new ArrayList<>();
-        IntStream.range(0, G.getNumVertices()).<List<List<Integer>>>mapToObj(i -> new ArrayList<>()).forEach(allPaths::add);
+        IntStream.range(0, graph.getNumVertices()).<List<List<Integer>>>mapToObj(i -> new ArrayList<>()).forEach(allPaths::add);
     }
 
-    public void findPaths(Graph g) {
-        for (int i = 0; i < g.getNumVertices(); i++) for (int j = 0; j < g.getNumVertices(); j++) dfs(g, i, j);
+    public void findPaths() {
+        for (int i = 0; i < this.graph.getNumVertices(); i++)
+            for (int j = 0; j < this.graph.getNumVertices(); j++)
+                dfs(this.graph, i, j);
     }
 
     // use DFS
@@ -48,18 +50,18 @@ public class PathFinder {
         onPath[v] = false;
     }
 
-    private int getNoOfPaths() {
+    public int getNoOfPaths() {
         return this.allPaths.size();
     }
 
     public List<List<Integer>> findPathsOfLength(int l) {
-        if (l<=graph.getNumVertices()) return this.allPaths.get(l-1);
+        if (l<=graph.getNumVertices()) return this.getAllPaths().get(l-1);
         List<List<Integer>> subList = new ArrayList<>();
-        for (int j = allPaths.size() - 1; j >= 0; j--) {
-            List<List<Integer>> l1 = allPaths.get(j);
+        for (int j = getAllPaths().size() - 1; j >= 0; j--) {
+            List<List<Integer>> l1 = getAllPaths().get(j);
             for (List<Integer> list1 : l1) {
-                for (int i = allPaths.size() - 1; i >= 0; i--) {
-                    List<List<Integer>> l2 = allPaths.get(i);
+                for (int i = getAllPaths().size() - 1; i >= 0; i--) {
+                    List<List<Integer>> l2 = getAllPaths().get(i);
                     List<Integer> l3 = new ArrayList<>(list1);
                     loop: while (l3.size()<=l) {
                         for (List<Integer> list2 : l2) {
@@ -82,6 +84,11 @@ public class PathFinder {
         return subList;
     }
 
+    private List<List<List<Integer>>> getAllPaths() {
+        if (this.allPaths.get(0).isEmpty()) findPaths();
+        return this.allPaths;
+    }
+
     /**
      * Main method, used for unit testing.
      *
@@ -99,7 +106,7 @@ public class PathFinder {
         System.out.println();
         System.out.println("all simple paths");
         PathFinder allpaths1 = new PathFinder(G);
-        allpaths1.findPaths(G);
+        allpaths1.findPaths();
         for (List<List<Integer>> list : allpaths1.allPaths) System.out.println(list);
         System.out.println("# paths = " + allpaths1.getNoOfPaths());
         List<List<Integer>> l10 = allpaths1.findPathsOfLength(10);
