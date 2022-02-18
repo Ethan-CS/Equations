@@ -7,27 +7,29 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * Contains methods to find all paths and concatenations of paths of a given length in a given graph.
+ */
 public class PathFinder {
-    /**
-     * Vertices in the current path.
-     */
+    /** Vertices in the current path. */
     private final boolean[] onPath;
-    /**
-     * Stores each current path.
-     */
+    /** Stores each current path. */
     private final Deque<Integer> path;
-    /**
-     * Stores all paths as each one is found.
-     */
+    /** Stores all paths as each one is found. */
     private final List<List<List<Integer>>> allPaths;
+    /** The graph in which the class is finding paths.*/
     private final Graph graph;
 
-    // Get all simple paths from s to t - use DFS
+    /**
+     * Class constructor.
+     *
+     * @param graph the graph in which we will find paths.
+     */
     public PathFinder(Graph graph) {
-        onPath = new boolean[graph.getNumVertices()];
+        this.onPath = new boolean[graph.getNumVertices()];
         this.graph = graph;
-        path = new ArrayDeque<>();
-        allPaths = new ArrayList<>();
+        this.path = new ArrayDeque<>();
+        this.allPaths = new ArrayList<>();
         IntStream.range(0, graph.getNumVertices()).<List<List<Integer>>>mapToObj(i -> new ArrayList<>()).forEach(allPaths::add);
     }
 
@@ -43,15 +45,12 @@ public class PathFinder {
         G.addEdge(2, 3);
         G.addEdge(3, 0);
 
-        System.out.println(G);
-
-        System.out.println();
-        System.out.println("all simple paths");
-        PathFinder allpaths1 = new PathFinder(G);
-        allpaths1.findPaths();
-        for (List<List<Integer>> list : allpaths1.allPaths) System.out.println(list);
-        System.out.println("# paths = " + allpaths1.getNoOfPaths());
-        List<List<Integer>> l10 = allpaths1.findPathsOfLength(10);
+        System.out.println(G+"\nAll simple paths:");
+        PathFinder allPaths = new PathFinder(G);
+        allPaths.findPaths();
+        for (List<List<Integer>> list : allPaths.allPaths) System.out.println(list);
+        System.out.println("# paths = " + allPaths.getNoOfPaths());
+        List<List<Integer>> l10 = allPaths.findPathsOfLength(10);
         for (List<Integer> l : l10) System.out.println(l);
     }
 
