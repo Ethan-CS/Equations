@@ -148,21 +148,17 @@ public class ModelParams {
             Graph contactNetwork = this.getTransitionGraph();
             List<Vertex> filterVertices = new ArrayList<>();
             List<Character> filterStates = new ArrayList<>();
+            // Only include vertices that either need at least another vertex being in another state to enter
+            // or if this is a condition of vertices exiting the given state.
             for (Vertex v : contactNetwork.getVertices()) {
-                if (this.getToEnter()[contactNetwork.getVertices().indexOf(v)] == 2 ||
-                        this.getToExit()[contactNetwork.getVertices().indexOf(v)] == 2) {
+                if (this.getToEnter()[contactNetwork.getVertices().indexOf(v)] > 1 ||
+                        this.getToExit()[contactNetwork.getVertices().indexOf(v)] > 1) {
                     filterVertices.add(v);
-                    filterStates.add(contactNetwork.getLabels().get(contactNetwork.getVertices()
-                            .indexOf(v)));
+                    filterStates.add(contactNetwork.getLabels().get(contactNetwork.getVertices().indexOf(v)));
                 }
             }
             filter = getTransitionGraph().makeSubGraph(filterVertices);
             filter.setLabels(filterStates);
-
-            System.out.println("ORIGINAL");
-            System.out.println(this.getTransitionGraph());
-            System.out.println("FILTER");
-            System.out.println(filter);
         }
         return filter;
     }

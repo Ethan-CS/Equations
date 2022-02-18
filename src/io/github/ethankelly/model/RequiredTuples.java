@@ -42,7 +42,7 @@ public class RequiredTuples {
 	 * changes are made to the model that would constitute a change to the required tuples.
 	 */
 	public List<Tuple> getTuples() {
-		if (this.tuples.isEmpty()) generateTuples(closures);
+		if (this.tuples.isEmpty()) genTuples();
 		return this.tuples;
 	}
 
@@ -123,12 +123,18 @@ public class RequiredTuples {
 		return verticesWeNeed;
 	}
 
+	/**
+	 * Creates a list of required tuples by creating a tuple for each connected subgraph in the contact network with
+	 * states given by walks in the filter graphs (there is one tuple per connected subgraph per walk in the filter
+	 * graph).
+	 *
+	 * @return the list of tuples required to provide a full dyanmic representation of the current system.
+	 */
 	private List<Tuple> genTuples() {
 		// Add all singles (always need these)
 		List<Tuple> tuples = new ArrayList<>(this.findSingles());
-		// Get the filter graph
-		Graph filter = modelParams.getFilterGraph();
 		// Get all walks in the filter graph up to length of contact network
+		Graph filter = modelParams.getFilterGraph();
 		List<List<List<Character>>> charWalks = filter.getCharWalks(this.getGraph().getNumVertices());
 
 		// Get all connected sub-graphs of contact network
@@ -171,42 +177,6 @@ public class RequiredTuples {
 		List<Tuple> tuples = rt.genTuples();
 		for (Tuple t : tuples) System.out.println(t);
 		System.out.println(tuples.size());
-	}
-
-	// Recursive helper method to generate the total equations we need
-	private void generateTuples(List<Tuple> items,
-	                            List<Vertex> selected,
-	                            int index,
-	                            List<Tuple> result) {
-		if (index >= items.size()) {
-			result.add(new Tuple(new ArrayList<>(selected)));
-		} else {
-			generateTuples(items, selected, index + 1, result);
-			selected.add(items.get(index).getVertices().get(0)); // get(0) since items is composed of singleton lists
-			generateTuples(items, selected, index + 1, result);
-			selected.remove(selected.size() - 1);
-		}
-	}
-
-	/**
-	 * Using the graph we are determining equations for and the states that a vertex can take, this method finds all the
-	 * equations that we need to use to exactly express the system dynamics of the model in question.
-	 *
-	 * @return a list of each n-tuple we are required to express to exactly detail the model system dynamics.
-	 */
-	public List<Tuple> generateTuples(boolean closures) {
-		List<Tuple> items = this.findSingles();
-		List<Tuple> result = new ArrayList<>();
-		List<Vertex> selected = new ArrayList<>();
-		generateTuples(items, selected, 0, result);
-
-		// The helper method gives us all combinations, so remove the ones that don't
-		// constitute valid (necessary) tuples (and sort by length of sub-arrays).
-		result.removeIf(row -> !row.isValidTuple(this.getModelParams(), this.getGraph(), closures));
-		this.findSingles().stream().filter(single -> !result.contains(single)).forEach(result::add);
-		Collections.sort(result);
-
-		return result;
 	}
 
 	/**
