@@ -17,7 +17,7 @@ import java.util.*;
  */
 @SuppressWarnings("unused")
 public class RequiredTuples {
-	private final List<Tuple> tuples; // The list of tuples required to describe a model on the specified graph
+	private List<Tuple> tuples; // The list of tuples required to describe a model on the specified graph
 	private final Graph graph; // The graph representing underpinning the compartmental model
 	private final ModelParams modelParams; // The compartmental model states, e.g. SIR
 	private final boolean closures; // Whether we are considering closures (may need to consider unusual tuples)
@@ -123,31 +123,18 @@ public class RequiredTuples {
 		return verticesWeNeed;
 	}
 
-	private void genTuples() {
-		// First, add all singles (always need these)
+	private List<Tuple> genTuples() {
+		// Add all singles (always need these)
 		List<Tuple> tuples = new ArrayList<>(this.findSingles());
-		// TODO:
-		//  Then, get all walks in the filter graph and create a tuple
-		//  for each connected subgraph of that size in the contact network
-
 		// Get the filter graph
 		Graph filter = modelParams.getFilterGraph();
 		// Get all walks in the filter graph up to length of contact network
-		List<Integer[][]> numWalks = filter.getNumWalks(this.getGraph().getNumVertices());
 		List<List<List<Character>>> charWalks = filter.getCharWalks(this.getGraph().getNumVertices());
-
-		for (List<List<Character>> charWalksOfLength : charWalks) {
-			for (List<Character> cList : charWalksOfLength) {
-				System.out.print("[");
-				for (Character c : cList) System.out.print(c);
-				System.out.print("]\n");
-			}
-		}
 
 		// Get all connected sub-graphs of contact network
 		// 1. Generate power set of vertices in the graph
 		List<List<Vertex>> powerSet = GraphUtils.powerSet(getGraph().getVertices());
-		// 2. Remove any sets of vertices not constituting connected subgraphs
+		// 2. Remove any sets of vertices not constituting connected sub-graphs
 		List<Graph> connectedSubGraphs = new ArrayList<>();
 		for (List<Vertex> vertices : powerSet) {
 			if (vertices.size() > 0) {
@@ -157,33 +144,33 @@ public class RequiredTuples {
 		}
 		// Create a tuple for each connected sub-graph with states from list of walks of that length
 		List<List<Vertex>> tuplesToMake = new ArrayList<>();
-		for (Graph g : connectedSubGraphs) {
-			for (List<Character> walk : charWalks.get(g.getNumVertices()-1)) {
+		for (Graph g : connectedSubGraphs) { // Each connected sub-graph
+			for (List<Character> walk : charWalks.get(g.getNumVertices()-1)) { // Each walk in filter graph
 				List<Vertex> tupleToMake = new ArrayList<>();
-				for (int i = 0; i < g.getNumVertices(); i++) {
+				for (int i = 0; i < g.getNumVertices(); i++) { // Combine sub-graph and walk as a tuple
 					tupleToMake.add(new Vertex(walk.get(i), g.getVertices().get(i).getLocation()));
 				}
-				tuplesToMake.add(tupleToMake);
+				tuplesToMake.add(tupleToMake); // Add new tuple to list of tuples to make
 			}
 		}
-
-		System.out.println("TUPLES");
+		// Create each of the tuples in the list of tuples to make and add to total list of tuples
 		for (List<Vertex> t : tuplesToMake) {
 			Tuple tuple = new Tuple(t);
-			tuples.add(tuple);
-			System.out.println(tuple);
+			if (!tuples.contains(tuple)) tuples.add(tuple);
 		}
-
+		this.tuples = tuples;
+		return tuples;
 	}
 
 	public static void main(String[] args) {
 		ModelParams m = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
 		m.addTransition('S', 'I', 0.6);
 		m.addTransition('I', 'R', 0.1);
-		RequiredTuples rt = new RequiredTuples(GraphGenerator.path(10), m, false);
-		System.out.println(rt.graph);
+		RequiredTuples rt = new RequiredTuples(GraphGenerator.path(3), m, false);
 
-		rt.genTuples();
+		List<Tuple> tuples = rt.genTuples();
+		for (Tuple t : tuples) System.out.println(t);
+		System.out.println(tuples.size());
 	}
 
 	// Recursive helper method to generate the total equations we need

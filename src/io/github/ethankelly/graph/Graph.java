@@ -638,26 +638,36 @@ public class Graph implements Cloneable {
 		return true;
 	}
 
+	/**
+	 * Uses the walks of the current graph to produce lists of states corresponding to the labels of the walks of vertices.
+	 *
+	 * @param maxLength the largest length walk we require.
+	 * @return A 3D list where the first index represents the length of the walks contained in the sub-lists.
+	 */
 	public List<List<List<Character>>> getCharWalks(int maxLength) {
 		List<List<List<Character>>> allCharWalks = new ArrayList<>();
-
-		System.out.println("Getting character walks");
+		// For each length of walk up to max length,
+		// Generate all possible walks in graph
 		for (int i = 1; i <= maxLength; i++) {
 			PathFinder pf = new PathFinder(this);
 			List<List<Vertex>> allWalks = pf.findWalksOfLength(i);
 
 			List<List<Character>> list = new ArrayList<>();
 			for (List<Vertex> walk : allWalks) {
-				List<Character> collect = new ArrayList<>();
-				char prev = 'a';
+				List<Character> charWalkCandidate = new ArrayList<>();
+				char prev = 'a'; // Not used for states, won't be ignored by later comparison
 				for (Vertex vertex : walk) {
 					char state = this.getLabels().get(this.getVertices().indexOf(vertex));
-					if (state != prev) collect.add(state);
+					// Because states can be the same, possible to get duplicate adjacent states
+					// Without directly checking - hence keep track of prev for comparison
+					if (state != prev) charWalkCandidate.add(state);
 					else break;
 					prev = state;
 				}
-				if (collect.size() == i) list.add(collect);
+				// If we finished loop with a char walk of correct size, add to list
+				if (charWalkCandidate.size() == i) list.add(charWalkCandidate);
 			}
+			// Add to list with index corresponding to size of the char walks found in current iteration
 			allCharWalks.add(i-1, list);
 		}
 		return allCharWalks;
