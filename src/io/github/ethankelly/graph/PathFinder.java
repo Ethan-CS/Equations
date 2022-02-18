@@ -49,65 +49,86 @@ public class PathFinder {
         allPaths.findPaths();
         for (List<List<Vertex>> list : allPaths.allPaths) System.out.println(list);
         System.out.println("# paths = " + allPaths.getNoOfPaths());
-        List<List<Vertex>> l10 = allPaths.findPathsOfLength(10);
+        List<List<Vertex>> l10 = allPaths.findWalksOfLength(10);
         for (List<Vertex> l : l10) System.out.println(l);
     }
 
+    /**
+     * Finds all paths between all vertices in the current graph
+     */
     public void findPaths() {
         for (int i = 0; i < this.graph.getNumVertices(); i++)
             for (int j = 0; j < this.graph.getNumVertices(); j++)
                 dfs(this.graph, i, j);
     }
 
-    // use DFS
-    private void dfs(Graph G, int v, int t) {
-        // add v to current path
+    // Use Depth First Search to find any path(s) between vertex v and vertex w
+    private void dfs(Graph G, int v, int u) {
+        // Add v to current path
         path.push(this.graph.getVertices().get(v));
         onPath[v] = true;
-        // found path from s to t
-        if (v == t) {
+        // Found path from v to u
+        if (v == u) {
             List<Vertex> thisPath = new ArrayList<>(path);
             allPaths.get(thisPath.size() - 1).add(thisPath);
         } else {
-            // consider all neighbors that would continue path with repeating a node
+            // Consider all neighbors that would continue path without repeating a node
             for (Vertex w : G.getAdjList().get(v)) {
                 int i = G.getVertices().indexOf(w);
                 if (!onPath[i])
-                    dfs(G, i, t);
+                    dfs(G, i, u);
             }
         }
-        // done exploring from v, so remove from path
+        // Done exploring from v, so remove from path
         path.pop();
         onPath[v] = false;
     }
 
+    /**
+     * @return the number of paths found in the graph associated with the current PathFinder instance.
+     */
     public int getNoOfPaths() {
-        return this.allPaths.size();
+        int i = 0;
+        for (List<List<Vertex>> pathList : this.getAllPaths()) i += pathList.size();
+        return i;
     }
 
-    public List<List<Vertex>> findPathsOfLength(int l) {
+    /**
+     * Finds all walks of a specified length by attempting to concatenate combinations of the paths in the graph and
+     * returning combinations of paths that have the required number of vertices.
+     *
+     * @param l the length of walks to be found.
+     * @return a list of all l-length walks in the graph of the current PathFinder object.
+     */
+    public List<List<Vertex>> findWalksOfLength(int l) {
+        // TODO check - does this alg guarantee us all of the walks of specified length?
+
+        // If specified length is smaller than number of vertices,
+        // we can return the list of paths of that length
         if (l <= graph.getNumVertices()) return this.getAllPaths().get(l - 1);
 
-        List<List<Vertex>> subList = new ArrayList<>();
+        List<List<Vertex>> walks = new ArrayList<>();
         for (int i = getAllPaths().size() - 1; i >= 0; i--) { // Each list of paths of size i
-            List<List<Vertex>> iLengthPaths = getAllPaths().get(i);
-            for (List<Vertex> iPath : iLengthPaths) { // Each path of size i
+            List<List<Vertex>> iLengthWalks = getAllPaths().get(i);
+            for (List<Vertex> iPath : iLengthWalks) { // Each path of size i
                 for (int j = getAllPaths().size() - 1; j >= 0; j--) { // Each list of paths of size j
-                    List<List<Vertex>> jLengthPaths = getAllPaths().get(j);
+                    List<List<Vertex>> jLengthWalks = getAllPaths().get(j);
                     List<Vertex> l3 = new ArrayList<>(iPath);
+                    // Loop until either we have a walk of length l
+                    // Or we have not been able to create such a walk
                     loop:
                     while (l3.size() <= l) {
-                        for (List<Vertex> jPath : jLengthPaths) { // Each path of size j
+                        for (List<Vertex> jPath : jLengthWalks) { // Each path of size j
                             // Only concat paths if end vertex of one and start of other share an edge
                             // No need to check converse - covered by other iterations of i and j loops
                             if (graph.hasEdge(iPath.get(iPath.size() - 1), jPath.get(0))) {
                                 l3.addAll(jPath);
-                                // Ensure we don't add duplicate paths
-                                if (!subList.contains(l3)) {
-                                    // If we have found a path of the required size,
+                                // Ensure we don't add duplicate walks
+                                if (!walks.contains(l3)) {
+                                    // If we have found a walk of the required size,
                                     // add it to the list and continue iteration
                                     if (l3.size() == l) {
-                                        subList.add(l3);
+                                        walks.add(l3);
                                         break loop;
                                     }
                                 } else break loop;
@@ -117,14 +138,20 @@ public class PathFinder {
                 }
             }
         }
-        return subList;
+        return walks;
     }
 
-    private List<List<List<Vertex>>> getAllPaths() {
+    /**
+     * @return all paths in the graph of the current PathFinder object.
+     */
+    public List<List<List<Vertex>>> getAllPaths() {
         if (this.allPaths.get(0).isEmpty()) findPaths();
         return this.allPaths;
     }
 
+    /**
+     * @return a string representation of the list of paths in the graph associated with the current PathFinder instance.
+     */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
