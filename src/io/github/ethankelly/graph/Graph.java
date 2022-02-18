@@ -656,18 +656,8 @@ public class Graph implements Cloneable {
 
 	public List<List<Character>> getCharWalks(int maxLength) {
 		System.out.println("Getting character walks");
-		List<List<Vertex>> allVertexWalks = GraphUtils.printAllPaths(this, 10);
 		List<List<Character>> allCharWalks = new ArrayList<>();
 
-		for (List<Vertex> walk : allVertexWalks) {
-			List<Character> charWalk = new ArrayList<>();
-			for (Vertex v : walk) {
-				System.out.print(v);
-				charWalk.add(this.getLabels().get(this.getVertices().indexOf(v)));
-			}
-			System.out.println();
-			allCharWalks.add(charWalk);
-		}
 		return allCharWalks;
 	}
 }

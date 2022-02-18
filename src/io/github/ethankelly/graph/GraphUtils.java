@@ -5,59 +5,6 @@ import java.util.List;
 
 @SuppressWarnings("unused")
 public class GraphUtils {
-	// Prints all paths
-	public static List<List<Vertex>> printAllPaths(Graph g, int maxLength) {
-		List<List<Vertex>> allPaths = new ArrayList<>();
-		boolean[] isVisited = new boolean[g.getNumVertices()];
-		for (int l = 1; l <= maxLength; l++) {
-			for (int i = 0; i < g.getNumVertices(); i++) {
-				List<Vertex> pathList = new ArrayList<>();
-				// add source to path list
-				pathList.add(g.getVertices().get(i));
-				for (int j = 0; j < g.getNumVertices(); j++) {
-					// Call recursive utility
-					printAllPathsUtil(g, i, j, l, isVisited, pathList, allPaths);
-				}
-			}
-		}
-		return allPaths;
-	}
-
-	// A recursive function to print all paths from 'u' to 'd'.
-	// isVisited[] keeps track of vertices in current path.
-	// localPathList<> stores actual vertices in the current path
-	private static void printAllPathsUtil(Graph g, Integer u, Integer d, int maxLength, boolean[] isVisited, List<Vertex> localPathList, List<List<Vertex>> allPaths) {
-		if (localPathList.size() == maxLength) {
-			if (!allPaths.contains(localPathList)) {
-				System.out.println("ACCEPTED " + localPathList + " FOR LENGTH " + maxLength);
-				// if match found then no need to traverse more till depth
-				allPaths.add(localPathList.size() - 1, localPathList);
-				return;
-			}
-		}
-
-		// Mark the current node
-		isVisited[u] = true;
-
-		// Recur for all the vertices
-		// adjacent to current vertex
-		for (Vertex v : g.getAdjList().get(u)) {
-			int i = g.getVertices().indexOf(v);
-			boolean[] newVisited = new boolean[g.getNumVertices()];
-			if (!isVisited[i] && g.hasEdge(u, i)) {
-				// store current node in path[]
-				localPathList.add(v);
-				newVisited[u]=true;
-				printAllPathsUtil(g, i, d, maxLength, newVisited, localPathList, allPaths);
-				newVisited[u]=false;
-				// remove current node in path[]
-				localPathList.remove(v);
-			}
-		}
-		// Mark the current node
-		isVisited[u] = false;
-	}
-
 
 	// Driver program
 	public static void main(String[] args) {
@@ -68,15 +15,6 @@ public class GraphUtils {
 		g.addEdge(2, 3);
 
 		System.out.println(g);
-
-		printAllPaths(g, 10);
-//			System.out.println("The following are all the different paths");
-//			for (List<Vertex> p : ) {
-//				for (Vertex v : p) {
-//					System.out.print(v);
-//				}
-//				System.out.println();
-//			}
 	}
 
 	/*
