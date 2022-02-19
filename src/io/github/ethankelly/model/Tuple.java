@@ -31,31 +31,29 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
         this.length = vertices.size();
     }
 
-    /**
-     * Given a potential tuple, checks it is valid using the following criteria:
-     * <ol>
-     *      <li> Each vertex in the tuple is distinct;</li>
-     * 	    <li> The vertices in the tuple constitute a connected subgraph; and</li>
-     * 	    <li> The states in the tuple constitute a walk in the filter graph.</li>
-     * </ol>
-     *
-     * @return true if the tuple is essential to expressing the system dynamics, false otherwise.
-     */
-    public boolean isValidTuple(ModelParams modelParams, Graph g, boolean closures) {
-        // TODO update this based on new validity criteria definition (i.e. filter graph definition)
-        List<Character> states = new ArrayList<>();
-        for (Vertex v : this.getVertices()) {
-            System.out.println(v);
-            if (!states.contains(v.getState())) {
-                states.add(v.getState());
-            }
-        }
-        if (size() == 1) return true;
-        else return locationsAreDifferent() &&              // 1. each vertex is distinct
-                areAllConnected(g) &&                       // 2. vertices constitute a connected subgraph
-                modelParams.validStates(states, closures);  // 3. States form a walk in the filter graph
-
-    }
+//    /**
+//     * Given a potential tuple, checks it is valid using the following criteria:
+//     * <ol>
+//     *      <li> Each vertex in the tuple is distinct;</li>
+//     * 	    <li> The vertices in the tuple constitute a connected subgraph; and</li>
+//     * 	    <li> The states in the tuple constitute a walk in the filter graph.</li>
+//     * </ol>
+//     *
+//     * @return true if the tuple is essential to expressing the system dynamics, false otherwise.
+//     */
+//    public boolean isValidTuple(ModelParams modelParams, Graph g, boolean closures) {
+//        List<Character> states = new ArrayList<>();
+//        for (Vertex v : this.getVertices()) {
+//            if (!states.contains(v.getState())) {
+//                states.add(v.getState());
+//            }
+//        }
+//        if (size() == 1) return true;
+//        else return locationsAreDifferent() &&              // 1. each vertex is distinct
+//                areAllConnected(g) &&                       // 2. vertices constitute a connected subgraph
+//                modelParams.validStates(states, closures);  // 3. States form a walk in the filter graph
+//
+//    }
 
     /**
      * Given some list of vertices (some tuple), this method checks whether the index locations of every element of the
@@ -76,6 +74,20 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
             }
         }
         return true;
+    }
+
+    /**
+     * Given some list of vertices (tuple), this method verifies that all vertices in the graph given are in fact
+     * connected. That is, we are only interested in a tuple of vertices that constitute some manner of path (cycle or
+     * such like) - if not, then we do not have to consider the associated equation in the final system of equations
+     * that describes our compartmental model, and we can discount the given tuple.
+     *
+     * @param graph the graph on which we are checking the vertices of the current tuple are connected.
+     * @return true if the tuple forms a path, false otherwise.
+     */
+    public boolean areAllConnected(Graph graph) {
+        Graph candidate = graph.makeSubGraph(this.vertices);
+        return candidate.isConnected();
     }
 
     /**
@@ -174,21 +186,5 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
         Tuple clone = (Tuple) super.clone();
         // TODO: copy mutable state here, so the clone can't change the internals of the original
         return clone;
-    }
-
-    /**
-     * Given some list of vertices (tuple), this method verifies that all vertices in the graph given are in fact
-     * connected. That is, we are only interested in a tuple of vertices that constitute some manner of path (cycle or
-     * such like) - if not, then we do not have to consider the associated equation in the final system of equations
-     * that describes our compartmental model, and we can discount the given tuple.
-     *
-     * @param graph the graph on which we are checking the vertices of the current tuple are connected.
-     * @return true if the tuple forms a path, false otherwise.
-     */
-    public boolean areAllConnected(Graph graph) {
-        System.out.println("CHECKING: " + this + ", GRAPH VERTICES: " + graph.getVertices());
-        if ((!graph.getVertices().containsAll(this.getVertices()))) return false;
-        List<Vertex> list = new ArrayList<>(this.getVertices());
-        return graph.areAllConnected(list);
     }
 }

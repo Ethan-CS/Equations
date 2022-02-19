@@ -46,20 +46,18 @@ public class ModelParams {
     }
 
     public boolean validStates(List<Character> states, boolean closures) {
-        // TODO this may be incorrect but also we should take a different approach to generation anyway -
-        //  build up system rather than tear down full list of all possible combinations
-
         // If there are states in input that aren't in model parameters, the input states are not valid
         if (!this.states.containsAll(states) || this.states.equals(List.of('S')) && closures) return true;
         // Store whether each state in provided states has a direct transition to at least one other state in the model
         boolean[] atLeastOne = new boolean[states.size()];
         if (closures) atLeastOne[this.states.indexOf('S')] = true;
+
         for (char c : states) {
             // If we haven't already found a transition to/from this state, check it against each other state
             if (!atLeastOne[states.indexOf(c)]) {
                 for (char d : states) {
                     // If states are not the same and there's a transition between them, update array
-                    if (c != d && (this.getTransitionGraph().hasEdge(getStates().indexOf(c), getStates().indexOf(d))) &&
+                    if (c != d && (this.getFilterGraph().hasEdge(getStates().indexOf(c), getStates().indexOf(d))) &&
                         (toEnter[states.indexOf(c)]>1 || toEnter[states.indexOf(d)]>1 ||
                          toExit[states.indexOf(c)]>1 || toExit[states.indexOf(d)]>1)) {
                         atLeastOne[states.indexOf(c)] = true;

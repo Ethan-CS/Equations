@@ -293,7 +293,8 @@ public class ODEUtils {
 
 	public static void addExitTuple(ODESystem odeSystem, double[] y, double[] yDot, Tuple tuple, StringBuilder s, List<Vertex> otherTerms, double rateOfTransition) {
 		Tuple t = new Tuple(otherTerms);
-		if (t.isValidTuple(odeSystem.getModelParameters(), odeSystem.getG(), odeSystem.isClosures())) {
+//		if (t.isValidTuple(odeSystem.getModelParameters(), odeSystem.getG(), odeSystem.isClosures())) {
+		if (odeSystem.getTuples().contains(t)) {
 			yDot[odeSystem.getIndicesMapping().get(tuple)] += (-rateOfTransition * y[odeSystem.getIndicesMapping().get(t)]);
 			s.append("-").append(rateOfTransition).append(t);
 		}
@@ -301,7 +302,8 @@ public class ODEUtils {
 
 	private static void addEntryTuple(ODESystem odeSystem, double[] y, double[] yDot, Tuple tuple, StringBuilder s, List<Vertex> otherTerms, double rateOfTransition, Vertex w) {
 		Tuple t = new Tuple(otherTerms);
-		if (t.isValidTuple(odeSystem.getModelParameters(), odeSystem.getG(), odeSystem.isClosures())) {
+//		if (t.isValidTuple(odeSystem.getModelParameters(), odeSystem.getG(), odeSystem.isClosures())) {
+		if (odeSystem.getTuples().contains(t)) {
 			yDot[odeSystem.getIndicesMapping().get(tuple)] += (rateOfTransition * y[odeSystem.getIndicesMapping().get(t)]);
 			s.append("+").append(rateOfTransition).append(t);
 		}

@@ -33,7 +33,7 @@ public class RequiredTuples {
 	public RequiredTuples(Graph graph, ModelParams modelParams, boolean closures) {
 		this.graph = graph;
 		this.modelParams = modelParams;
-		this.tuples = new ArrayList<>();
+		this.tuples = getTuples();
 		this.closures = closures;
 	}
 
@@ -171,7 +171,7 @@ public class RequiredTuples {
 	 * changes are made to the model that would constitute a change to the required tuples.
 	 */
 	public List<Tuple> getTuples() {
-		if (this.tuples.isEmpty()) genTuples();
+		if (this.tuples == null || this.tuples.isEmpty()) genTuples();
 		return this.tuples;
 	}
 
@@ -246,5 +246,9 @@ public class RequiredTuples {
 		int result = Objects.hash(getTuples(), getGraph(), closures);
 		result = 31 * result + (this.getModelParams().getStates().hashCode());
 		return result;
+	}
+
+	public boolean contains(Tuple t) {
+		return this.getTuples().contains(t);
 	}
 }
