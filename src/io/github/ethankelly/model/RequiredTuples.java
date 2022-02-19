@@ -17,9 +17,9 @@ import java.util.*;
  */
 @SuppressWarnings("unused")
 public class RequiredTuples {
-	private List<Tuple> tuples; // The list of tuples required to describe a model on the specified graph
-	private final Graph graph; // The graph representing underpinning the compartmental model
-	private final ModelParams modelParams; // The compartmental model states, e.g. SIR
+	private List<Tuple> tuples; // List of tuples required to describe a model on the specified graph
+	private final Graph graph; // Contact network
+	private final ModelParams modelParams; // Information about compartmental model
 	private final boolean closures; // Whether we are considering closures (may need to consider unusual tuples)
 
 
@@ -37,13 +37,25 @@ public class RequiredTuples {
 		this.closures = closures;
 	}
 
-	/**
-	 * @return the tuples required for the specified model, generated at object construction and updated whenever
-	 * changes are made to the model that would constitute a change to the required tuples.
-	 */
-	public List<Tuple> getTuples() {
-		if (this.tuples.isEmpty()) genTuples();
-		return this.tuples;
+	public static void main(String[] args) {
+		// SIR Model parameters
+		ModelParams m = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
+		m.addTransition('S', 'I', 0.6);
+		m.addTransition('I', 'R', 0.1);
+
+		// Path and cycle on 3 vertices
+		RequiredTuples P3 = new RequiredTuples(GraphGenerator.path(3), m, false);
+		RequiredTuples C3 = new RequiredTuples(GraphGenerator.cycle(3), m, false);
+
+		// Generate and print tuples for path on 3 vertices
+		List<Tuple> pathTuples = P3.genTuples();
+		for (Tuple t : pathTuples) System.out.println(t);
+		System.out.println(pathTuples.size());
+
+		// Generate and print tuples for cycle on 3 vertices
+		List<Tuple> triangleTuples = C3.genTuples();
+		for (Tuple t : triangleTuples) System.out.println(t);
+		System.out.println(triangleTuples.size());
 	}
 
 	/**
@@ -65,39 +77,10 @@ public class RequiredTuples {
 	}
 
 	/**
-	 * Returns true if the current and given objects are equal. This is verified by checking that both sets of required
-	 * tuples agree on requiring tuples nor not, have the same required tuples, possess the same underlying graph and
-	 * that the underlying models have the same epidemiological states.
-	 *
-	 * @param o the object to check equality to.
-	 * @return true if the current and provided RequiredTuples instances are equal, false otherwise.
-	 */
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		RequiredTuples tuple = (RequiredTuples) o;
-		return closures == tuple.closures &&
-		       Objects.equals(getTuples(), tuple.getTuples()) &&
-		       Objects.equals(getGraph(), tuple.getGraph()) &&
-		       this.getModelParams().getStates().containsAll(tuple.getModelParams().getStates());
-	}
-
-	/**
-	 * @return a unique hashcode for the current instance.
-	 */
-	@Override
-	public int hashCode() {
-		int result = Objects.hash(getTuples(), getGraph(), closures);
-		result = 31 * result + (this.getModelParams().getStates().hashCode());
-		return result;
-	}
-
-	/**
 	 * Using the states required in the model and the number of vertices in the graph, this method determines the full
 	 * list of single termed equations that are involved in describing the model exactly.
 	 *
-	 * @return the number of single-probability differential equations required by the model.
+	 * @return the number of single-probability tuples required by the model.
 	 */
 	public List<Tuple> findSingles() {
 		List<Character> statesToGenerateEqnsFor = new ArrayList<>(this.getModelParams().getStates());
@@ -136,25 +119,15 @@ public class RequiredTuples {
 		// Get all walks in the filter graph up to length of contact network
 		Graph filter = modelParams.getFilterGraph();
 		List<List<List<Character>>> charWalks = filter.getCharWalks(this.getGraph().getNumVertices());
-
 		// Get all connected sub-graphs of contact network
-		// 1. Generate power set of vertices in the graph
-		List<List<Vertex>> powerSet = GraphUtils.powerSet(getGraph().getVertices());
-		// 2. Remove any sets of vertices not constituting connected sub-graphs
-		List<Graph> connectedSubGraphs = new ArrayList<>();
-		for (List<Vertex> vertices : powerSet) {
-			if (vertices.size() > 0) {
-				Graph candidate = getGraph().makeSubGraph(vertices);
-				if (candidate.isConnected()) connectedSubGraphs.add(candidate);
-			}
-		}
+		List<List<Vertex>> connectedSubGraphs = getConnectedSubGraphs();
 		// Create a tuple for each connected sub-graph with states from list of walks of that length
 		List<List<Vertex>> tuplesToMake = new ArrayList<>();
-		for (Graph g : connectedSubGraphs) { // Each connected sub-graph
-			for (List<Character> walk : charWalks.get(g.getNumVertices()-1)) { // Each walk in filter graph
+		for (List<Vertex> subGraph : connectedSubGraphs) { // Each connected sub-graph
+			for (List<Character> walk : charWalks.get(subGraph.size()-1)) { // Each walk in filter graph
 				List<Vertex> tupleToMake = new ArrayList<>();
-				for (int i = 0; i < g.getNumVertices(); i++) { // Combine sub-graph and walk as a tuple
-					tupleToMake.add(new Vertex(walk.get(i), g.getVertices().get(i).getLocation()));
+				for (int i = 0; i < subGraph.size(); i++) { // Combine sub-graph and walk as a tuple
+					tupleToMake.add(new Vertex(walk.get(i), subGraph.get(i).getLocation()));
 				}
 				tuplesToMake.add(tupleToMake); // Add new tuple to list of tuples to make
 			}
@@ -164,19 +137,42 @@ public class RequiredTuples {
 			Tuple tuple = new Tuple(t);
 			if (!tuples.contains(tuple)) tuples.add(tuple);
 		}
+		// Assign to tuples field and return
 		this.tuples = tuples;
 		return tuples;
 	}
 
-	public static void main(String[] args) {
-		ModelParams m = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
-		m.addTransition('S', 'I', 0.6);
-		m.addTransition('I', 'R', 0.1);
-		RequiredTuples rt = new RequiredTuples(GraphGenerator.path(3), m, false);
+	private List<List<Vertex>> getConnectedSubGraphs() {
+		// Generate power set of vertices in the graph
+		Set<List<Vertex>> powerSet = GraphUtils.powerSet(getGraph().getVertices());
+		// Remove any sets of vertices not constituting connected sub-graphs
+		List<List<Vertex>> connectedSubGraphs = new ArrayList<>();
+		for (List<Vertex> vertices : powerSet) {
+			if (vertices.size() > 0) {
+				Graph candidate = getGraph().makeSubGraph(vertices);
+				if (candidate.isConnected()) {
+					// Need to check this so we only use valid permutations with walks
+					boolean isPath = true;
+					for (int i = 0; i < vertices.size() - 1; i++) {
+						if (!this.getGraph().hasDirectedEdge(vertices.get(i), vertices.get(i+1))) {
+							isPath = false;
+							break;
+						}
+					}
+					if (isPath) connectedSubGraphs.add(vertices);
+				}
+			}
+		}
+		return connectedSubGraphs;
+	}
 
-		List<Tuple> tuples = rt.genTuples();
-		for (Tuple t : tuples) System.out.println(t);
-		System.out.println(tuples.size());
+	/**
+	 * @return the tuples required for the specified model, generated at object construction and updated whenever
+	 * changes are made to the model that would constitute a change to the required tuples.
+	 */
+	public List<Tuple> getTuples() {
+		if (this.tuples.isEmpty()) genTuples();
+		return this.tuples;
 	}
 
 	/**
@@ -221,5 +217,34 @@ public class RequiredTuples {
 	 */
 	public Tuple get(int i) {
 		return this.getTuples().get(i);
+	}
+
+	/**
+	 * Returns true if the current and given objects are equal. This is verified by checking that both sets of required
+	 * tuples agree on requiring tuples nor not, have the same required tuples, possess the same underlying graph and
+	 * that the underlying models have the same epidemiological states.
+	 *
+	 * @param o the object to check equality to.
+	 * @return true if the current and provided RequiredTuples instances are equal, false otherwise.
+	 */
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		RequiredTuples tuple = (RequiredTuples) o;
+		return closures == tuple.closures &&
+				Objects.equals(getTuples(), tuple.getTuples()) &&
+				Objects.equals(getGraph(), tuple.getGraph()) &&
+				this.getModelParams().getStates().containsAll(tuple.getModelParams().getStates());
+	}
+
+	/**
+	 * @return a unique hashcode for the current instance.
+	 */
+	@Override
+	public int hashCode() {
+		int result = Objects.hash(getTuples(), getGraph(), closures);
+		result = 31 * result + (this.getModelParams().getStates().hashCode());
+		return result;
 	}
 }

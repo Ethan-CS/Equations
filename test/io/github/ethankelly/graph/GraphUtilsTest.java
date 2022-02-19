@@ -2,10 +2,7 @@ package io.github.ethankelly.graph;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -18,9 +15,9 @@ class GraphUtilsTest {
         mySet.add(2);
         mySet.add(3);
         // Get the output of power set method on above list
-        List<List<Integer>> powerSet = GraphUtils.powerSet(mySet);
+        Set<List<Integer>> powerSet = GraphUtils.powerSet(mySet);
         // Manually create the expected power set
-        List<List<Integer>> expected = new ArrayList<>();
+        Set<List<Integer>> expected = new HashSet<>();
         expected.add(new ArrayList<>(Collections.emptyList()));
         expected.add(new ArrayList<>(Collections.singletonList(1)));
         expected.add(new ArrayList<>(Collections.singletonList(2)));

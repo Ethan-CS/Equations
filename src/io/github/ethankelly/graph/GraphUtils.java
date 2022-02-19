@@ -1,7 +1,9 @@
 package io.github.ethankelly.graph;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @SuppressWarnings("unused")
 public class GraphUtils {
@@ -142,9 +144,8 @@ public class GraphUtils {
         }
     }
 
-
-	public static <T> List<List<T>> powerSet(List<T> originalSet) {
-		List<List<T>> sets = new ArrayList<>();
+	public static <T> Set<List<T>> powerSet(List<T> originalSet) {
+		Set<List<T>> sets = new HashSet<>();
 		if (originalSet.isEmpty()) {
 			sets.add(new ArrayList<T>());
 			return sets;
@@ -156,10 +157,29 @@ public class GraphUtils {
 			List<T> newSet = new ArrayList<>();
 			newSet.add(head);
 			newSet.addAll(set);
-			sets.add(newSet);
+			sets.addAll(getListPerm(newSet));
 			sets.add(set);
 		}
 		return sets;
+	}
+
+	public static <E> List<List<E>> getListPerm(List<E> original) {
+		if (original.isEmpty()) {
+			List<List<E>> result = new ArrayList<>();
+			result.add(new ArrayList<>());
+			return result;
+		}
+		E firstElement = original.remove(0);
+		List<List<E>> returnValue = new ArrayList<>();
+		List<List<E>> permutations = getListPerm(original);
+		for (List<E> smallerPermutation : permutations) {
+			for (int index = 0; index <= smallerPermutation.size(); index++) {
+				List<E> temp = new ArrayList<>(smallerPermutation);
+				temp.add(index, firstElement);
+				returnValue.add(temp);
+			}
+		}
+		return returnValue;
 	}
 
 	// Recursive helper method that uses a depth-first search to find connected components
@@ -176,15 +196,14 @@ public class GraphUtils {
 	}
 
     // Recursive helper method - Depth First Search to determine whether graph is connected
-    static void DFS_ConnectedUtil(Graph graph, int source, List<List<Vertex>> adjacencyList, boolean[] visited){
+    static void DFS_ConnectedUtil(Graph graph, int source, boolean[] visited){
         // Mark the vertex visited as True
         visited[source] = true;
         // Travel the adjacent neighbours
-        for (int i = 0; i <adjacencyList.get(source).size() ; i++) {
-            int neighbour = graph.getVertices().indexOf(adjacencyList.get(source).get(i));
-            if(!visited[neighbour]){
-                // Call DFS_ConnectedUtil from neighbour
-                DFS_ConnectedUtil(graph, neighbour, adjacencyList, visited);
+        for (int i = 0; i < graph.getAdjList().get(source).size() ; i++) {
+            int neighbour = graph.getVertices().indexOf(graph.getAdjList().get(source).get(i));
+            if(!visited[neighbour]) { // Call DFS_ConnectedUtil from neighbour
+                DFS_ConnectedUtil(graph, neighbour, visited);
             }
         }
     }

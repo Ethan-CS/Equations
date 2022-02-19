@@ -159,12 +159,13 @@ public class Graph implements Cloneable {
 
 	// Given a list of vertices, creates a sub-graph from them with all relevant edges from the original graph
 	public Graph makeSubGraph(List<Vertex> subList) {
-		subList.sort(null);
+		List<Vertex> vertices = new ArrayList<>(subList);
+		vertices.sort(null);
 		// Make a new graph with appropriate number of vertices, name and adjacency matrices
-		Graph subGraph = new Graph(subList.size(), getName().equals("") ? "" : getName() + " Subgraph");
-		subGraph.vertices = subList;
-		for (Vertex v : subList) {
-			for (Vertex w : subList) {
+		Graph subGraph = new Graph(vertices.size(), getName().equals("") ? "" : getName() + " Subgraph");
+		subGraph.vertices = vertices;
+		for (Vertex v : vertices) {
+			for (Vertex w : vertices) {
 				if (!v.equals(w) && adjList.get(v.getLocation()).contains(w) || adjList.get(w.getLocation()).contains(v)) {
 					subGraph.addEdge(v, w);
 				}
@@ -625,12 +626,11 @@ public class Graph implements Cloneable {
 
 	public boolean isConnected() {
 		int vertices = this.getNumVertices();
-		List<List<Vertex>> adjacencyList= this.getAdjList();
 		// Take a boolean visited array
 		boolean[] visited = new boolean[vertices];
 
-		// Start the DFS_ConnectedUtil from vertex 0
-		GraphUtils.DFS_ConnectedUtil(this, 0, adjacencyList, visited);
+		// Start the DFS from vertex 0
+		GraphUtils.DFS_ConnectedUtil(this, 0, visited);
 
 		// Check if all the vertices are visited
 		// Return false if at least one is not visited
