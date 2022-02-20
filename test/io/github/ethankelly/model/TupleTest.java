@@ -1,7 +1,5 @@
 package io.github.ethankelly.model;
 
-import io.github.ethankelly.graph.Graph;
-import io.github.ethankelly.graph.GraphGenerator;
 import io.github.ethankelly.graph.Vertex;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,7 +10,6 @@ import java.util.Arrays;
 import java.util.Random;
 
 class TupleTest {
-
     public static ModelParams m;
 
     @BeforeEach
@@ -20,69 +17,6 @@ class TupleTest {
         m = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
         m.addTransition('S', 'I', 0.6);
         m.addTransition('I', 'R', 0.1);
-    }
-
-    @Test
-    void isValidTuple() {
-        /*
-         * This must test the following:
-         *   1. Each vertex in the tuple is distinct;
-         * 	 2. The vertices in the tuple constitute a connected subgraph; and
-         * 	 3. The states in the tuple constitute a walk in the filter graph.
-         */
-
-        Tuple t1 = new Tuple(Arrays.asList(
-                new Vertex('S', 0),
-                new Vertex('S',  1),
-                new Vertex('S', 2)));
-
-
-        Graph edge = new Graph(2, "Edge");
-        edge.addEdge(0, 1);
-        // Vertices not in the tuple
-//        Assertions.assertFalse(t1.isValidTuple(m, edge,  true),
-//                "Tuples with vertices not in the graph should not be valid");
-
-        // (1) All values are distinct
-        Tuple t2 = new Tuple(Arrays.asList(new Vertex(0), new Vertex(1), new Vertex(0)));
-        Assertions.assertFalse(t2.locationsAreDifferent(),
-                "Two vertices with same location accepted as a valid tuple");
-
-        Tuple t3 = new Tuple(Arrays.asList(new Vertex('S', 0), new Vertex('T', 1), new Vertex('U', 2)));
-        Assertions.assertTrue(t3.locationsAreDifferent(),
-                "Tuple with no duplicate vertex locations not accepted as valid");
-
-        // (2) Vertices in tuple constitute a connected subgraph
-        Tuple t4 = new Tuple(Arrays.asList(new Vertex('A', 0), new Vertex('B', 1), new Vertex('C', 2)));
-        Assertions.assertTrue(t4.areAllConnected(GraphGenerator.complete(4)),
-                "Connected subgraph of vertices not accepted as valid");
-        Assertions.assertFalse(t4.areAllConnected(new Graph(3, "")),
-                "Disjoint components incorrectly accepted as a valid single tuple");
-
-        // (3) tested in validStates test
-    }
-
-    @Test
-    void validStates() {
-        Graph triangle = GraphGenerator.getTriangle();
-
-        Tuple tStatesNotInModel = new Tuple(Arrays.asList(new Vertex('S', 0), new Vertex('P', 1)));
-
-        // States not in the tuple
-//        Assertions.assertFalse(tStatesNotInModel.isValidTuple(m, GraphGenerator.getEdge(),  true),
-//                "Tuples with states not in the model should not be valid");
-
-        Tuple t1 = new Tuple(Arrays.asList(
-                new Vertex('S', 0),
-                new Vertex('S',  1),
-                new Vertex('S', 2)));
-
-        // Test all susceptible tuples
-//        Assertions.assertFalse(t1.isValidTuple(m, triangle, false),
-//                "An all-susceptible tuple when we don't require closures should not be valid");
-//        System.out.println("*****");
-//        Assertions.assertTrue(t1.isValidTuple(m, triangle, true),
-//                "An all-susceptible tuple when we do require closures should be valid");
     }
 
     @Test

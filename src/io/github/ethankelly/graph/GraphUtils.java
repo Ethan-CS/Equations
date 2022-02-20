@@ -5,9 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@SuppressWarnings("unused")
 public class GraphUtils {
-
 	// Driver program
 	public static void main(String[] args) {
 		// Create a sample graph
@@ -26,6 +24,7 @@ public class GraphUtils {
 	 Auxiliary Space: O(V^3).
 	 To store the table, O(V^3) space is needed.
 	*/
+	@SuppressWarnings("unused")
 	public static void countWalks(Graph graph, int k) {
 		// Loop for number of edges from 0 to k
 		for (int e = 0; e <= k; e++) {
@@ -62,23 +61,6 @@ public class GraphUtils {
 		graph.numWalks.set(0, zeroWalks);
 	}
 
-	private static String printWalks(Graph g) {
-		StringBuilder sb = new StringBuilder();
-		List<Integer[][]> walks = g.numWalks;
-		for (int i = 0; i < walks.size(); i++) {
-			Integer[][] count = walks.get(i);
-			sb.append("Walks of length ").append(i).append(":\n");
-			for (Integer[] integers : count) {
-				for (int j = 0; j < count[0].length; j++) {
-					sb.append(integers[j]);
-				}
-				sb.append("\n");
-			}
-			sb.append("\n");
-		}
-		return String.valueOf(sb);
-	}
-
 	// Recursive helper method - used to decompose the given graph into sub-graphs by cut-vertices
 	static void spliceUtil(List<Graph> subGraphs, List<Vertex> cutVertices, Graph clone, Graph original) {
 		Vertex cutVertex = cutVertices.get(0);
@@ -107,54 +89,49 @@ public class GraphUtils {
     /*
      * Recursive helper function that finds cut-vertices using the depth-first search algorithm.
      */
-    static void findCutVertices(Graph graph, Vertex vertex,
-                                boolean[] visited,
-                                int[] times,
-                                int[] low,
-                                int[] parent,
-                                boolean[] cutVertices) {
+    static void findCutVertices(Graph g, Vertex v, boolean[] visited, int[] times, int[] low, int[] parent, boolean[] cutVertices) {
 		// TODO this method tends to lead to a stack overflow - easiest thing may be to rewrite
         int NIL = -1;
-        int u = graph.getVertices().indexOf(vertex);
+        int u = g.getVertices().indexOf(v);
         int children = 0; // Counter for children in the DFS Tree
         visited[u] = true; // Mark the current node visited
-        times[u] = low[u] = ++graph.time; // Initialise discovery time and low value
-        List<Vertex> adj = graph.getAdjList().get(u);
+        times[u] = low[u] = ++g.time; // Initialise discovery time and low value
+        List<Vertex> adj = g.getAdjList().get(u);
         // v is current adjacent of u
         for (Vertex otherVertex : adj) {
-			if (!vertex.equals(otherVertex)) {
-				int v = graph.getVertices().indexOf(otherVertex);
-				// If v is not visited yet, make it a child of u in DFS tree and recurse
-				if (!visited[v]) {
+			if (!v.equals(otherVertex)) {
+				int w = g.getVertices().indexOf(otherVertex);
+				// If w is not visited yet, make it a child of u in DFS tree and recurse
+				if (!visited[w]) {
 					children++;
-					parent[v] = u;
-					findCutVertices(graph, otherVertex, visited, times, low, parent, cutVertices);
-					// Check if the subtree rooted with v has a connection to one of the ancestors of u
-					low[u] = Math.min(low[u], low[v]);
+					parent[w] = u;
+					findCutVertices(g, otherVertex, visited, times, low, parent, cutVertices);
+					// Check if the subtree rooted with w has a connection to one of the ancestors of u
+					low[u] = Math.min(low[u], low[w]);
 					// u is a cut vertex if either (1) it is a root of DFS tree and has two or more children,
 					// or (2) the low value of one of its children is more than its own discovery value.
 					if (parent[u] == NIL && children > 1) cutVertices[u] = true; // (1)
-					if (parent[u] != NIL && low[v] >= times[u])
+					if (parent[u] != NIL && low[w] >= times[u])
 						cutVertices[u] = true; // (2)
-				} else if (v != parent[u]) {
+				} else if (w != parent[u]) {
 					// Update the low value of u for parent function calls.
-					low[u] = Math.min(low[u], times[v]);
+					low[u] = Math.min(low[u], times[w]);
 				}
 			}
         }
     }
 
-	public static <T> Set<List<T>> powerSet(List<T> originalSet) {
-		Set<List<T>> sets = new HashSet<>();
+	public static <E> Set<List<E>> powerSet(List<E> originalSet) {
+		Set<List<E>> sets = new HashSet<>();
 		if (originalSet.isEmpty()) {
-			sets.add(new ArrayList<T>());
+			sets.add(new ArrayList<>());
 			return sets;
 		}
-		List<T> list = new ArrayList<T>(originalSet);
-		T head = list.get(0);
-		List<T> rest = new ArrayList<T>(list.subList(1, list.size()));
-		for (List<T> set : powerSet(rest)) {
-			List<T> newSet = new ArrayList<>();
+		List<E> list = new ArrayList<>(originalSet);
+		E head = list.get(0);
+		List<E> rest = new ArrayList<>(list.subList(1, list.size()));
+		for (List<E> set : powerSet(rest)) {
+			List<E> newSet = new ArrayList<>();
 			newSet.add(head);
 			newSet.addAll(set);
 			sets.addAll(getListPerm(newSet));

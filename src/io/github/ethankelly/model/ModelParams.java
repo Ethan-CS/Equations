@@ -12,9 +12,9 @@ import java.util.List;
  * Stores data representing the parameters of a compartmental model of disease.
  */
 public class ModelParams {
-    /** How many neighbours are required to enter/exit each state */
+    /** How many neighbours are required to enter each state */
     private final int[] toEnter;
-    /** How many neighbours are required to enter/exit each state */
+    /** How many neighbours are required to exit each state */
     private final int[] toExit;
     /** List of characters representing states in the model */
     private final List<Character> states;
@@ -25,6 +25,13 @@ public class ModelParams {
     /** Sub-graph of the transition graph containing only states which require 1 or more other states to induce. */
     private Graph filter;
 
+    /**
+     * Class constructor.
+     *
+     * @param states the characters representing compartmental model states.
+     * @param toEnter array storing the number of neighbours required to induce a transition into each state.
+     * @param toExit array storing the number of neighbours required to induce a transition out of each state.
+     */
     public ModelParams(List<Character> states, int[] toEnter, int[] toExit) {
         this.states = states;
         assert (toEnter.length == states.size()) :
@@ -43,33 +50,6 @@ public class ModelParams {
         m.addTransition('S', 'I', 0.6);
         m.addTransition('I', 'R', 0.1);
         System.out.println(m);
-    }
-
-    public boolean validStates(List<Character> states, boolean closures) {
-        // If there are states in input that aren't in model parameters, the input states are not valid
-        if (!this.states.containsAll(states) || this.states.equals(List.of('S')) && closures) return true;
-        // Store whether each state in provided states has a direct transition to at least one other state in the model
-        boolean[] atLeastOne = new boolean[states.size()];
-        if (closures) atLeastOne[this.states.indexOf('S')] = true;
-
-        for (char c : states) {
-            // If we haven't already found a transition to/from this state, check it against each other state
-            if (!atLeastOne[states.indexOf(c)]) {
-                for (char d : states) {
-                    // If states are not the same and there's a transition between them, update array
-                    if (c != d && (this.getFilterGraph().hasEdge(getStates().indexOf(c), getStates().indexOf(d))) &&
-                        (toEnter[states.indexOf(c)]>1 || toEnter[states.indexOf(d)]>1 ||
-                         toExit[states.indexOf(c)]>1 || toExit[states.indexOf(d)]>1)) {
-                        atLeastOne[states.indexOf(c)] = true;
-                        atLeastOne[states.indexOf(d)] = true;
-                        break;
-                    }
-                }
-                // c and d don't have a direct transition - enough to make the given states not valid.
-                if (!atLeastOne[states.indexOf(c)]) return false;
-            }
-        }
-        return true;
     }
 
     public Graph getTransitionGraph() {

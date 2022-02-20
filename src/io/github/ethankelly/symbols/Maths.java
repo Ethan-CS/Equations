@@ -5,8 +5,8 @@ package io.github.ethankelly.symbols;
  *
  * @author <a href="mailto:e.kelly.1@research.gla.ac.uk">Ethan Kelly</a>
  */
+@SuppressWarnings("unused")
 public enum Maths {
-
     L_ANGLE("\u3008"),
     R_ANGLE("\u3009"),
     PRIME("\u2032"),
