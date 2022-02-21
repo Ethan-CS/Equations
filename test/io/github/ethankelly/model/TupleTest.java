@@ -28,7 +28,7 @@ class TupleTest {
         int maybe2 = r.nextInt(10000);
         int k = (maybe2 != i && maybe2 != j) ? maybe2 : (maybe2 + 1);
 
-        Tuple tValid = new Tuple(Arrays.asList(
+        RequiredTuples.Tuple tValid = new RequiredTuples.Tuple(Arrays.asList(
                 new Vertex('S', i),
                 new Vertex('P', j),
                 new Vertex('Q', k)));
@@ -46,13 +46,13 @@ class TupleTest {
         char c = (char) r.nextInt(128), d = (char) r.nextInt(128), e = (char) r.nextInt(128),
         f = (char) r.nextInt(128), g = (char) r.nextInt(128), h = (char) r.nextInt(128);
 
-        Tuple t = new Tuple(Arrays.asList(
+        RequiredTuples.Tuple t = new RequiredTuples.Tuple(Arrays.asList(
                 new Vertex(c, i),
                 new Vertex(d, j),
                 new Vertex(e, k)
         ));
 
-        Tuple u = new Tuple(Arrays.asList(
+        RequiredTuples.Tuple u = new RequiredTuples.Tuple(Arrays.asList(
                 new Vertex(c, i),
                 new Vertex(d, j),
                 new Vertex(e, k)
@@ -60,7 +60,7 @@ class TupleTest {
 
         Assertions.assertEquals(t, u, "Equivalent tuples are not equal. Check: " + t + ", " + u);
 
-        Tuple v = new Tuple(Arrays.asList(
+        RequiredTuples.Tuple v = new RequiredTuples.Tuple(Arrays.asList(
                 new Vertex(f, l),
                 new Vertex(g, m),
                 new Vertex(h, n)
@@ -79,13 +79,13 @@ class TupleTest {
         char c = (char) r.nextInt(128), d = (char) r.nextInt(128), e = (char) r.nextInt(128),
                 f = (char) r.nextInt(128), g = (char) r.nextInt(128), h = (char) r.nextInt(128);
 
-        Tuple t = new Tuple(Arrays.asList(
+        RequiredTuples.Tuple t = new RequiredTuples.Tuple(Arrays.asList(
                 new Vertex(c, i),
                 new Vertex(d, j),
                 new Vertex(e, k)
         ));
 
-        Tuple u = new Tuple(Arrays.asList(
+        RequiredTuples.Tuple u = new RequiredTuples.Tuple(Arrays.asList(
                 new Vertex(c, i),
                 new Vertex(d, j),
                 new Vertex(e, k)
@@ -93,7 +93,7 @@ class TupleTest {
 
         Assertions.assertEquals(t.hashCode(), u.hashCode(), "Equivalent tuples don't have the same hash. Check: " + t + ", " + u);
 
-        Tuple v = new Tuple(Arrays.asList(
+        RequiredTuples.Tuple v = new RequiredTuples.Tuple(Arrays.asList(
                 new Vertex(f, l),
                 new Vertex(g, m),
                 new Vertex(h, n)

@@ -1,8 +1,5 @@
 package io.github.ethankelly.graph;
 
-import io.github.ethankelly.std.MinPriorityQueue;
-import io.github.ethankelly.std.Rand;
-
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
@@ -733,7 +730,7 @@ public final class GraphGenerator {
         IntStream.range(0, numVertices - 2).forEach(i -> degree[prufer[i]]++);
 
         // Minimum priority queue object pq contains all vertices of degree 1
-        MinPriorityQueue<Integer> pq = new MinPriorityQueue<>();
+        Rand.MinPriorityQueue<Integer> pq = new Rand.MinPriorityQueue<>();
         IntStream.range(0, numVertices).filter(v -> degree[v] == 1).forEach(pq::insert);
 
         // Repeatedly call delMin() (removes and returns the smallest key on the priority queue)

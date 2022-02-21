@@ -2,7 +2,7 @@ package io.github.ethankelly.results;
 
 import io.github.ethankelly.graph.Vertex;
 import io.github.ethankelly.model.ODESystem;
-import io.github.ethankelly.model.Tuple;
+import io.github.ethankelly.model.RequiredTuples;
 import org.apache.commons.math3.ode.FirstOrderIntegrator;
 import tech.tablesaw.api.DoubleColumn;
 import tech.tablesaw.api.IntColumn;
@@ -23,20 +23,20 @@ import java.util.stream.IntStream;
 
 @SuppressWarnings("unused")
 public class ODEUtils {
-	public static Map<List<Tuple>, double[][]> getResultsByLength(ODESystem system, double[][] results, int tMax) {
-		Map<List<Tuple>, double[][]> map = new HashMap<>();
-		List<Tuple> tuples = system.getTuples().getTuples();
+	public static Map<List<RequiredTuples.Tuple>, double[][]> getResultsByLength(ODESystem system, double[][] results, int tMax) {
+		Map<List<RequiredTuples.Tuple>, double[][]> map = new HashMap<>();
+		List<RequiredTuples.Tuple> tuples = system.getTuples().getTuples();
 		int maxLength = 0;
-		for (Tuple t : tuples) if (t.length > maxLength) maxLength = t.length;
+		for (RequiredTuples.Tuple t : tuples) if (t.length > maxLength) maxLength = t.length;
 
-		List<List<Tuple>> tuplesByLength = IntStream.range(0, maxLength).<List<Tuple>>mapToObj(i -> new ArrayList<>()).collect(Collectors.toList());
-		for (Tuple t : tuples) {
+		List<List<RequiredTuples.Tuple>> tuplesByLength = IntStream.range(0, maxLength).<List<RequiredTuples.Tuple>>mapToObj(i -> new ArrayList<>()).collect(Collectors.toList());
+		for (RequiredTuples.Tuple t : tuples) {
 			tuplesByLength.get(t.length-1).add(t);
 		}
 
-		for (List<Tuple> tups : tuplesByLength) {
+		for (List<RequiredTuples.Tuple> tups : tuplesByLength) {
 			double[][] thisResults = new double[tMax][tups.size()];
-			for (Tuple t : tups) {
+			for (RequiredTuples.Tuple t : tups) {
 				for (int i = 0; i < tMax; i++) {
 					thisResults
 							[i]
@@ -53,12 +53,12 @@ public class ODEUtils {
 	}
 
 	public static void setInitialConditions(ODESystem system, double[] y0) {
-		for (Tuple t : system.getTuples().getTuples()) {
-			y0[system.getIndicesMapping().get(t)] = y0[system.getIndicesMapping().get(new Tuple(t.getVertices().get(0)))];
+		for (RequiredTuples.Tuple t : system.getTuples().getTuples()) {
+			y0[system.getIndicesMapping().get(t)] = y0[system.getIndicesMapping().get(new RequiredTuples.Tuple(t.getVertices().get(0)))];
 			IntStream.range(1, t.size())
 					.mapToObj(t::get)
 					.forEach(v -> y0[system.getIndicesMapping().get(t)]
-							= y0[system.getIndicesMapping().get(t)] * y0[system.getIndicesMapping().get(new Tuple(v))]);
+							= y0[system.getIndicesMapping().get(t)] * y0[system.getIndicesMapping().get(new RequiredTuples.Tuple(v))]);
 		}
 	}
 
@@ -79,7 +79,7 @@ public class ODEUtils {
 			integrator.integrate(system, t - 1, y0, t, y0);
 			// Add computed results to summary data structure
 			// Since we're dealing with probabilities, we need to ensure solutions are between 0 and 1
-			for (Tuple tup : system.getTuples().getTuples()) {
+			for (RequiredTuples.Tuple tup : system.getTuples().getTuples()) {
 				double thisResult = y0[system.getIndicesMapping().get(tup)];
 				if (thisResult <= 0) { // Less than 0 or very small
 					results[t][system.getIndicesMapping().get(tup)] = 0;
@@ -106,7 +106,7 @@ public class ODEUtils {
 		try {
 			FileWriter writer = new FileWriter("test.csv");
 			sb.append("t,");
-			for (Tuple key : triangle.getIndicesMapping().keySet()) sb.append(key).append(",");
+			for (RequiredTuples.Tuple key : triangle.getIndicesMapping().keySet()) sb.append(key).append(",");
 			int t = 1;
 			for (double[] result : results) {
 				// Get rid of extra comma on end of previous line and start new line
@@ -127,7 +127,7 @@ public class ODEUtils {
 		}
 	}
 
-	public static Tuple getKeyByValue(Map<Tuple, Integer> map, Integer value) {
+	public static RequiredTuples.Tuple getKeyByValue(Map<RequiredTuples.Tuple, Integer> map, Integer value) {
 		return map.keySet()
 				.stream()
 				.filter(entry -> Objects.equals(map.get(entry), value))
@@ -135,7 +135,7 @@ public class ODEUtils {
 				.orElse(null);
 	}
 
-	public static void plotResults(ODESystem system, Map<Tuple, Integer> headers, double[][] results) {
+	public static void plotResults(ODESystem system, Map<RequiredTuples.Tuple, Integer> headers, double[][] results) {
 		// Time arrays, for x values in the plot
 		int[] time = IntStream.range(0, system.tMax + 1).toArray();
 		double[] timeDouble = Arrays.stream(time).asDoubleStream().toArray();
@@ -201,7 +201,7 @@ public class ODEUtils {
      * @param tuple the tuple we wish to generate an equation for.
      * @return the string representation of the equation for the specified tuple that the method has generated.
      */
-    public static String getEquation(ODESystem ode, double[] y, double[] yDot, Tuple tuple) {
+    public static String getEquation(ODESystem ode, double[] y, double[] yDot, RequiredTuples.Tuple tuple) {
         StringBuilder s = new StringBuilder();
         s.append("\n").append(tuple).append("=");
         tuple.getVertices().forEach(v -> getTerms(ode, y, yDot, tuple, s, v));
@@ -209,14 +209,14 @@ public class ODEUtils {
         return String.valueOf(s);
     }
 
-	private static void getTerms(ODESystem ode, double[] y, double[] yDot, Tuple tuple, StringBuilder s, Vertex v) {
+	private static void getTerms(ODESystem ode, double[] y, double[] yDot, RequiredTuples.Tuple tuple, StringBuilder s, Vertex v) {
 		// Chain rule - v is derived, others re-entered as ordinary terms
 		// So we store a list of the remaining terms to enter back in later
 		getEntryTerms(ode, y, yDot, tuple, s, v);
 		getExitTerms(ode, y, yDot, tuple, s, v);
 	}
 
-	private static void getExitTerms(ODESystem ode, double[] y, double[] yDot, Tuple tuple, StringBuilder s, Vertex v) {
+	private static void getExitTerms(ODESystem ode, double[] y, double[] yDot, RequiredTuples.Tuple tuple, StringBuilder s, Vertex v) {
 		int indexOfState = ode.getModelParameters().getStates().indexOf(v.getState());
 		List<Vertex> otherTerms = getOtherTerms(tuple, v);
 		otherTerms.add(v);
@@ -258,7 +258,7 @@ public class ODEUtils {
 		}
 	}
 
-	private static void getEntryTerms(ODESystem ode, double[] y, double[] yDot, Tuple tuple, StringBuilder s, Vertex v) {
+	private static void getEntryTerms(ODESystem ode, double[] y, double[] yDot, RequiredTuples.Tuple tuple, StringBuilder s, Vertex v) {
 		int indexOfState = ode.getModelParameters().getStates().indexOf(v.getState());
 		List<Vertex> otherTerms = getOtherTerms(tuple, v);
 		char otherState= 0; // The other state we are required to consider
@@ -291,8 +291,8 @@ public class ODEUtils {
 		}
 	}
 
-	public static void addExitTuple(ODESystem odeSystem, double[] y, double[] yDot, Tuple tuple, StringBuilder s, List<Vertex> otherTerms, double rateOfTransition) {
-		Tuple t = new Tuple(otherTerms);
+	public static void addExitTuple(ODESystem odeSystem, double[] y, double[] yDot, RequiredTuples.Tuple tuple, StringBuilder s, List<Vertex> otherTerms, double rateOfTransition) {
+		RequiredTuples.Tuple t = new RequiredTuples.Tuple(otherTerms);
 //		if (t.isValidTuple(odeSystem.getModelParameters(), odeSystem.getG(), odeSystem.isClosures())) {
 		if (odeSystem.getTuples().contains(t)) {
 			yDot[odeSystem.getIndicesMapping().get(tuple)] += (-rateOfTransition * y[odeSystem.getIndicesMapping().get(t)]);
@@ -300,8 +300,8 @@ public class ODEUtils {
 		}
 	}
 
-	private static void addEntryTuple(ODESystem odeSystem, double[] y, double[] yDot, Tuple tuple, StringBuilder s, List<Vertex> otherTerms, double rateOfTransition, Vertex w) {
-		Tuple t = new Tuple(otherTerms);
+	private static void addEntryTuple(ODESystem odeSystem, double[] y, double[] yDot, RequiredTuples.Tuple tuple, StringBuilder s, List<Vertex> otherTerms, double rateOfTransition, Vertex w) {
+		RequiredTuples.Tuple t = new RequiredTuples.Tuple(otherTerms);
 //		if (t.isValidTuple(odeSystem.getModelParameters(), odeSystem.getG(), odeSystem.isClosures())) {
 		if (odeSystem.getTuples().contains(t)) {
 			yDot[odeSystem.getIndicesMapping().get(tuple)] += (rateOfTransition * y[odeSystem.getIndicesMapping().get(t)]);
@@ -310,7 +310,7 @@ public class ODEUtils {
 		otherTerms.remove(w);
 	}
 
-	private static List<Vertex> getOtherTerms(Tuple tuple, Vertex v) {
+	private static List<Vertex> getOtherTerms(RequiredTuples.Tuple tuple, Vertex v) {
 		List<Vertex> otherTerms = new ArrayList<>();
 		for (Vertex vertex : tuple.getVertices()) {
 			if (!v.equals(vertex)) {

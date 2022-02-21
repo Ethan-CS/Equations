@@ -1,6 +1,6 @@
 package io.github.ethankelly.graph;
 
-import io.github.ethankelly.model.Tuple;
+import io.github.ethankelly.model.RequiredTuples;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -15,13 +15,13 @@ class VertexTest {
 		same.add(new Vertex('S', 1));
 		same.add(new Vertex('I', 1));
 		same.add(new Vertex('R', 1));
-		Tuple allSameLocation = new Tuple(same);
+		RequiredTuples.Tuple allSameLocation = new RequiredTuples.Tuple(same);
 
 		List<Vertex> different = new ArrayList<>();
 		different.add(new Vertex('S', 1));
 		different.add(new Vertex('I', 2));
 		different.add(new Vertex('R', 3));
-		Tuple allDifferentLocation = new Tuple(different);
+		RequiredTuples.Tuple allDifferentLocation = new RequiredTuples.Tuple(different);
 
 		Assertions.assertFalse(allSameLocation.locationsAreDifferent(),
 				"All same location vertices should return false.");

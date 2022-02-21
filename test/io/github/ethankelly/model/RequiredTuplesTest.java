@@ -3,7 +3,7 @@ package io.github.ethankelly.model;
 import io.github.ethankelly.graph.Graph;
 import io.github.ethankelly.graph.GraphGenerator;
 import io.github.ethankelly.graph.Vertex;
-import io.github.ethankelly.std.Rand;
+import io.github.ethankelly.graph.Rand;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
