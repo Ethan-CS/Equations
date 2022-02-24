@@ -60,6 +60,21 @@ public class PathFinder {
                 dfs(this.graph, i, j);
     }
 
+    protected List<List<Vertex>> generator(List<Vertex> currentState, List<List<Vertex>> allStates) {
+        List<List<Vertex>> children = new ArrayList<>();
+        for (Vertex v : currentState) {
+            List<Vertex> neighbours = this.graph.getAdjList().get(this.graph.getVertices().indexOf(v));
+            for (Vertex w : neighbours) {
+                if (!currentState.contains(w)) {
+                    List<Vertex> child = new ArrayList<>(currentState);
+                    child.add(w);
+                    children.add(child);
+                }
+            }
+        }
+        return children;
+    }
+
     /**
      * @return the number of paths found in the graph associated with the current PathFinder instance.
      */
@@ -134,20 +149,20 @@ public class PathFinder {
     }
 
     // Use Depth First Search to find any path(s) between vertex v and vertex w
-    private void dfs(Graph G, int v, int u) {
+    private void dfs(Graph G, int v, int w) {
         // Add v to current path
         path.push(this.graph.getVertices().get(v));
         onPath[v] = true;
-        // Found path from v to u
-        if (v == u) {
+        // Found path from v to w
+        if (v == w) {
             List<Vertex> thisPath = new ArrayList<>(path);
             allPaths.get(thisPath.size() - 1).add(thisPath);
         } else {
             // Consider all neighbors that would continue path without repeating a node
-            for (Vertex w : G.getAdjList().get(v)) {
-                int i = G.getVertices().indexOf(w);
+            for (Vertex u : G.getAdjList().get(v)) {
+                int i = G.getVertices().indexOf(u);
                 if (!onPath[i])
-                    dfs(G, i, u);
+                    dfs(G, i, w);
             }
         }
         // Done exploring from v, so remove from path

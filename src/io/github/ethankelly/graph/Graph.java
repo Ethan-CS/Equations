@@ -80,6 +80,10 @@ public class Graph implements Cloneable {
         this.adjList = list;
     }
 
+    public Graph(int numVertices) {
+        this(numVertices, "");
+    }
+
     public static void main(String[] args) {
         Graph g = GraphGenerator.getBowTieWithBridge();
         System.out.println("BOWTIE WITH BRIDGE" + g);

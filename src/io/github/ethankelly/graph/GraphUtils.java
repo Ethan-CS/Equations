@@ -121,6 +121,7 @@ public class GraphUtils {
         }
     }
 
+    // TODO replace power set with combinatorial search algorithm (better in general, not in worst-case)
 	public static <E> Set<List<E>> powerSet(List<E> originalSet) {
 		Set<List<E>> sets = new HashSet<>();
 		if (originalSet.isEmpty()) {
