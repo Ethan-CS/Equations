@@ -1,6 +1,7 @@
 package io.github.ethankelly.graph;
 
 import io.github.ethankelly.model.ModelParams;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -10,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PathFinderTest {
     static ModelParams SIR = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
@@ -31,92 +33,151 @@ class PathFinderTest {
         g.addEdge(2,5);
 
         PathFinder pf = new PathFinder(g);
-        List<List<Vertex>> allStates = new ArrayList<>();
-        List<List<Vertex>> childrenOfZero =
-                pf.generator(new ArrayList<>(Collections.singletonList(new Vertex(0))), allStates);
+        List<List<Vertex>> childrenOf0 =
+                pf.generator(new ArrayList<>(Collections.singletonList(new Vertex(0))));
 
-        List<List<Vertex>> expectedChildrenOfZero = new ArrayList<>();
-        expectedChildrenOfZero.add(new ArrayList<>(Arrays.asList(new Vertex(0), new Vertex(1))));
-        expectedChildrenOfZero.add(new ArrayList<>(Arrays.asList(new Vertex(0), new Vertex(2))));
+        List<List<Vertex>> expectedChildrenOf0 = new ArrayList<>();
+        expectedChildrenOf0.add(new ArrayList<>(Arrays.asList(new Vertex(0), new Vertex(1))));
+        expectedChildrenOf0.add(new ArrayList<>(Arrays.asList(new Vertex(0), new Vertex(2))));
 
-        assertEquals(expectedChildrenOfZero, childrenOfZero);
+        assertEquals(expectedChildrenOf0, childrenOf0);
 
-        List<List<Vertex>> childrenOfZeroOne =
-                pf.generator(new ArrayList<>(Arrays.asList(new Vertex(0), new Vertex(1))), allStates);
+        List<List<Vertex>> childrenOf01 =
+                pf.generator(new ArrayList<>(Arrays.asList(new Vertex(0), new Vertex(1))));
 
-        List<List<Vertex>> expectedChildrenOfZeroOne = new ArrayList<>();
-        expectedChildrenOfZeroOne
+        List<List<Vertex>> expectedChildrenOf01 = new ArrayList<>();
+        expectedChildrenOf01
                 .add(new ArrayList<>(Arrays.asList(
                         new Vertex(0),
                         new Vertex(1),
                         new Vertex(2))));
-        expectedChildrenOfZeroOne
+        expectedChildrenOf01
                 .add(new ArrayList<>(Arrays.asList(
                         new Vertex(0),
                         new Vertex(1),
                         new Vertex(3))));
-        expectedChildrenOfZeroOne
+        expectedChildrenOf01
                 .add(new ArrayList<>(Arrays.asList(
                         new Vertex(0),
                         new Vertex(1),
                         new Vertex(4))));
 
-        assertEquals(expectedChildrenOfZeroOne, childrenOfZeroOne);
+        assertEquals(expectedChildrenOf01, childrenOf01);
 
-        List<List<Vertex>> childrenOfZeroTwo =
-                pf.generator(new ArrayList<>(Arrays.asList(new Vertex(0), new Vertex(2))), allStates);
+        List<List<Vertex>> childrenOf02 =
+                pf.generator(new ArrayList<>(Arrays.asList(new Vertex(0), new Vertex(2))));
 
-        List<List<Vertex>> expectedChildrenOfZeroTwo = new ArrayList<>();
-        expectedChildrenOfZeroTwo
+        List<List<Vertex>> expectedChildrenOf02 = new ArrayList<>();
+        expectedChildrenOf02
                 .add(new ArrayList<>(Arrays.asList(
                         new Vertex(0),
                         new Vertex(2),
                         new Vertex(1))));
-        expectedChildrenOfZeroTwo
+        expectedChildrenOf02
                 .add(new ArrayList<>(Arrays.asList(
                         new Vertex(0),
                         new Vertex(2),
                         new Vertex(4))));
-        expectedChildrenOfZeroTwo
+        expectedChildrenOf02
                 .add(new ArrayList<>(Arrays.asList(
                         new Vertex(0),
                         new Vertex(2),
                         new Vertex(5))));
 
-        assertEquals(expectedChildrenOfZeroTwo, childrenOfZeroTwo);
+        assertEquals(expectedChildrenOf02, childrenOf02);
 
-        List<List<Vertex>> childrenOfZeroOneThree =
+        List<List<Vertex>> childrenOf013 =
                 pf.generator(new ArrayList<>(Arrays.asList(
                         new Vertex(0),
                         new Vertex(1),
-                        new Vertex(3))), allStates);
+                        new Vertex(3))));
 
-        //  TODO expected children of (0,1,3) i.e. (0,1,3,2) and (0,1,3,4)
+        List<List<Vertex>> expectedChildrenOf013 = new ArrayList<>();
 
-        List<List<Vertex>> childrenOfZeroOneFour =
+        expectedChildrenOf013.add(new ArrayList<>(Arrays.asList(
+                new Vertex(0),
+                new Vertex(1),
+                new Vertex(3),
+                new Vertex(2))));
+        expectedChildrenOf013.add(new ArrayList<>(Arrays.asList(
+                new Vertex(0),
+                new Vertex(1),
+                new Vertex(3),
+                new Vertex(4))));
+
+        assertEquals(expectedChildrenOf013, childrenOf013);
+
+        List<List<Vertex>> childrenOf014 =
                 pf.generator(new ArrayList<>(Arrays.asList(
                         new Vertex(0),
                         new Vertex(1),
-                        new Vertex(4))), allStates);
+                        new Vertex(4))));
 
-        // TODO expected children of (0,1,4) i.e. (0,1,4,3) and (0,1,4,2)
+        List<List<Vertex>> expectedChildrenOf014 = new ArrayList<>();
 
-        List<List<Vertex>> childrenOfZeroTwoFour =
+        expectedChildrenOf014.add(new ArrayList<>(Arrays.asList(
+                new Vertex(0),
+                new Vertex(1),
+                new Vertex(4),
+                new Vertex(3))));
+        expectedChildrenOf014.add(new ArrayList<>(Arrays.asList(
+                new Vertex(0),
+                new Vertex(1),
+                new Vertex(4),
+                new Vertex(2))));
+
+        Assertions.assertTrue(expectedChildrenOf014.containsAll(childrenOf014) &&
+                        childrenOf014.containsAll(expectedChildrenOf014));
+
+        List<List<Vertex>> childrenOf024 =
                 pf.generator(new ArrayList<>(Arrays.asList(
                         new Vertex(0),
                         new Vertex(2),
-                        new Vertex(4))), allStates);
+                        new Vertex(4))));
 
-        // TODO expected children of (0,2,4) i.e. (0,2,4,1) and (0,2,4,5)
+        List<List<Vertex>> expectedChildrenOf024 = new ArrayList<>();
 
-        List<List<Vertex>> childrenOfZeroTwoFive =
+        expectedChildrenOf024.add(new ArrayList<>(Arrays.asList(
+                new Vertex(0),
+                new Vertex(2),
+                new Vertex(4),
+                new Vertex(1)
+        )));
+
+        expectedChildrenOf024.add(new ArrayList<>(Arrays.asList(
+                new Vertex(0),
+                new Vertex(2),
+                new Vertex(4),
+                new Vertex(5)
+        )));
+
+        assertTrue(expectedChildrenOf024.containsAll(childrenOf024) &&
+                childrenOf024.containsAll(expectedChildrenOf024));
+
+        List<List<Vertex>> childrenOf025 =
                 pf.generator(new ArrayList<>(Arrays.asList(
                         new Vertex(0),
                         new Vertex(2),
-                        new Vertex(5))), allStates);
+                        new Vertex(5))));
 
-        // TODO expected children of (0,2,5) i.e. (0,2,5,1) and (0,2,5,4)
+        List<List<Vertex>> expectedChildrenOf025 = new ArrayList<>();
 
-        // TODO which current state leads to us getting the full graph back as child?
+        expectedChildrenOf025.add(new ArrayList<>(Arrays.asList(
+                new Vertex(0),
+                new Vertex(2),
+                new Vertex(5),
+                new Vertex(1)
+        )));
+        expectedChildrenOf025.add(new ArrayList<>(Arrays.asList(
+                new Vertex(0),
+                new Vertex(2),
+                new Vertex(5),
+                new Vertex(4)
+        )));
+
+        assertTrue(expectedChildrenOf025.containsAll(childrenOf025) &&
+                childrenOf025.containsAll(expectedChildrenOf025));
+
+        // TODO something that means generator returns all vertices of the graph
     }
 }

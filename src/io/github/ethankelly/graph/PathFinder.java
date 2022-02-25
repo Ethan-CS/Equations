@@ -60,7 +60,7 @@ public class PathFinder {
                 dfs(this.graph, i, j);
     }
 
-    protected List<List<Vertex>> generator(List<Vertex> currentState, List<List<Vertex>> allStates) {
+    protected List<List<Vertex>> generator(List<Vertex> currentState) {
         List<List<Vertex>> children = new ArrayList<>();
         for (Vertex v : currentState) {
             List<Vertex> neighbours = this.graph.getAdjList().get(this.graph.getVertices().indexOf(v));
@@ -68,7 +68,7 @@ public class PathFinder {
                 if (!currentState.contains(w)) {
                     List<Vertex> child = new ArrayList<>(currentState);
                     child.add(w);
-                    children.add(child);
+                    if (!children.contains(child)) children.add(child);
                 }
             }
         }
