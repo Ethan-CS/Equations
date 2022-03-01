@@ -6,17 +6,6 @@ import java.util.List;
 import java.util.Set;
 
 public class GraphUtils {
-	// Driver program
-	public static void main(String[] args) {
-		// Create a sample graph
-		Graph g = new Graph(4, "");
-		g.addEdge(0, 1);
-		g.addEdge(1, 2);
-		g.addEdge(2, 3);
-
-		System.out.println(g);
-	}
-
 	/*
 	 Dynamic programming-based method to count walks on k edges in given graph
 	 Time Complexity: O(V^3) for V - number of vertices in the graph

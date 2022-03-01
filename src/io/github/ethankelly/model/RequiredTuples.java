@@ -1,9 +1,6 @@
 package io.github.ethankelly.model;
 
-import io.github.ethankelly.graph.Graph;
-import io.github.ethankelly.graph.GraphGenerator;
-import io.github.ethankelly.graph.GraphUtils;
-import io.github.ethankelly.graph.Vertex;
+import io.github.ethankelly.graph.*;
 import io.github.ethankelly.symbols.Maths;
 
 import java.util.*;
@@ -47,7 +44,9 @@ public class RequiredTuples {
      * changes are made to the model that would constitute a change to the required tuples.
      */
     public List<Tuple> getTuples() {
-        if (this.tuples == null || this.tuples.isEmpty()) genTuples();
+        if (this.tuples == null || this.tuples.isEmpty()) {
+            this.tuples = this.genTuples();
+        }
         return this.tuples;
     }
 
@@ -58,14 +57,14 @@ public class RequiredTuples {
      *
      * @return the list of tuples required to provide a full dyanmic representation of the current system.
      */
-    private List<Tuple> genTuples() {
+    public List<Tuple> genTuples() {
         // Add all singles (always need these)
         List<Tuple> tuples = new ArrayList<>(this.findSingles());
         // Get all walks in the filter graph up to length of contact network
         Graph filter = modelParams.getFilterGraph();
         List<List<List<Character>>> charWalks = filter.getCharWalks(this.getGraph().getNumVertices());
         // Get all connected sub-graphs of contact network
-        List<List<Vertex>> connectedSubGraphs = getConnectedSubGraphs();
+        List<List<Vertex>> connectedSubGraphs = new PathFinder(this.graph).combSearch();
         // Create a tuple for each connected sub-graph with states from list of walks of that length
         List<List<Vertex>> tuplesToMake = new ArrayList<>();
         for (List<Vertex> subGraph : connectedSubGraphs) { // Each connected sub-graph
@@ -83,6 +82,7 @@ public class RequiredTuples {
             if (!tuples.contains(tuple)) tuples.add(tuple);
         }
         // Assign to tuples field and return
+        tuples.sort(null);
         this.tuples = tuples;
         return tuples;
     }

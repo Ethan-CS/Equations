@@ -1,9 +1,6 @@
 package io.github.ethankelly.graph;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
+import java.util.*;
 import java.util.stream.IntStream;
 
 /**
@@ -38,17 +35,25 @@ public class PathFinder {
      * @param args command-line args, ignored.
      */
     public static void main(String[] args) {
-        Graph P4 = GraphGenerator.path(4);
+        int i = 5;
+        Graph path = GraphGenerator.path(i);
 
-        System.out.println(P4+"\nAll simple paths:");
-        PathFinder allPaths = new PathFinder(P4);
+        System.out.println(path+"\nPath - all simple paths:");
+        List<List<Vertex>> combSearchPaths = new PathFinder(path).combSearch();
+        for (List<Vertex> list : combSearchPaths) System.out.println(list);
+        System.out.println("# paths = " + combSearchPaths.size());
 
-        allPaths.findPaths();
+        Graph cycle = GraphGenerator.cycle(i);
+        System.out.println(cycle+"\nCycle - all simple paths:");
+        List<List<Vertex>> combSearchPathsCycle = new PathFinder(cycle).combSearch();
+        for (List<Vertex> list : combSearchPathsCycle) System.out.println(list);
+        System.out.println("# paths = " + combSearchPathsCycle.size());
 
-        for (List<List<Vertex>> list : allPaths.allPaths) System.out.println(list);
-        System.out.println("# paths = " + allPaths.getNoOfPaths());
-        List<List<Vertex>> l10 = allPaths.findWalksOfLength(10);
-        for (List<Vertex> l : l10) System.out.println(l);
+        Graph complete = GraphGenerator.complete(i);
+        System.out.println(complete+"\nClique - all simple paths:");
+        List<List<Vertex>> combSearchPathsClique = new PathFinder(complete).combSearch();
+        for (List<Vertex> list : combSearchPathsClique) System.out.println(list);
+        System.out.println("# paths = " + combSearchPathsClique.size());
     }
 
     /**
@@ -60,24 +65,52 @@ public class PathFinder {
                 dfs(this.graph, i, j);
     }
 
-    protected List<List<Vertex>> generator(List<Vertex> currentState) {
-        List<List<Vertex>> children = new ArrayList<>();
-        for (Vertex v : currentState) {
-            List<Vertex> neighbours = this.graph.getAdjList().get(this.graph.getVertices().indexOf(v));
-            for (Vertex w : neighbours) {
-                if (!currentState.contains(w)) {
-                    List<Vertex> child = new ArrayList<>(currentState);
-                    child.add(w);
-                    if (!children.contains(child)) children.add(child);
+    public List<List<Vertex>> combSearch() {
+        // List of all states to avoid searching for children of same state twice
+        List<List<Vertex>> allStates = new ArrayList<>();
+        for (Vertex v  : this.graph.getVertices()) { // Loop through all vertices in the graph
+            // Start expand with list containing only current vertex v
+            List<List<Vertex>> expand = new ArrayList<>();
+            expand.add(Collections.singletonList(v));
+            // Carry on searching until we've recurred on every child state until no more successors exist
+            while (!expand.isEmpty()) {
+                List<Vertex> x = expand.get(0);
+//                x.sort(null);
+                // Don't add duplicates to allStates list, as we have already searched for children
+                if (!allStates.contains(x)) {
+                    allStates.add(x);
+                    // Generate successor states and add them to expander list
+                    List<List<Vertex>> children = generator(x);
+                    expand.addAll(children);
                 }
+                expand.remove(x);
             }
         }
+
+        return allStates;
+    }
+
+    protected List<List<Vertex>> generator(List<Vertex> currentState) {
+        // TODO should we loop through all vertices in current state or just use the last vertex in the state?
+        List<List<Vertex>> children = new ArrayList<>();
+//        for (Vertex v : currentState) ??
+        Vertex v  = currentState.get(currentState.size()-1);
+        List<Vertex> neighbours = this.graph.getAdjList().get(this.graph.getVertices().indexOf(v));
+        for (Vertex w : neighbours) {
+            if (!currentState.contains(w)) {
+                List<Vertex> child = new ArrayList<>(currentState);
+                child.add(w);
+                if (!children.contains(child)) children.add(child);
+            }
+        }
+
         return children;
     }
 
     /**
      * @return the number of paths found in the graph associated with the current PathFinder instance.
      */
+    @SuppressWarnings("unused")
     public int getNoOfPaths() {
         return this.getAllPaths().stream().mapToInt(List::size).sum();
     }

@@ -1,6 +1,7 @@
 package io.github.ethankelly.results;
 
 import io.github.ethankelly.graph.Vertex;
+import io.github.ethankelly.model.ModelParams;
 import io.github.ethankelly.model.ODESystem;
 import io.github.ethankelly.model.RequiredTuples;
 import org.apache.commons.math3.ode.FirstOrderIntegrator;
@@ -38,12 +39,8 @@ public class ODEUtils {
 			double[][] thisResults = new double[tMax][tups.size()];
 			for (RequiredTuples.Tuple t : tups) {
 				for (int i = 0; i < tMax; i++) {
-					thisResults
-							[i]
-							[tups.indexOf(t)] =
-							results
-									[i]
-									[system.getIndicesMapping().get(t)];
+					thisResults[i][tups.indexOf(t)] =
+							results[i][system.getIndicesMapping().get(t)];
 				}
 				map.put(tups, thisResults);
 			}
@@ -176,7 +173,7 @@ public class ODEUtils {
 				.size(18)
 				.color("black")
 				.build();
-		// Set the layout of the plot (title, width, dataset, etc)
+		// Set the layout of the plot (title, width, dataset, etc.)
 		Layout layout = Layout.builder()
 				.title("Plot of Probabilities Describing an SIR Epidemic on a " +
 				       system.getG().getName() +
@@ -224,14 +221,15 @@ public class ODEUtils {
 		if (ode.getModelParameters().getToExit()[indexOfState] == 2) { // State needs another vertex to leave
 			// Store a list of states that, if a neighbouring vertex is in them,
 			// would mean we leave the state represented by the current tuple.
-			Map<Character, Double> otherStates
-					= IntStream.range(0, ode.getModelParameters().getStates().size())
-					.filter(col -> ode.getModelParameters().getTransitionGraph().hasEdge(indexOfState, col))
-					.boxed()
-					.collect(Collectors.toMap(col ->
-							ode.getModelParameters().getStates().get(col),
-							col -> ode.getModelParameters().getRatesMatrix()[indexOfState][col],
-							(a, b) -> b));
+			Map<Character, Double> otherStates = new HashMap<>();
+			Map<Character, String> otherSymbols = new HashMap<>();
+			int bound = ode.getModelParameters().getStates().size();
+			for (int col = 0; col < bound; col++) {
+				if (ode.getModelParameters().getTransitionGraph().hasEdge(indexOfState, col)) {
+					otherStates.put(ode.getModelParameters().getStates().get(col), ode.getModelParameters().getRatesMatrix()[indexOfState][col]);
+					otherSymbols.put(ode.getModelParameters().getStates().get(col), ode.getModelParameters().getRatesForPrinting()[indexOfState][col]);
+				}
+			}
 
 			// Loop through our found exit-inducing states
 			for (Character state : otherStates.keySet()) {
@@ -240,7 +238,7 @@ public class ODEUtils {
 					if (ode.getG().hasEdge(i, v.getLocation())) {
 						Vertex w = new Vertex(state, i);
 						if (!otherTerms.contains(w)) otherTerms.add(w);
-						addExitTuple(ode, y, yDot, tuple, s, otherTerms, otherStates.get(state));
+						addExitTuple(ode, y, yDot, tuple, s, otherTerms, otherStates.get(state), otherSymbols.get(state)==null?"":otherSymbols.get(state));
 						otherTerms.remove(w);
 					}
 				}
@@ -248,64 +246,76 @@ public class ODEUtils {
 			otherTerms.remove(v);
 		} else if (ode.getModelParameters().getToExit()[indexOfState] == 1) { // Can exit by itself
 			double rateOfTransition = 0; // The rate at which this transition occurs
+			String symbolOfTransition = "";
 			for (int col = 0; col < ode.getModelParameters().getStates().size(); col++) {
 				if (ode.getModelParameters().getTransitionGraph().hasEdge(indexOfState, col) &&
 				    ode.getModelParameters().getToEnter()[col] == 1) {
 					rateOfTransition = ode.getModelParameters().getRatesMatrix()[indexOfState][col];
+					symbolOfTransition = ode.getModelParameters().getRatesForPrinting()[indexOfState][col];
 				}
 			}
-			addExitTuple(ode, y, yDot, tuple, s, otherTerms, rateOfTransition);
+			addExitTuple(ode, y, yDot, tuple, s, otherTerms, rateOfTransition, symbolOfTransition);
 		}
 	}
 
 	private static void getEntryTerms(ODESystem ode, double[] y, double[] yDot, RequiredTuples.Tuple tuple, StringBuilder s, Vertex v) {
-		int indexOfState = ode.getModelParameters().getStates().indexOf(v.getState());
+		ModelParams modelParams = ode.getModelParameters();
+		List<Character> modelStates = modelParams.getStates();
+		int indexOfState = modelStates.indexOf(v.getState());
 		List<Vertex> otherTerms = getOtherTerms(tuple, v);
-		char otherState= 0; // The other state we are required to consider
-		double rateOfTransition = 0; // The rate at which this transition occurs
 
-		if (ode.getModelParameters().getToEnter()[indexOfState] != 0) {
-			for (int row = 0; row < ode.getModelParameters().getStates().size(); row++) {
-				if (ode.getModelParameters().getTransitionGraph().hasEdge(row, indexOfState)) {
-					// TODO more than one possible candidate?
-					otherState = ode.getModelParameters().getStates().get(row);
-					rateOfTransition = ode.getModelParameters().getRatesMatrix()[row][indexOfState];
-				}
-			}
-			Vertex vComp = new Vertex(otherState, v.getLocation());
-			otherTerms.add(vComp);
-			// How do we enter this state?
-			if (ode.getModelParameters().getToEnter()[indexOfState] == 2) {
-				// This state requires another vertex to enter, so we need to consider pair terms
-				for (int i = 0; i < ode.getG().getNumVertices(); i++) {
-					if (ode.getG().hasEdge(i, v.getLocation())) {
-						Vertex w = new Vertex(ode.getModelParameters().getStates().get(indexOfState), i);
-						otherTerms.add(w);
-						addEntryTuple(ode, y, yDot, tuple, s, otherTerms, rateOfTransition, w);
+		int numNeighboursToEnter = modelParams.getToEnter()[indexOfState];
+		if (numNeighboursToEnter > 0) {
+			// Need a neighbour in another state to change state, so find out which other state(s)
+			for (int otherStateIndex = 0; otherStateIndex < modelStates.size(); otherStateIndex++) {
+				// If this state and other state share an edge in transition graph, there's
+				// a transition between them, so a dynamically relevant term to add.
+				if (modelParams.getTransitionGraph().hasEdge(otherStateIndex, indexOfState)) {
+					char otherState = modelStates.get(otherStateIndex); // The other state we are required to consider
+					double rateOfTransition = modelParams.getRatesMatrix()[otherStateIndex][indexOfState];
+					String symbolOfTransition = modelParams.getRatesForPrinting()[otherStateIndex][indexOfState];
+					Vertex vComp = new Vertex(otherState, v.getLocation());
+					otherTerms.add(vComp);
+					// How do we enter this state?
+					if (numNeighboursToEnter == 2) {
+						// This state requires another vertex to enter, so we need to consider pair terms
+						for (int i = 0; i < ode.getG().getNumVertices(); i++) {
+							if (ode.getG().hasEdge(i, v.getLocation())) {
+								Vertex w = new Vertex(modelStates.get(indexOfState), i);
+								otherTerms.add(w);
+								addEntryTuple(ode, y, yDot, tuple, s, otherTerms, rateOfTransition, w, symbolOfTransition);
+							}
+						}
+						otherTerms.remove(vComp);
+					} else if (numNeighboursToEnter == 1) {
+						// State can be entered without another neighbour, so add a "solo" term
+						addEntryTuple(ode, y, yDot, tuple, s, otherTerms, rateOfTransition, vComp, symbolOfTransition);
 					}
 				}
-				otherTerms.remove(vComp);
-			} else if (ode.getModelParameters().getToEnter()[indexOfState] == 1) {
-				addEntryTuple(ode, y, yDot, tuple, s, otherTerms, rateOfTransition, vComp);
 			}
 		}
 	}
 
-	public static void addExitTuple(ODESystem odeSystem, double[] y, double[] yDot, RequiredTuples.Tuple tuple, StringBuilder s, List<Vertex> otherTerms, double rateOfTransition) {
+	public static void addExitTuple(ODESystem odeSystem, double[] y, double[] yDot, RequiredTuples.Tuple tuple, StringBuilder s, List<Vertex> otherTerms, double rateOfTransition, String rateSymbol) {
 		RequiredTuples.Tuple t = new RequiredTuples.Tuple(otherTerms);
-//		if (t.isValidTuple(odeSystem.getModelParameters(), odeSystem.getG(), odeSystem.isClosures())) {
 		if (odeSystem.getTuples().contains(t)) {
 			yDot[odeSystem.getIndicesMapping().get(tuple)] += (-rateOfTransition * y[odeSystem.getIndicesMapping().get(t)]);
-			s.append("-").append(rateOfTransition).append(t);
+			s.append("-");
+			if (!(rateSymbol == null || rateSymbol.equals(""))) s.append(rateSymbol);
+			else s.append(rateOfTransition);
+			s.append(t);
 		}
 	}
 
-	private static void addEntryTuple(ODESystem odeSystem, double[] y, double[] yDot, RequiredTuples.Tuple tuple, StringBuilder s, List<Vertex> otherTerms, double rateOfTransition, Vertex w) {
+	private static void addEntryTuple(ODESystem odeSystem, double[] y, double[] yDot, RequiredTuples.Tuple tuple, StringBuilder s, List<Vertex> otherTerms, double rateOfTransition, Vertex w, String rateSymbol) {
 		RequiredTuples.Tuple t = new RequiredTuples.Tuple(otherTerms);
 //		if (t.isValidTuple(odeSystem.getModelParameters(), odeSystem.getG(), odeSystem.isClosures())) {
 		if (odeSystem.getTuples().contains(t)) {
 			yDot[odeSystem.getIndicesMapping().get(tuple)] += (rateOfTransition * y[odeSystem.getIndicesMapping().get(t)]);
-			s.append("+").append(rateOfTransition).append(t);
+			s.append("+");
+			if (!(rateSymbol == null || rateSymbol.equals(""))) s.append(rateSymbol);
+			else s.append(rateOfTransition);
+			s.append(t);
 		}
 		otherTerms.remove(w);
 	}

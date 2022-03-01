@@ -109,7 +109,7 @@ public class Graph implements Cloneable {
             List<List<Character>> list = new ArrayList<>();
             for (List<Vertex> walk : allWalks) {
                 List<Character> charWalkCandidate = new ArrayList<>();
-                char prev = 'a'; // Not used for states, won't be ignored by later comparison
+                char prev = ' '; // Not used for states, won't be ignored by later comparison
                 for (Vertex vertex : walk) {
                     char state = this.getLabels().get(this.getVertices().indexOf(vertex));
                     // Because states can be the same, possible to get duplicate adjacent states

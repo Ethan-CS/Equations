@@ -3,6 +3,7 @@ package io.github.ethankelly.model;
 import io.github.ethankelly.exceptions.UnexpectedStateException;
 import io.github.ethankelly.graph.Graph;
 import io.github.ethankelly.graph.Vertex;
+import io.github.ethankelly.symbols.Greek;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,6 +26,8 @@ public class ModelParams {
     /** Sub-graph of the transition graph containing only states which require 1 or more other states to induce. */
     private Graph filter;
 
+    private String[][] ratesForPrinting;
+
     /**
      * Class constructor.
      *
@@ -42,6 +45,7 @@ public class ModelParams {
         this.toExit = toExit;
         this.transitionGraph = new Graph(new boolean[states.size()][states.size()], states);
         this.ratesMatrix = new double[states.size()][states.size()];
+        this.ratesForPrinting = new String[states.size()][states.size()];
     }
 
     public static void main(String[] args) {
@@ -50,6 +54,25 @@ public class ModelParams {
         m.addTransition('S', 'I', 0.6);
         m.addTransition('I', 'R', 0.1);
         System.out.println(m);
+
+        ModelParams n = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
+        n.addTransition('S','I', Greek.BETA.uni());
+        n.addTransition('I','R', Greek.GAMMA.uni());
+        System.out.println(n);
+    }
+
+    public void addTransition(char from, char to, String symbol) {
+        int indexFrom = -1;
+        int indexTo = -1;
+        for (int i = 0; i < this.getStates().size(); i++) {
+            if (this.states.get(i) == from) indexFrom = i;
+            if (this.states.get(i) == to) indexTo = i;
+        }
+        assert !(indexFrom < 0 || indexTo < 0) : "One (or both) of the 'to'/'from' states {" + to + ", " + from
+                        + "} could not be found in the array of states.";
+
+        this.ratesForPrinting[indexFrom][indexTo] = symbol;
+        this.transitionGraph.addDirectedEdge(indexFrom, indexTo);
     }
 
     public Graph getTransitionGraph() {
@@ -72,8 +95,8 @@ public class ModelParams {
         return ratesMatrix;
     }
 
-    public void setRatesMatrix(double[][] ratesMatrix) {
-        this.ratesMatrix = ratesMatrix;
+    public String[][] getRatesForPrinting() {
+        return this.ratesForPrinting;
     }
 
     public List<Character> getStates() {
@@ -81,12 +104,8 @@ public class ModelParams {
     }
 
     public void addTransition(char from, char to, double rate) {
-        assert !String.valueOf(from).equals(String.valueOf(to)) :
+        assert from != to :
                 "The 'to' and 'from' characters should not have been the same, but were: " + to + " = " + from;
-
-        double[][] rates = this.getRatesMatrix().clone();
-        Graph g = this.getTransitionGraph().clone();
-
         int indexFrom = -1;
         int indexTo = -1;
         for (int i = 0; i < this.getStates().size(); i++) {
@@ -102,11 +121,10 @@ public class ModelParams {
                 e.printStackTrace();
             }
         } else {
-            rates[indexFrom][indexTo] = rate;
-            g.addDirectedEdge(indexFrom, indexTo);
+            this.ratesForPrinting[indexFrom][indexTo] = String.valueOf(rate);
+            this.ratesMatrix[indexFrom][indexTo] = rate;
+            this.transitionGraph.addDirectedEdge(indexFrom, indexTo);
         }
-        this.setRatesMatrix(rates);
-        this.setTransitionGraph(g);
     }
 
     @Override

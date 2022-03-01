@@ -3,6 +3,7 @@ package io.github.ethankelly.model;
 import io.github.ethankelly.graph.Graph;
 import io.github.ethankelly.graph.GraphGenerator;
 import io.github.ethankelly.results.ODEUtils;
+import io.github.ethankelly.symbols.Greek;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.exception.MaxCountExceededException;
 import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
@@ -56,8 +57,8 @@ public class ODESystem implements FirstOrderDifferentialEquations {
     public static void main(String[] args) {
         // SIR Model parameters
         ModelParams SIR = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
-        SIR.addTransition('S', 'I', 0.6);
-        SIR.addTransition('I', 'R', 0.1);
+        SIR.addTransition('S', 'I', Greek.BETA.uni());
+        SIR.addTransition('I', 'R', Greek.GAMMA.uni());
         // ODE system for cycle SIR model
         ODESystem ode = new ODESystem(GraphGenerator.cycle(3), 1, SIR);
         System.out.println(ode);
