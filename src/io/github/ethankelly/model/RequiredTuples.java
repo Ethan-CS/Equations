@@ -124,33 +124,6 @@ public class RequiredTuples {
         return this.graph;
     }
 
-	/**
-	 * @return all connected sub-graphs of the current graph.
- 	 */
-    public List<List<Vertex>> getConnectedSubGraphs() {
-        // Generate power set of vertices in the graph
-        Set<List<Vertex>> powerSet = GraphUtils.powerSet(getGraph().getVertices());
-        // Remove any sets of vertices not constituting connected sub-graphs
-        List<List<Vertex>> connectedSubGraphs = new ArrayList<>();
-        for (List<Vertex> vertices : powerSet) {
-            if (vertices.size() > 0) {
-                Graph candidate = getGraph().makeSubGraph(vertices);
-                if (candidate.isConnected()) {
-                    // Need to check this so we only use valid permutations with walks
-                    boolean isPath = true;
-                    for (int i = 0; i < vertices.size() - 1; i++) {
-                        if (!this.getGraph().hasDirectedEdge(vertices.get(i), vertices.get(i + 1))) {
-                            isPath = false;
-                            break;
-                        }
-                    }
-                    if (isPath) connectedSubGraphs.add(vertices);
-                }
-            }
-        }
-        return connectedSubGraphs;
-    }
-
     /**
      * Each vertex in the graph model can be in any of the given states, which might be 'Susceptible,' 'Infected' and
      * 'Recovered' (standard SIR model) for instance. The model parameters are stored in a custom data structure,

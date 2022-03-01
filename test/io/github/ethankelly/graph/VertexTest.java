@@ -27,7 +27,7 @@ class VertexTest {
 				"All same location vertices should return false.");
 		Assertions.assertTrue(allDifferentLocation.locationsAreDifferent(),
 				"All different locations should return true.");
-		allDifferentLocation.add(new Vertex('S', 1));
+		allDifferentLocation.add(new Vertex('I', 1));
 		Assertions.assertFalse(allDifferentLocation.locationsAreDifferent(),
 				"Two of same location in list should return false.");
 	}

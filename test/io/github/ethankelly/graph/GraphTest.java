@@ -40,72 +40,11 @@ class GraphTest {
                 "Should have identified 2 and 3 as the only cut-vertices for G1.");
     }
 
-//    @Test
-//    void testSpliceG1() {
-//        Graph subA = new Graph(4, "Test Subgraph");
-//        subA.addEdge(0, 1);
-//        subA.addEdge(0, 3);
-//        subA.addEdge(1, 2);
-//        subA.addEdge(2, 3);
-//        subA.setLabels(Arrays.asList('0','1','2','5'));
-//
-//        Graph subB = GraphGenerator.getEdge().setName("Test Subgraph");
-//        subB.setLabels(Arrays.asList('2','3'));
-//
-//        Graph subC = GraphGenerator.getEdge().setName("Test Subgraph");
-//        subB.setLabels(Arrays.asList('3','4'));
-//
-//        Graph[] correctSubGraphs = new Graph[]{subA, subB, subC};
-//        Graph g1clone = g1.clone();
-//
-//        Graph[] foundSubGraphs = g1clone.splice().toArray(new Graph[0]);
-//
-//        boolean test = true;
-//        if (correctSubGraphs.length == foundSubGraphs.length) {
-//            for (int i = 0; i < correctSubGraphs.length; i++) {
-//                if (correctSubGraphs[i].getNumVertices()!=(foundSubGraphs[i].getNumVertices())) {
-//                    test = false;
-//                    System.err.println("Differ at " + i + "\n" +  correctSubGraphs[i] + "\n" + foundSubGraphs[i]);
-//                    break;
-//                }
-//            }
-//        } else test = false;
-//
-//        assertEquals(correctSubGraphs.length, foundSubGraphs.length,
-//                "Splice method did not find the right number of sub-graphs for G1.");
-//        Assertions.assertTrue(test, "Each sub-graph is of different lengths - check this.");
-//    }
-
     @Test
     void testCutVerticesG2() {
         assertEquals(g2.getCutVertices(), Arrays.asList(new Vertex(1), new Vertex(2)),
                 "Should have identified 1 and 2 as cut-vertices for G2.");
     }
-
-//    @Test
-//    void testSpliceG2() {
-//        Graph g2clone = g2.clone();
-//        Graph subA = GraphGenerator.getTriangle().setName("Test Subgraph");
-//        Graph subB = GraphGenerator.getEdge().setName("Test Subgraph");
-//
-//        List<Graph> correctSubGraphs = Arrays.asList(subA, subB, subB);
-//        List<Graph> foundSubGraphs = g2clone.splice();
-//
-//        assertEquals(correctSubGraphs.size(), foundSubGraphs.size(),
-//                "Splice method did not find the right number of sub-graphs for G2.");
-//
-//        boolean test = true;
-//        if (correctSubGraphs.size() == foundSubGraphs.size()) {
-//            for (int i = 0; i < correctSubGraphs.size(); i++) {
-//                if (correctSubGraphs.get(i).getNumVertices()!=(foundSubGraphs.get(i).getNumVertices())) {
-//                    test = false;
-//                    System.err.println("Differ at " + i + "\n" + correctSubGraphs.get(i) + "\n" + foundSubGraphs.get(i));
-//                    break;
-//                }
-//            }
-//        } else test = false;
-//        Assertions.assertTrue(test, "Each sub-graph is of different lengths - check this.");
-//    }
 
     @Test
     void testCutVerticesLollipop() {
@@ -113,27 +52,6 @@ class GraphTest {
         assertEquals(GraphGenerator.getLollipop().getCutVertices(), Collections.singletonList(new Vertex(0)),
                 "Lollipop has exactly one cut vertex at location 0");
     }
-//
-//    @Test
-//    void testSpliceLollipop() {
-//        // Now, splice the graph and ensure two graphs are created correctly
-//        Graph lollipopSpliceGraph = GraphGenerator.getLollipop();
-//        List<Graph> lollipopSplice = lollipopSpliceGraph.splice();
-//        // First subgraph is a single edge
-//        Graph edge = new Graph(2, "Lollipop Subgraph");
-//        edge.addEdge(0,1);
-//        // Second subgraph is a triangle
-//        Graph triangle = GraphGenerator.getTriangle();
-//        triangle.setName("Lollipop Subgraph");
-//        // Add both to a list
-//        List<Graph> correctSplice = Arrays.asList(edge, triangle);
-//        // Now, assert expected and actual are equal - bit convoluted, so we can ignore order of graphs in list
-//        assertEquals(correctSplice.size(), lollipopSplice.size(), "Splices were different sizes");
-////        Assertions.assertTrue(correctSplice.containsAll(lollipopSplice),
-////                "The lollipop splice contains too much");
-////        Assertions.assertTrue(lollipopSplice.containsAll(correctSplice),
-////                "The lollipop splice is missing something.");
-//    }
 
     @Test
     void testCutVerticesToast() {

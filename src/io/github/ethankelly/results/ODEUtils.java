@@ -312,7 +312,7 @@ public class ODEUtils {
 //		if (t.isValidTuple(odeSystem.getModelParameters(), odeSystem.getG(), odeSystem.isClosures())) {
 		if (odeSystem.getTuples().contains(t)) {
 			yDot[odeSystem.getIndicesMapping().get(tuple)] += (rateOfTransition * y[odeSystem.getIndicesMapping().get(t)]);
-			s.append("+");
+			if (s.charAt(s.length()-1) != '=' && s.charAt(s.length()-2) != '=') s.append("+");
 			if (!(rateSymbol == null || rateSymbol.equals(""))) s.append(rateSymbol);
 			else s.append(rateOfTransition);
 			s.append(t);
