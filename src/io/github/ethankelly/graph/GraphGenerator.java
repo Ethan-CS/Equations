@@ -718,11 +718,13 @@ public final class GraphGenerator {
 
         if (numVertices == 1) return g;
 
-        // Cayley's theorem: there are numVertices^(numVertices-2) labeled trees on numVertices vertices
-        // Prüfer sequence: sequence of numVertices-2 values between 0 and numVertices-1
-        // Prüfer's proof of Cayley's theorem: Prüfer sequences are in 1-1 with labeled trees on numVertices vertices
+        /*
+         Cayley's theorem: there are numVertices^(numVertices-2) labeled trees on numVertices vertices
+         Prüfer sequence: sequence of numVertices-2 values between 0 and numVertices-1
+         Prüfer's proof of Cayley's theorem: Prüfer sequences are in 1-1 with labeled trees on numVertices vertices
+         Fill a new array of size two less than numVertices with uniformly random integers
+        */
 
-        // Fill a new array of size two less than numVertices with uniformly random integers
         int[] prufer = IntStream.range(0, numVertices - 2).map(i -> Rand.uniform(numVertices)).toArray();
 
         // Degree of vertex v = 1 + no. times it appears in Prüfer sequence

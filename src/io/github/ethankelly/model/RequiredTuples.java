@@ -55,7 +55,7 @@ public class RequiredTuples {
      * states given by walks in the filter graphs (there is one tuple per connected subgraph per walk in the filter
      * graph).
      *
-     * @return the list of tuples required to provide a full dyanmic representation of the current system.
+     * @return the list of tuples required to provide a full dynamic representation of the current system.
      */
     public List<Tuple> genTuples() {
         // Add all singles (always need these)
@@ -82,7 +82,7 @@ public class RequiredTuples {
             if (!tuples.contains(tuple)) tuples.add(tuple);
         }
         // Assign to tuples field and return
-        tuples.sort(null);
+        Collections.sort(tuples);
         this.tuples = tuples;
         return tuples;
     }
@@ -94,12 +94,12 @@ public class RequiredTuples {
      * @return the number of single-probability tuples required by the model.
      */
     public List<Tuple> findSingles() {
-        List<Character> statesToGenerateEqnsFor = new ArrayList<>(this.getModelParams().getStates());
+        List<Character> statesToGenerateFor = new ArrayList<>(this.getModelParams().getStates());
         for (Character state : this.getModelParams().getStates()) {
             int i = this.getModelParams().getStates().indexOf(state);
             // If we can leave this state without any other vertices being involved,
             // Singles containing the state are not dynamically significant
-            if (this.getModelParams().getToExit()[i] == 0) statesToGenerateEqnsFor.remove(state);
+            if (this.getModelParams().getToExit()[i] == 0) statesToGenerateFor.remove(state);
         }
         List<Vertex> vertexList = getGraph().getVertices();
         int[] vertices = new int[vertexList.size()];
@@ -108,7 +108,7 @@ public class RequiredTuples {
 
         // We need an equation for the probability of each vertex being in each state
         List<Tuple> verticesWeNeed = new ArrayList<>();
-        for (char c : statesToGenerateEqnsFor) {
+        for (char c : statesToGenerateFor) {
             for (int v : vertices) {
                 verticesWeNeed.add(new Tuple(new Vertex(c, v)));
             }
@@ -265,9 +265,7 @@ public class RequiredTuples {
      */
     public static class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tuple> {
         /** List of all state-vertex pairs that make up this tuple */
-        private final List<Vertex> vertices;
-        /** Length of the current tuple. */
-        public int length;
+        private List<Vertex> vertices;
 
         /**
          * Constructor - creates a tuple containing only a single (specified) vertex.
@@ -285,9 +283,8 @@ public class RequiredTuples {
          * @param tuple the list of vertices from which to form a tuple.
          */
         public Tuple(List<Vertex> tuple) {
-            Collections.sort(tuple);
+            tuple.sort(new Vertex.VertexComparator());
             this.vertices = tuple;
-            this.length = vertices.size();
         }
 
         /**
@@ -368,7 +365,7 @@ public class RequiredTuples {
         public boolean add(Vertex v) {
             Tuple copy = new Tuple(this.vertices);
             this.vertices.add(v);
-            Collections.sort(this.vertices);
+            this.vertices.sort(new Vertex.VertexComparator());
             return !this.getVertices().equals(copy.getVertices());
         }
 
@@ -385,7 +382,18 @@ public class RequiredTuples {
         @Override
         public int compareTo(Tuple o) {
             // We want to sort in size order, so if o is bigger it should come later
-            return Integer.compare(o.size(), this.size());
+            int intComparison = Integer.compare(this.size(), o.size());
+            if (intComparison != 0) return intComparison;
+            // If tuples are same length, put one with smaller indices first
+            int i = 0;
+            int vertComparison = 0;
+            while (i < Math.min(this.size(), o.size()) && vertComparison == 0) {
+                // Loop through indices until either we reach the end and have found identical indices
+                // or we find that one tuple has a vertex with smaller index than other at same location
+                vertComparison = this.getVertices().get(i).compareTo(o.getVertices().get(i));
+                i++;
+            }
+            return vertComparison;
         }
 
         @Override
@@ -412,7 +420,8 @@ public class RequiredTuples {
         @Override
         public Tuple clone() {
             Tuple clone = (Tuple) super.clone();
-            // TODO: copy mutable state here, so the clone can't change the internals of the original
+            clone.vertices = new ArrayList<>();
+            clone.vertices.addAll(this.getVertices());
             return clone;
         }
     }

@@ -28,11 +28,11 @@ public class ODEUtils {
 		Map<List<RequiredTuples.Tuple>, double[][]> map = new HashMap<>();
 		List<RequiredTuples.Tuple> tuples = system.getTuples().getTuples();
 		int maxLength = 0;
-		for (RequiredTuples.Tuple t : tuples) if (t.length > maxLength) maxLength = t.length;
+		for (RequiredTuples.Tuple t : tuples) if (t.size() > maxLength) maxLength = t.size();
 
 		List<List<RequiredTuples.Tuple>> tuplesByLength = IntStream.range(0, maxLength).<List<RequiredTuples.Tuple>>mapToObj(i -> new ArrayList<>()).collect(Collectors.toList());
 		for (RequiredTuples.Tuple t : tuples) {
-			tuplesByLength.get(t.length-1).add(t);
+			tuplesByLength.get(t.size()-1).add(t);
 		}
 
 		for (List<RequiredTuples.Tuple> tups : tuplesByLength) {
