@@ -146,19 +146,33 @@ public class RequiredTuples {
         m.addTransition('S', 'I', 0.6);
         m.addTransition('I', 'R', 0.1);
 
-        // Path and cycle on 3 vertices
-        RequiredTuples P3 = new RequiredTuples(GraphGenerator.path(3), m, false);
-        RequiredTuples C3 = new RequiredTuples(GraphGenerator.cycle(3), m, false);
+        StringBuilder sb = new StringBuilder();
+        sb.append("Vertices,Path,Cycle,Clique");
 
-        // Generate and print tuples for path on 3 vertices
-        List<Tuple> pathTuples = P3.genTuples();
-        for (Tuple t : pathTuples) System.out.println(t);
-        System.out.println(pathTuples.size());
+        for (int i = 1; i <= 40; i++) {
+            sb.append("\n").append(i).append(",");
+            // Generate and print tuples for path on i vertices
+            RequiredTuples path = new RequiredTuples(GraphGenerator.path(i), m, false);
+            List<Tuple> pathTuples = path.genTuples();
+            System.out.println("  PATH ON " + i + " VERTICES: " + pathTuples.size());
+            sb.append(pathTuples.size()).append(",");
 
-        // Generate and print tuples for cycle on 3 vertices
-        List<Tuple> triangleTuples = C3.genTuples();
-        for (Tuple t : triangleTuples) System.out.println(t);
-        System.out.println(triangleTuples.size());
+            // Generate and print tuples for cycle on i vertices
+            RequiredTuples cycle = new RequiredTuples(GraphGenerator.cycle(i), m, false);
+            List<Tuple> triangleTuples = cycle.genTuples();
+            System.out.println(" CYCLE ON " + i + " VERTICES: " + triangleTuples.size());
+            sb.append(triangleTuples.size());
+
+            // I haven't had the patience to wait for number of tuples on clique on >7 vertices...
+            if (i<8) {
+                // Generate and print tuples for clique on i vertices
+                RequiredTuples clique = new RequiredTuples(GraphGenerator.complete(i), m, false);
+                List<Tuple> cliqueTuples = clique.genTuples();
+                System.out.println("CLIQUE ON " + i + " VERTICES: " + cliqueTuples.size());
+                sb.append(",").append(cliqueTuples.size());
+            }
+        }
+        System.out.println(sb);
     }
 
     /**
@@ -232,7 +246,9 @@ public class RequiredTuples {
      */
     @Override
     public String toString() {
-        return String.valueOf(getTuples());
+        StringBuilder sb = new StringBuilder();
+        for (Tuple t : this.getTuples()) sb.append(t).append("\n");
+        return String.valueOf(sb);
     }
 
     /**
@@ -382,18 +398,7 @@ public class RequiredTuples {
         @Override
         public int compareTo(Tuple o) {
             // We want to sort in size order, so if o is bigger it should come later
-            int intComparison = Integer.compare(this.size(), o.size());
-            if (intComparison != 0) return intComparison;
-            // If tuples are same length, put one with smaller indices first
-            int i = 0;
-            int vertComparison = 0;
-            while (i < Math.min(this.size(), o.size()) && vertComparison == 0) {
-                // Loop through indices until either we reach the end and have found identical indices
-                // or we find that one tuple has a vertex with smaller index than other at same location
-                vertComparison = this.getVertices().get(i).compareTo(o.getVertices().get(i));
-                i++;
-            }
-            return vertComparison;
+            return Integer.compare(this.size(), o.size());
         }
 
         @Override

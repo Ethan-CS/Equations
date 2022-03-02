@@ -3,7 +3,6 @@ package io.github.ethankelly.model;
 import io.github.ethankelly.exceptions.UnexpectedStateException;
 import io.github.ethankelly.graph.Graph;
 import io.github.ethankelly.graph.Vertex;
-import io.github.ethankelly.symbols.Greek;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,13 +19,13 @@ public class ModelParams {
     /** List of characters representing states in the model */
     private final List<Character> states;
     /** Array of rates representing transition probabilities $A_{ij}$ for each edge $(i,j)$ */
-    private double[][] ratesMatrix;
+    private final double[][] ratesMatrix;
     /** Graph representing state transitions in the model */
-    private Graph transitionGraph;
+    private final Graph transitionGraph;
     /** Sub-graph of the transition graph containing only states which require 1 or more other states to induce. */
     private Graph filter;
 
-    private String[][] ratesForPrinting;
+    private final String[][] ratesForPrinting;
 
     /**
      * Class constructor.
@@ -54,11 +53,6 @@ public class ModelParams {
         m.addTransition('S', 'I', 0.6);
         m.addTransition('I', 'R', 0.1);
         System.out.println(m);
-
-        ModelParams n = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
-        n.addTransition('S','I', Greek.BETA.uni());
-        n.addTransition('I','R', Greek.GAMMA.uni());
-        System.out.println(n);
     }
 
     public void addTransition(char from, char to, String symbol) {
@@ -77,10 +71,6 @@ public class ModelParams {
 
     public Graph getTransitionGraph() {
         return transitionGraph;
-    }
-
-    public void setTransitionGraph(Graph newGraph) {
-        this.transitionGraph = newGraph;
     }
 
     public int[] getToExit() {

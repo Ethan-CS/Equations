@@ -132,7 +132,8 @@ public class ODEUtils {
 				.orElse(null);
 	}
 
-	public static void plotResults(ODESystem system, Map<RequiredTuples.Tuple, Integer> headers, double[][] results) {
+	public static void plotResults(ODESystem system, double[][] results) {
+		Map<RequiredTuples.Tuple, Integer> headers = system.getIndicesMapping();
 		// Time arrays, for x values in the plot
 		int[] time = IntStream.range(0, system.tMax + 1).toArray();
 		double[] timeDouble = Arrays.stream(time).asDoubleStream().toArray();
@@ -238,7 +239,7 @@ public class ODEUtils {
 					if (ode.getG().hasEdge(i, v.getLocation())) {
 						Vertex w = new Vertex(state, i);
 						if (!otherTerms.contains(w)) otherTerms.add(w);
-						addExitTuple(ode, y, yDot, tuple, s, otherTerms, otherStates.get(state), otherSymbols.get(state)==null?"":otherSymbols.get(state));
+						addExitTuple(ode, y, yDot, tuple, s, otherTerms, otherStates.get(state), otherSymbols.get(state) == null ? "" : otherSymbols.get(state));
 						otherTerms.remove(w);
 					}
 				}
@@ -309,10 +310,9 @@ public class ODEUtils {
 
 	private static void addEntryTuple(ODESystem odeSystem, double[] y, double[] yDot, RequiredTuples.Tuple tuple, StringBuilder s, List<Vertex> otherTerms, double rateOfTransition, Vertex w, String rateSymbol) {
 		RequiredTuples.Tuple t = new RequiredTuples.Tuple(otherTerms);
-//		if (t.isValidTuple(odeSystem.getModelParameters(), odeSystem.getG(), odeSystem.isClosures())) {
 		if (odeSystem.getTuples().contains(t)) {
 			yDot[odeSystem.getIndicesMapping().get(tuple)] += (rateOfTransition * y[odeSystem.getIndicesMapping().get(t)]);
-			if (s.charAt(s.length()-1) != '=' && s.charAt(s.length()-2) != '=') s.append("+");
+			if (s.charAt(s.length()-1) != '=') s.append("+");
 			if (!(rateSymbol == null || rateSymbol.equals(""))) s.append(rateSymbol);
 			else s.append(rateOfTransition);
 			s.append(t);
