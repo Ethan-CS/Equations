@@ -13,8 +13,7 @@ import java.util.stream.IntStream;
 public class Graph implements Cloneable {
     /** Number of sub-graphs the cut vertex belongs to after splicing . */
     private final Map<Vertex, Integer> cutVertexFreq = new HashMap<>();
-    /** Number of walks of each length in the graph. */
-    protected List<Integer[][]> numWalks = new ArrayList<>();
+    private List<Integer[][]> numWalks = new ArrayList<>();
     /** Discovery time for cut-vertex identification. */
     int time = 0;
     /** Name of the graph - generally corresponds to graph class. */
@@ -259,6 +258,11 @@ public class Graph implements Cloneable {
     public boolean hasEdge(Vertex v, Vertex w) {
         if (!vertices.contains(v) || !vertices.contains(w)) return false;
         else return (adjList.get(vertices.indexOf(v)).contains(w) || adjList.get(vertices.indexOf(w)).contains(v));
+    }
+
+    /** Number of walks of each length in the graph. */
+    public List<Integer[][]> getNumWalks() {
+        return numWalks;
     }
 
     private void clearSpliceFields() {

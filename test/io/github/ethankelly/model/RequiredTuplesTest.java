@@ -1,9 +1,6 @@
 package io.github.ethankelly.model;
 
-import io.github.ethankelly.graph.Graph;
-import io.github.ethankelly.graph.GraphGenerator;
-import io.github.ethankelly.graph.Vertex;
-import io.github.ethankelly.graph.Rand;
+import io.github.ethankelly.graph.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
@@ -11,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 
+import static io.github.ethankelly.graph.GraphUtils.countWalks;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
@@ -26,24 +24,26 @@ class RequiredTuplesTest {
 
     @Test
     void genTuplesTriangle() {
-        String expected = "〈S0〉\n" +
-                          "〈S1〉\n" +
-                          "〈S2〉\n" +
-                          "〈I0〉\n" +
-                          "〈I1〉\n" +
-                          "〈I2〉\n" +
-                          "〈I0 S1〉\n" +
-                          "〈S0 I1〉\n" +
-                          "〈I0 S2〉\n" +
-                          "〈S0 I2〉\n" +
-                          "〈I1 S2〉\n" +
-                          "〈S1 I2〉\n" +
-                          "〈I0 S1 I2〉\n" +
-                          "〈S0 I1 S2〉\n" +
-                          "〈I0 I1 S2〉\n" +
-                          "〈S0 S1 I2〉\n" +
-                          "〈S0 I1 I2〉\n" +
-                          "〈I0 S1 S2〉\n";
+        String expected = """
+                〈S0〉
+                〈S1〉
+                〈S2〉
+                〈I0〉
+                〈I1〉
+                〈I2〉
+                〈I0 S1〉
+                〈S0 I1〉
+                〈I0 S2〉
+                〈S0 I2〉
+                〈I1 S2〉
+                〈S1 I2〉
+                〈I0 S1 I2〉
+                〈S0 I1 S2〉
+                〈I0 I1 S2〉
+                〈S0 S1 I2〉
+                〈S0 I1 I2〉
+                〈I0 S1 S2〉
+                """;
         RequiredTuples C3 = new RequiredTuples(GraphGenerator.cycle(3), m, false);
         StringBuilder actual = new StringBuilder();
         List<RequiredTuples.Tuple> triangleTuples = C3.genTuples();
@@ -98,6 +98,50 @@ class RequiredTuplesTest {
         RequiredTuples rt3 = new RequiredTuples(h, m, false);
 
         assertNotEquals(rt3, rt1);
+    }
+
+    private int expectedNumberPath(int K, int n, Graph filter) {
+        int result = 0;
+        //  Single vertex terms
+        result += (K*n);
+
+        // Count walks in filter graph up to number of vertices
+        countWalks(filter, n);
+        int[] numWalks = new int[n];
+        for (int i = 0; i < numWalks.length; i++) {
+            Integer[][] walks = filter.getNumWalks().get(i);
+            int w = 0;
+            for (Integer[] row : walks) {
+                for (int k = 0; k < walks[0].length; k++) {
+                    w += row[k];
+                }
+            }
+            numWalks[i]=w;
+        }
+        for (int i = 1; i < n; i++) {
+            result += numWalks[i] * (n-i);
+        }
+
+        return result;
+    }
+
+
+
+
+    @Test
+    void getTuplesOnPaths() {
+        for (int i = 1; i <= 100; i++) {
+            System.out.print("\nn=" + i );
+            int expected = expectedNumberPath(2, i,  m.getFilterGraph());
+            System.out.print(" -> EXPECTED: " + expected);
+            Graph p = GraphGenerator.path(i);
+            RequiredTuples path = new RequiredTuples(p, m, false);
+            int actual = path.size();
+            System.out.print(", ACTUAL: " + actual);
+
+            assertEquals(expected, actual);
+        }
+
     }
 
     @Test

@@ -13,12 +13,11 @@ public class GraphUtils {
 	 Auxiliary Space: O(V^3).
 	 To store the table, O(V^3) space is needed.
 	*/
-	@SuppressWarnings("unused")
 	public static void countWalks(Graph graph, int k) {
 		// Loop for number of edges from 0 to k
 		for (int e = 0; e <= k; e++) {
 			// Ensure we don't recalculate matrices if they are already stored in walks field
-			if (graph.numWalks.size() <= e) {
+			if (graph.getNumWalks().size() <= e) {
 				// Value count[i][j] is the number of possible walks from i to j with e-many edges
 				Integer[][] count = new Integer[graph.getNumVertices()][graph.getNumVertices()];
 				for (int i = 0; i < graph.getNumVertices(); i++) { // source
@@ -32,12 +31,12 @@ public class GraphUtils {
 						if (e > 1) {
 							for (int a = 0; a < graph.getNumVertices(); a++) { // adjacent to i
 								if (graph.hasDirectedEdge(i, a))
-									count[i][j] += graph.numWalks.get(e - 1)[a][j];
+									count[i][j] += graph.getNumWalks().get(e - 1)[a][j];
 							}
 						}
 					}
 				}
-				graph.numWalks.add(e, count);
+				graph.getNumWalks().add(e, count);
 			}
 		}
 		// No reflexive vertices (e.g. avoids all I or all S walks in SIR)
@@ -47,7 +46,7 @@ public class GraphUtils {
 				zeroWalks[i][j] = 0;
 			}
 		}
-		graph.numWalks.set(0, zeroWalks);
+		graph.getNumWalks().set(0, zeroWalks);
 	}
 
 	// Recursive helper method - used to decompose the given graph into sub-graphs by cut-vertices
