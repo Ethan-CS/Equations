@@ -403,6 +403,7 @@ public class Graph implements Cloneable {
     }
 
     public void removeVertex(Vertex v) {
+        this.numVertices--;
         int i = vertices.indexOf(v);
         // Iterate through all vertices in each list
         for (List<Vertex> list : adjList) {
@@ -416,7 +417,8 @@ public class Graph implements Cloneable {
             }
         }
         // Empty the adjacency list for the given vertex
-        adjList.set(i, new ArrayList<>());
+        adjList.remove(i);
+        this.vertices.remove(v);
         clearSpliceFields();
     }
 

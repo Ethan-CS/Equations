@@ -111,7 +111,7 @@ public class ModelParams {
                 e.printStackTrace();
             }
         } else {
-            this.ratesForPrinting[indexFrom][indexTo] = String.valueOf(rate);
+//            this.ratesForPrinting[indexFrom][indexTo] = String.valueOf(rate);
             this.ratesMatrix[indexFrom][indexTo] = rate;
             this.transitionGraph.addDirectedEdge(indexFrom, indexTo);
         }

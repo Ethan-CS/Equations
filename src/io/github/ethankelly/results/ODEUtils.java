@@ -219,43 +219,40 @@ public class ODEUtils {
 		List<Vertex> otherTerms = getOtherTerms(tuple, v);
 		otherTerms.add(v);
 		// How do we exit this state?
-		if (ode.getModelParameters().getToExit()[indexOfState] == 2) { // State needs another vertex to leave
-			// Store a list of states that, if a neighbouring vertex is in them,
-			// would mean we leave the state represented by the current tuple.
-			Map<Character, Double> otherStates = new HashMap<>();
-			Map<Character, String> otherSymbols = new HashMap<>();
-			int bound = ode.getModelParameters().getStates().size();
-			for (int col = 0; col < bound; col++) {
+		for (int col = 0; col < ode.getModelParameters().getStates().size(); col++) {
+			if (ode.getModelParameters().getToExit()[indexOfState] == 2) { // State needs another vertex to leave
+				// Store a list of states that, if a neighbouring vertex is in them,
+				// would mean we leave the state represented by the current tuple.
+				Map<Character, Double> otherStates = new HashMap<>();
+				Map<Character, String> otherSymbols = new HashMap<>();
 				if (ode.getModelParameters().getTransitionGraph().hasEdge(indexOfState, col)) {
 					otherStates.put(ode.getModelParameters().getStates().get(col), ode.getModelParameters().getRatesMatrix()[indexOfState][col]);
 					otherSymbols.put(ode.getModelParameters().getStates().get(col), ode.getModelParameters().getRatesForPrinting()[indexOfState][col]);
 				}
-			}
-
-			// Loop through our found exit-inducing states
-			for (Character state : otherStates.keySet()) {
-				// Loop through all vertices in the graph, skipping any non-neighbours of v
-				for (int i = 0; i < ode.getG().getNumVertices(); i++) {
-					if (ode.getG().hasEdge(i, v.getLocation())) {
-						Vertex w = new Vertex(state, i);
-						if (!otherTerms.contains(w)) otherTerms.add(w);
-						addExitTuple(ode, y, yDot, tuple, s, otherTerms, otherStates.get(state), otherSymbols.get(state) == null ? "" : otherSymbols.get(state));
-						otherTerms.remove(w);
+				// Loop through our found exit-inducing states
+				for (Character state : otherStates.keySet()) {
+					// Loop through all vertices in the graph, skipping any non-neighbours of v
+					for (int i = 0; i < ode.getG().getNumVertices(); i++) {
+						if (ode.getG().hasEdge(i, v.getLocation())) {
+							Vertex w = new Vertex(state, i);
+							if (!otherTerms.contains(w)) otherTerms.add(w);
+							addExitTuple(ode, y, yDot, tuple, s, otherTerms, otherStates.get(state), otherSymbols.get(state) == null ? "" : otherSymbols.get(state));
+							otherTerms.remove(w);
+						}
 					}
 				}
-			}
-			otherTerms.remove(v);
-		} else if (ode.getModelParameters().getToExit()[indexOfState] == 1) { // Can exit by itself
-			double rateOfTransition = 0; // The rate at which this transition occurs
-			String symbolOfTransition = "";
-			for (int col = 0; col < ode.getModelParameters().getStates().size(); col++) {
+				otherTerms.remove(v);
+			} else if (ode.getModelParameters().getToExit()[indexOfState] == 1) { // Can exit by itself
+				double rateOfTransition = 0; // The rate at which this transition occurs
+				String symbolOfTransition = "";
 				if (ode.getModelParameters().getTransitionGraph().hasEdge(indexOfState, col) &&
-				    ode.getModelParameters().getToEnter()[col] == 1) {
+						ode.getModelParameters().getToEnter()[col] == 1) {
 					rateOfTransition = ode.getModelParameters().getRatesMatrix()[indexOfState][col];
 					symbolOfTransition = ode.getModelParameters().getRatesForPrinting()[indexOfState][col];
 				}
+				if ((symbolOfTransition != null && !symbolOfTransition.equals("")) && rateOfTransition > 0)
+					addExitTuple(ode, y, yDot, tuple, s, otherTerms, rateOfTransition, symbolOfTransition);
 			}
-			addExitTuple(ode, y, yDot, tuple, s, otherTerms, rateOfTransition, symbolOfTransition);
 		}
 	}
 
@@ -275,6 +272,7 @@ public class ODEUtils {
 					char otherState = modelStates.get(otherStateIndex); // The other state we are required to consider
 					double rateOfTransition = modelParams.getRatesMatrix()[otherStateIndex][indexOfState];
 					String symbolOfTransition = modelParams.getRatesForPrinting()[otherStateIndex][indexOfState];
+					// vComp is v in the state it would be before it transitions to its current state
 					Vertex vComp = new Vertex(otherState, v.getLocation());
 					otherTerms.add(vComp);
 					// How do we enter this state?

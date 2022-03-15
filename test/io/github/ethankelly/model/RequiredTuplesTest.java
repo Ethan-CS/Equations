@@ -26,26 +26,24 @@ class RequiredTuplesTest {
 
     @Test
     void genTuplesTriangle() {
-        String expected = """
-                〈I0 S1 I2〉
-                〈S0 I1 S2〉
-                〈I0 I1 S2〉
-                〈S0 S1 I2〉
-                〈S0 I1 I2〉
-                〈I0 S1 S2〉
-                〈I0 S1〉
-                〈S0 I1〉
-                〈I0 S2〉
-                〈S0 I2〉
-                〈I1 S2〉
-                〈S1 I2〉
-                〈S0〉
-                〈S1〉
-                〈S2〉
-                〈I0〉
-                〈I1〉
-                〈I2〉
-                """;
+        String expected = "〈S0〉\n" +
+                          "〈S1〉\n" +
+                          "〈S2〉\n" +
+                          "〈I0〉\n" +
+                          "〈I1〉\n" +
+                          "〈I2〉\n" +
+                          "〈I0 S1〉\n" +
+                          "〈S0 I1〉\n" +
+                          "〈I0 S2〉\n" +
+                          "〈S0 I2〉\n" +
+                          "〈I1 S2〉\n" +
+                          "〈S1 I2〉\n" +
+                          "〈I0 S1 I2〉\n" +
+                          "〈S0 I1 S2〉\n" +
+                          "〈I0 I1 S2〉\n" +
+                          "〈S0 S1 I2〉\n" +
+                          "〈S0 I1 I2〉\n" +
+                          "〈I0 S1 S2〉\n";
         RequiredTuples C3 = new RequiredTuples(GraphGenerator.cycle(3), m, false);
         StringBuilder actual = new StringBuilder();
         List<RequiredTuples.Tuple> triangleTuples = C3.genTuples();

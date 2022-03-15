@@ -2,19 +2,15 @@ package io.github.ethankelly.model;
 
 import io.github.ethankelly.graph.Graph;
 import io.github.ethankelly.graph.GraphGenerator;
-import io.github.ethankelly.graph.Vertex;
 import io.github.ethankelly.results.ODEUtils;
 import io.github.ethankelly.symbols.Greek;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.exception.MaxCountExceededException;
 import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
-import org.apache.commons.math3.ode.FirstOrderIntegrator;
-import org.apache.commons.math3.ode.nonstiff.DormandPrince853Integrator;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * Represents a system of differential equations that describe a compartmental model of disease on a given graph. This
@@ -63,20 +59,11 @@ public class ODESystem implements FirstOrderDifferentialEquations {
         ModelParams SIR = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
         SIR.addTransition('S', 'I', Greek.BETA.uni());
         SIR.addTransition('I', 'R', Greek.GAMMA.uni());
+        SIR.addTransition('S', 'I', 0.8);
+        SIR.addTransition('I', 'R', 0.1);
         // ODE system for cycle SIR model
         ODESystem ode = new ODESystem(GraphGenerator.cycle(3), 5, SIR);
         System.out.println(ode);
-
-        // Initial conditions - 1 infected, everything else susceptible
-        double[] initialConditions = new double[ode.getDimension()];
-        Arrays.fill(initialConditions, Math.max(new Random().nextDouble(), 0.3));
-        initialConditions[ode.getIndicesMapping().get(new RequiredTuples.Tuple(new Vertex('I', 0)))] = 1;
-        initialConditions[ode.getIndicesMapping().get(new RequiredTuples.Tuple(new Vertex('S', 1)))] = 1;
-        initialConditions[ode.getIndicesMapping().get(new RequiredTuples.Tuple(new Vertex('S', 2)))] = 1;
-        FirstOrderIntegrator integrator = new DormandPrince853Integrator(0.1, 0.1, 0.001, 0.001);
-        double[][] results = ODEUtils.getIncrementalResults(ode, initialConditions, integrator);
-
-        ODEUtils.plotResults(ode, results);
     }
 
     /**
