@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static io.github.ethankelly.graph.GraphUtils.countWalks;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -78,7 +79,6 @@ class RequiredTuplesTest {
         assertEquals(18, triangle.size(), "Actual: " + triangle.getTuples());
     }
 
-
     @Test
     void testEquals() {
         // Random number of vertices between 3 and 10
@@ -111,37 +111,34 @@ class RequiredTuplesTest {
         for (int i = 0; i < numWalks.length; i++) {
             Integer[][] walks = filter.getNumWalks().get(i);
             int w = 0;
-            for (Integer[] row : walks) {
-                for (int k = 0; k < walks[0].length; k++) {
-                    w += row[k];
-                }
-            }
+            // Add up all elements in power of adj mat to get all walks of length i
+            for (Integer[] row : walks) for (int k = 0; k < walks[0].length; k++) w += row[k];
+            // Store num of walks of length i for later calculation
             numWalks[i]=w;
         }
-        for (int i = 1; i < n; i++) {
-            result += numWalks[i] * (n-i);
-        }
+        // Sum: i from 1 to n, (num walks length i) * (n-i)
+        result += IntStream.range(1, n).map(i -> numWalks[i] * (n - i)).sum();
 
         return result;
     }
 
-
-
-
     @Test
     void getTuplesOnPaths() {
+        // Run on paths up to 100 vertices
         for (int i = 1; i <= 100; i++) {
+            // Print a new line and num vertices
             System.out.print("\nn=" + i );
+            // Use helper method to get expected number of equations from analytically derived expression
             int expected = expectedNumberPath(2, i,  m.getFilterGraph());
             System.out.print(" -> EXPECTED: " + expected);
+            // Create a path and use algorithmic method to generate tuples and print how many were generated
             Graph p = GraphGenerator.path(i);
             RequiredTuples path = new RequiredTuples(p, m, false);
             int actual = path.size();
             System.out.print(", ACTUAL: " + actual);
-
+            // Assert that we generated the correct number of equations
             assertEquals(expected, actual);
         }
-
     }
 
     @Test
