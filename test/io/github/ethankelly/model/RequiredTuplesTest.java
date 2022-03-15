@@ -1,13 +1,15 @@
 package io.github.ethankelly.model;
 
-import io.github.ethankelly.graph.*;
+import io.github.ethankelly.graph.Graph;
+import io.github.ethankelly.graph.GraphGenerator;
+import io.github.ethankelly.graph.Rand;
+import io.github.ethankelly.graph.Vertex;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.IntStream;
 
 import static io.github.ethankelly.graph.GraphUtils.countWalks;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -100,11 +102,10 @@ class RequiredTuplesTest {
         assertNotEquals(rt3, rt1);
     }
 
-    private int expectedNumberPath(int K, int n, Graph filter) {
+    private int expectedNumberPathCycle(int K, int n, Graph filter, char type) {
         int result = 0;
         //  Single vertex terms
         result += (K*n);
-
         // Count walks in filter graph up to number of vertices
         countWalks(filter, n);
         int[] numWalks = new int[n];
@@ -116,28 +117,46 @@ class RequiredTuplesTest {
             // Store num of walks of length i for later calculation
             numWalks[i]=w;
         }
-        // Sum: i from 1 to n, (num walks length i) * (n-i)
-        result += IntStream.range(1, n).map(i -> numWalks[i] * (n - i)).sum();
+        int sum = 0;
+        if (type == 'P' || type == 'p') {
+            // Sum: i from 1 to n, (num walks length i) * (n-i)
+            for (int i = 1; i < n; i++) {
+                sum += numWalks[i] * (n - i);
+            }
+        } else if (type == 'C' || type == 'c') {
+            // Sum: i from 1 to n-1, (num walks length i) * n
+            for (int i = 1; i < n-1; i++) {
+                sum += numWalks[i] * n;
+            }
+            sum += n%2!=0 ? n*numWalks[n-1] : numWalks[n-1];
+        } else throw new IllegalArgumentException("Unexpected graph type argument: " + type);
 
+        result += sum;
         return result;
     }
 
     @Test
-    void getTuplesOnPaths() {
-        // Run on paths up to 100 vertices
-        for (int i = 1; i <= 100; i++) {
-            // Print a new line and num vertices
-            System.out.print("\nn=" + i );
-            // Use helper method to get expected number of equations from analytically derived expression
-            int expected = expectedNumberPath(2, i,  m.getFilterGraph());
-            System.out.print(" -> EXPECTED: " + expected);
-            // Create a path and use algorithmic method to generate tuples and print how many were generated
-            Graph p = GraphGenerator.path(i);
-            RequiredTuples path = new RequiredTuples(p, m, false);
-            int actual = path.size();
-            System.out.print(", ACTUAL: " + actual);
-            // Assert that we generated the correct number of equations
-            assertEquals(expected, actual);
+    void getTuplesOnPathsCycles() {
+        char[] types = new char[]{'P','C'};
+        for (char type : types) {
+            // Run on paths/cycles up to 100 vertices
+            for (int i = 1; i <= 50; i++) {
+                if (!(type == 'C' && i < 4)) { // Need at least 3 vertices for generating cycle to make sense
+                    // Use helper method to get expected number of
+                    // equations from analytically derived expression
+                    int expected = expectedNumberPathCycle(2, i, m.getFilterGraph(), type);
+                    // Create a path/cycle and use algorithmic method
+                    // to generate tuples and print how many were generated
+                    Graph g;
+                    if (type == 'P') g = GraphGenerator.path(i);
+                    else g = GraphGenerator.cycle(i);
+                    RequiredTuples path = new RequiredTuples(g, m, false);
+                    int actual = path.size();
+                    System.out.println("n=" + i + " -> EXPECTED: " + expected + ", ACTUAL: " + actual);
+                    // Assert that we generated the correct number of equations
+                    assertEquals(expected, actual, path.toString());
+                }
+            }
         }
     }
 
