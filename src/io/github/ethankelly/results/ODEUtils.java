@@ -293,7 +293,7 @@ public class ODEUtils {
 									added = true;
 								}
 								addEntryTuple(ode, y, yDot, tuple, s, otherTerms, rateOfTransition, w, symbolOfTransition);
-								if (added) otherTerms.remove(w);
+//								if (added) otherTerms.remove(w);
 							}
 						}
 					} else if (numNeighboursToEnter == 1) {
@@ -329,7 +329,7 @@ public class ODEUtils {
 		otherTerms.remove(w);
 	}
 
-	private static List<Vertex> getOtherTerms(RequiredTuples.Tuple tuple, Vertex v,  boolean exit) {
+	private static List<Vertex> getOtherTerms(RequiredTuples.Tuple tuple, Vertex v, boolean exit) {
 		List<Vertex> otherTerms = new ArrayList<>();
 		for (Vertex vertex : tuple.getVertices()) {
 			if (!v.equals(vertex)) {

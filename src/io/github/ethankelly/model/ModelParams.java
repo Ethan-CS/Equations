@@ -24,7 +24,7 @@ public class ModelParams {
     private final Graph transitionGraph;
     /** Sub-graph of the transition graph containing only states which require 1 or more other states to induce. */
     private Graph filter;
-
+    /** 2d string array containing symbols for printing string representations of equations, if required. */
     private final String[][] ratesForPrinting;
 
     /**
@@ -47,6 +47,11 @@ public class ModelParams {
         this.ratesForPrinting = new String[states.size()][states.size()];
     }
 
+    /**
+     * Unit testing.
+     *
+     * @param args command-line args, ignored.
+     */
     public static void main(String[] args) {
         // For now, every element in transmission matrix is equal to the relevant rate (can change based on context)
         ModelParams m = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
@@ -55,6 +60,13 @@ public class ModelParams {
         System.out.println(m.getFilterGraph().getLabels());
     }
 
+    /**
+     * Adds a model transition between two states with the rate represented by the specified symbol.
+     *
+     * @param from the state in which the transition begins.
+     * @param to the state in which the transition ends.
+     * @param symbol the symbol representing the rate of transition.
+     */
     public void addTransition(char from, char to, String symbol) {
         int indexFrom = -1;
         int indexTo = -1;
@@ -69,34 +81,62 @@ public class ModelParams {
         this.transitionGraph.addDirectedEdge(indexFrom, indexTo);
     }
 
+    /**
+     * @return the graph representing transitions between model states.
+     */
     public Graph getTransitionGraph() {
         return transitionGraph;
     }
 
+    /**
+     * @return an array with the numbers of states required to exit each state.
+     */
     public int[] getToExit() {
         return toExit;
     }
 
+    /**
+     * @return an array with the numbers of states required to enter each state.
+     */
     public int[] getToEnter() {
         return toEnter;
     }
 
+    /**
+     * @return the 2d array containing the rates of transitions between model states.
+     */
     public double[][] getRatesMatrix() {
         return ratesMatrix;
     }
 
+    /**
+     * @return the 2d array containing symbols representing rates of transitions between model states.
+     */
     public String[][] getRatesForPrinting() {
         return this.ratesForPrinting;
     }
 
+    /**
+     * @return a list of characters representing all states in the current model.
+     */
     public List<Character> getStates() {
         return states;
     }
 
+    /**
+     * @return a list of characters representing states in the filter graph of the current model.
+     */
     public List<Character> getFilterStates() {
         return this.getFilterGraph().getLabels();
     }
 
+    /**
+     * Adds a model transition between two states with the specified rate.
+     *
+     * @param from the state in which the transition begins.
+     * @param to the state in which the transition ends.
+     * @param rate the numerical rate of transition.
+     */
     public void addTransition(char from, char to, double rate) {
         assert from != to :
                 "The 'to' and 'from' characters should not have been the same, but were: " + to + " = " + from;
@@ -115,12 +155,14 @@ public class ModelParams {
                 e.printStackTrace();
             }
         } else {
-//            this.ratesForPrinting[indexFrom][indexTo] = String.valueOf(rate);
             this.ratesMatrix[indexFrom][indexTo] = rate;
             this.transitionGraph.addDirectedEdge(indexFrom, indexTo);
         }
     }
 
+    /**
+     * @return the string representation of the transition graph representing the current model.
+     */
     @Override
     public String toString() {
         return this.transitionGraph + "\n";

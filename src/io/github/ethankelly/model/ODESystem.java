@@ -130,10 +130,6 @@ public class ODESystem implements FirstOrderDifferentialEquations {
         return this.modelParamsParameters;
     }
 
-    public boolean isClosures() {
-        return this.closures;
-    }
-
     /**
      * @return a string (textual) summary representation of the current system of equations to print to the console.
      */
@@ -153,14 +149,12 @@ public class ODESystem implements FirstOrderDifferentialEquations {
         if (this.equations == null || this.equations.length() == 0) {
             StringBuilder s = new StringBuilder();
             RequiredTuples tuples = this.getTuples();
-            for (RequiredTuples.Tuple t : tuples.getTuples()) {
-                s.append(ODEUtils.getEquation(this, new double[this.getTuples().size()], new double[this.getTuples().size()], t));
-            }
+            tuples.getTuples().stream().map(t -> ODEUtils.getEquation(this, new double[this.getTuples().size()],
+                    new double[this.getTuples().size()], t)).forEach(s::append);
             this.equations = String.valueOf(s);
             return String.valueOf(s);
         } else {
             return this.equations;
         }
     }
-
 }
