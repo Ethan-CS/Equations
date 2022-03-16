@@ -139,7 +139,7 @@ class RequiredTuplesTest {
     void getTuplesOnPathsCycles() {
         char[] types = new char[]{'P','C'};
         for (char type : types) {
-            // Run on paths/cycles up to 100 vertices
+            // Run on paths/cycles up to 50 vertices
             for (int i = 1; i <= 50; i++) {
                 if (!(type == 'C' && i < 4)) { // Need at least 3 vertices for generating cycle to make sense
                     // Use helper method to get expected number of
@@ -152,9 +152,8 @@ class RequiredTuplesTest {
                     else g = GraphGenerator.cycle(i);
                     RequiredTuples path = new RequiredTuples(g, m, false);
                     int actual = path.size();
-                    System.out.println("n=" + i + " -> EXPECTED: " + expected + ", ACTUAL: " + actual);
                     // Assert that we generated the correct number of equations
-                    assertEquals(expected, actual, path.toString());
+                    assertEquals(expected, actual, "n="  + i + ", tuples:\n" + path);
                 }
             }
         }

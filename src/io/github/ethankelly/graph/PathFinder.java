@@ -75,7 +75,6 @@ public class PathFinder {
             // Carry on searching until we've recurred on every child state until no more successors exist
             while (!expand.isEmpty()) {
                 List<Vertex> x = expand.get(0);
-//                x.sort(null);
                 // Don't add duplicates to allStates list, as we have already searched for children
                 if (!allStates.contains(x)) {
                     allStates.add(x);
@@ -91,9 +90,7 @@ public class PathFinder {
     }
 
     protected List<List<Vertex>> generator(List<Vertex> currentState) {
-        // TODO should we loop through all vertices in current state or just use the last vertex in the state?
         List<List<Vertex>> children = new ArrayList<>();
-//        for (Vertex v : currentState) ??
         Vertex v  = currentState.get(currentState.size()-1);
         List<Vertex> neighbours = this.graph.getAdjList().get(this.graph.getVertices().indexOf(v));
         for (Vertex w : neighbours) {

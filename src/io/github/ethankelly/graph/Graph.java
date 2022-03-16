@@ -319,16 +319,12 @@ public class Graph implements Cloneable {
             thisDegrees.add(thisDeg);
             thatDegrees.add(thatDeg);
         }
-        System.out.println(thisDegrees);
-        System.out.println(thatDegrees);
-
         for (Integer i : thisDegrees) {
             if (!thatDegrees.contains(i)) return false;
         }
         for (Integer j : thatDegrees) {
             if (!thisDegrees.contains(j)) return false;
         }
-
         return true;
     }
 

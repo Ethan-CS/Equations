@@ -150,8 +150,8 @@ public class Vertex implements Comparable<Vertex> {
 	}
 
 	public String plainToString() {
-		if (this.getState() == ' ') return String.valueOf(this.getLocation());
-		else return String.valueOf(this.getState()) + this.getLocation();
+		if (this.getState() == ' ') return String.valueOf(this.getLocation()+1);
+		else return String.valueOf(this.getState()) + (this.getLocation()+1);
 	}
 
 	/**

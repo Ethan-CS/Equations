@@ -52,7 +52,7 @@ public class ModelParams {
         ModelParams m = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
         m.addTransition('S', 'I', 0.6);
         m.addTransition('I', 'R', 0.1);
-        System.out.println(m);
+        System.out.println(m.getFilterGraph().getLabels());
     }
 
     public void addTransition(char from, char to, String symbol) {
@@ -91,6 +91,10 @@ public class ModelParams {
 
     public List<Character> getStates() {
         return states;
+    }
+
+    public List<Character> getFilterStates() {
+        return this.getFilterGraph().getLabels();
     }
 
     public void addTransition(char from, char to, double rate) {
