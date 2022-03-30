@@ -328,6 +328,14 @@ public class Graph implements Cloneable {
         return true;
     }
 
+    public List<Vertex> getNeighbours(Vertex v) {
+        int index = this.getVertices().indexOf(v);
+        if (index < 0) {
+            index = v.getLocation();
+        }
+        return this.getAdjList().get(index);
+    }
+
     /**
      * Finds the connected components in the current graph and returns them as a list of lists of integers, each sub-
      * list representing a sub-graph (connected component).
