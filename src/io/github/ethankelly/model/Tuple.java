@@ -33,7 +33,7 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
     public Tuple(List<Vertex> tuple) {
         List<Vertex> t = new ArrayList<>(tuple);
         t.sort(new Vertex.VertexComparator());
-        this.vertices = t;
+        this.vertices = tuple;
     }
 
     /**
