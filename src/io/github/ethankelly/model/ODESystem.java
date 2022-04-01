@@ -28,7 +28,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
     /** Number of equations required (i.e. number of tuples). */
     private int dimension;
     /** Mapping of requiredTuples to unique integers. */
-    private Map<RequiredTuples.Tuple, Integer> indicesMapping = new HashMap<>();
+    private Map<Tuple, Integer> indicesMapping = new HashMap<>();
     /** String representation of the system of equations. */
     private String equations;
 
@@ -60,14 +60,14 @@ public class ODESystem implements FirstOrderDifferentialEquations {
      *
      * @return a mapping of required requiredTuples to unique integers.
      */
-    public Map<RequiredTuples.Tuple, Integer> getIndicesMapping() {
+    public Map<Tuple, Integer> getIndicesMapping() {
         // If we have already created a mapping, return it;
         // Else, create a mapping and store to class attribute
         if (this.indicesMapping.size() != this.requiredTuples.getTuples().size()) {
-            Map<RequiredTuples.Tuple, Integer> indices = new HashMap<>(); //  The mapping we will return
+            Map<Tuple, Integer> indices = new HashMap<>(); //  The mapping we will return
             RequiredTuples requiredTuples = this.getTuples(); // The required requiredTuples to assign unique integers to each
             int i = 0; // Counter, to make sure we use a systematic mapping
-            for (RequiredTuples.Tuple list : requiredTuples.getTuples()) indices.put(list, i++);
+            for (Tuple list : requiredTuples.getTuples()) indices.put(list, i++);
             this.indicesMapping = indices;
             return indices;
         } else {
@@ -115,12 +115,12 @@ public class ODESystem implements FirstOrderDifferentialEquations {
         RequiredTuples tuples = this.getTuples();
         if (this.equations == null || this.equations.length() == 0) {
             StringBuilder s = new StringBuilder();
-            for (RequiredTuples.Tuple t : tuples.getTuples()) {
+            for (Tuple t : tuples.getTuples()) {
                 s.append(t).append(" = ").append(ODEUtils.getEquation(this, y, yDot, t)).append("\n");
             }
             this.equations = String.valueOf(s);
         } else {
-            for (RequiredTuples.Tuple t : tuples.getTuples()) {
+            for (Tuple t : tuples.getTuples()) {
                 ODEUtils.getEquation(this, y, yDot, t);
             }
         }

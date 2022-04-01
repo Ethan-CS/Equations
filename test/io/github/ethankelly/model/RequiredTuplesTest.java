@@ -49,8 +49,8 @@ class RequiredTuplesTest {
                 """;
         RequiredTuples C3 = new RequiredTuples(GraphGenerator.cycle(3), m, false);
         StringBuilder actual = new StringBuilder();
-        List<RequiredTuples.Tuple> triangleTuples = C3.genTuples();
-        for (RequiredTuples.Tuple t : triangleTuples) actual.append(t).append("\n");
+        List<Tuple> triangleTuples = C3.genTuples();
+        for (Tuple t : triangleTuples) actual.append(t).append("\n");
         assertEquals(expected, actual.toString());
     }
 

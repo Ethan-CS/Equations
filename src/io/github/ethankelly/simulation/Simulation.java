@@ -12,35 +12,11 @@ import java.util.Map;
 
 public class Simulation {
     private final Graph g;
-    private Map<State, List<Vertex>> stateMap;
-    private Map<Vertex, Integer> recovery;
-    private Map<Vertex, Double> probability;
-    private Map<Integer, Map<State, List<Vertex>>> results;
-    private Map<Integer, Map<State, Double>> resultsSummary;
-
-    public Graph getG() {
-        return g;
-    }
-
-    public Map<State, List<Vertex>> getStateMap() {
-        return stateMap;
-    }
-
-    public Map<Vertex, Integer> getRecovery() {
-        return recovery;
-    }
-
-    public Map<Vertex, Double> getProbability() {
-        return probability;
-    }
-
-    public Map<Integer, Map<State, List<Vertex>>> getResults() {
-        return results;
-    }
-
-    public Map<Integer, Map<State, Double>> getResultsSummary() {
-        return resultsSummary;
-    }
+    private final Map<State, List<Vertex>> stateMap;
+    private final Map<Vertex, Integer> recovery;
+    private final Map<Vertex, Double> probability;
+    private final Map<Integer, Map<State, List<Vertex>>> results;
+    private final Map<Integer, Map<State, Double>> resultsSummary;
 
     enum State {
         SUSCEPTIBLE,
@@ -62,20 +38,32 @@ public class Simulation {
         getStateMap().put(State.RECOVERED, new ArrayList<>());
 
         for (Vertex v : g.getVertices()) {
-            getRecovery().put(v, Rand.uniform(3,8));
+            getRecovery().put(v, Rand.uniform(3, 8));
             getProbability().put(v, Rand.uniform());
         }
+    }
+
+    public Map<State, List<Vertex>> getStateMap() {
+        return stateMap;
+    }
+
+    public Map<Vertex, Integer> getRecovery() {
+        return recovery;
+    }
+
+    public Map<Vertex, Double> getProbability() {
+        return probability;
     }
 
     public static void main(String[] args) {
         Simulation sim = new Simulation(GraphGenerator.cycle(5));
         System.out.println(sim.getG());
         sim.beginSimulation(2);
-        System.out.println("Beginning of simulation\n" + sim);
-        System.out.println(sim.getG());
-        sim.simulate();
-        System.out.println("End of simulation\n" + sim);
         System.out.println("Results\n" + sim.getResults() + "\n" + sim.getResultsSummary());
+    }
+
+    public Graph getG() {
+        return g;
     }
 
     public void beginSimulation(int numInitialInfected) {
@@ -93,15 +81,25 @@ public class Simulation {
                 count++;
             }
         }
-//        simulate();
-    }
-
-    public void beginSimulation(List<Vertex> infected) {
-        infected.forEach(this::infect);
         simulate();
     }
 
-    public void simulate() {
+    public Map<Integer, Map<State, List<Vertex>>> getResults() {
+        return results;
+    }
+
+    public Map<Integer, Map<State, Double>> getResultsSummary() {
+        return resultsSummary;
+    }
+
+    private void infect(Vertex v) {
+        List<Vertex> susceptible = new ArrayList<>(getStateMap().get(State.SUSCEPTIBLE));
+        boolean removed = susceptible.remove(v);
+        this.getStateMap().replace(State.SUSCEPTIBLE, susceptible);
+        if (removed) this.getStateMap().get(State.INFECTED).add(v);
+    }
+
+    private void simulate() {
         int t = 0;
         do {
             t++;
@@ -133,31 +131,30 @@ public class Simulation {
 
             // Write a summary of results - percent in S, I and R mapped to current time value
             Map<State, Double> summary = new HashMap<>();
-            summary.put(State.SUSCEPTIBLE, 100*((double) copy.get(State.SUSCEPTIBLE).size() / g.getNumVertices()));
-            summary.put(State.INFECTED, 100*((double) copy.get(State.INFECTED).size() / g.getNumVertices()));
-            summary.put(State.RECOVERED, 100*((double) copy.get(State.RECOVERED).size() / g.getNumVertices()));
+            summary.put(State.SUSCEPTIBLE, 100 * ((double) copy.get(State.SUSCEPTIBLE).size() / g.getNumVertices()));
+            summary.put(State.INFECTED, 100 * ((double) copy.get(State.INFECTED).size() / g.getNumVertices()));
+            summary.put(State.RECOVERED, 100 * ((double) copy.get(State.RECOVERED).size() / g.getNumVertices()));
             // Store in results summary
             getResultsSummary().put(t, summary);
-        } while (getStateMap().get(State.INFECTED).size() != 0);    }
-
-    public void infect(Vertex v) {
-        List<Vertex> susceptible = new ArrayList<>(getStateMap().get(State.SUSCEPTIBLE));
-        boolean removed = susceptible.remove(v);
-        this.getStateMap().replace(State.SUSCEPTIBLE, susceptible);
-        if (removed) this.getStateMap().get(State.INFECTED).add(v);
-    }
-
-    public void recover(Vertex v) {
-        List<Vertex> infected = new ArrayList<>(getStateMap().get(State.INFECTED));
-        boolean removed = infected.remove(v);
-        this.getStateMap().replace(State.INFECTED, infected);
-        if (removed) this.getStateMap().get(State.RECOVERED).add(v);
+        } while (getStateMap().get(State.INFECTED).size() != 0);
     }
 
     private boolean infects(Vertex infected, Vertex susceptible) {
         return getStateMap().get(State.SUSCEPTIBLE).contains(susceptible) &&
                 getStateMap().get(State.INFECTED).contains(infected) &&
                 Rand.uniform() <= getProbability().get(infected);
+    }
+
+    private void recover(Vertex v) {
+        List<Vertex> infected = new ArrayList<>(getStateMap().get(State.INFECTED));
+        boolean removed = infected.remove(v);
+        this.getStateMap().replace(State.INFECTED, infected);
+        if (removed) this.getStateMap().get(State.RECOVERED).add(v);
+    }
+
+    public void beginSimulation(List<Vertex> infected) {
+        infected.forEach(this::infect);
+        simulate();
     }
 
     /**

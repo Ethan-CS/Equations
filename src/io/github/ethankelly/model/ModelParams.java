@@ -194,4 +194,8 @@ public class ModelParams {
         }
         return filter;
     }
+
+    private List<Character> getStatesOfTransitionGraph() {
+        return this.filter.getLabels();
+    }
 }
