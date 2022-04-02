@@ -8,11 +8,6 @@ import java.util.*;
 
 public class Equation {
     private final Tuple tuple;
-
-    public Map<Tuple, List<Double>> getTerms() {
-        return terms;
-    }
-
     private final Map<Tuple, List<Double>> terms;
     private final ModelParams modelParams;
     private final Graph graph;
@@ -38,6 +33,14 @@ public class Equation {
         }
     }
 
+    private void removeUnbiologicalTerms() {
+        List<Tuple> unbiological = new ArrayList<>();
+        for (Tuple t : terms.keySet()) {
+            if (!t.locationsAreDifferent()) unbiological.add(t);
+        }
+        unbiological.forEach(terms::remove);
+    }
+
     private void derive(Vertex vDot, List<Vertex> otherTerms) {
         findTerms(vDot, otherTerms);
         /*
@@ -48,10 +51,6 @@ public class Equation {
             + -> leads into state represented by tuple field
             - -> leads out of this state
         */
-    }
-
-    public ModelParams getModelParams() {
-        return modelParams;
     }
 
     private void findTerms(Vertex v, List<Vertex> otherTerms) {
@@ -72,57 +71,33 @@ public class Equation {
 //        removeUnbiologicalTerms();
     }
 
-    private void addIsolatedEntryTransitions(Vertex v, List<Vertex> otherTerms, int vState) {
-        // Store a list of states that, if a neighbouring vertex is in them,
-        // would mean we leave the state represented by the current tuple.
-        Map<Character, Double> entryStates = new HashMap<>();
-        getIsolatedEntryStates(vState, entryStates);
-        // Loop through our found exit-inducing states
-        for (Character entryState : entryStates.keySet()) {
-            if (entryStates.get(entryState) != 0) { // if rate of transition is non-zero
-                Vertex vComp = new Vertex(entryState, v.getLocation());
-                otherTerms.add(vComp);// We enter this state regardless of neighbours
-
-                Tuple other = new Tuple(otherTerms);
-                if (!terms.containsKey(other)) terms.put(other, new ArrayList<>());
-                terms.get(other).add(entryStates.get(entryState));
-
-                otherTerms.remove(vComp);
-            }
-        }
-    }
-
-    private void getIsolatedEntryStates(int vState, Map<Character, Double> entryStates) {
-        for (int i = 0; i < getModelParams().getTransitionGraph().getNumVertices(); i++) {
-            if (getModelParams().getTransitionGraph().hasDirectedEdge(i, vState) &&
-                    getModelParams().getToEnter()[i] == 1) {
-                entryStates.put(getModelParams().getTransitionGraph().getLabels().get(i),
-                        modelParams.getRatesMatrix()[i][vState]);
-            }
-        }
-    }
-
-    private void addIsolatedExitTransitions(Vertex v, List<Vertex> otherTerms, int vState) {
+    private void addNeighbourExitTransitions(Vertex v, List<Vertex> otherTerms, int vState) {
         // Store a list of states that, if a neighbouring vertex is in them,
         // would mean we leave the state represented by the current tuple.
         Map<Character, Double> exitStates = new HashMap<>();
-        getIsolatedExitStates(vState, exitStates);
-        // Loop through our found exit-inducing states
-        for (Character exitState : exitStates.keySet()) {
-            if (exitStates.get(exitState) != 0) { // if rate of transition is non-zero
-                // We exit this state regardless of neighbours
-                if (!otherTerms.contains(v)) otherTerms.add(v);
-                Tuple other = new Tuple(otherTerms);
-                if (!terms.containsKey(other)) terms.put(other, new ArrayList<>());
-                terms.get(other).add(-exitStates.get(exitState));
-            }
-        }
-    }
+        getNeighbourExitStates(vState, exitStates);
 
-    private void getIsolatedExitStates(int vState, Map<Character, Double> exitStates) {
-        for (int i = 0; i < this.getModelParams().getTransitionGraph().getNumVertices(); i++) {
-            if (this.getModelParams().getTransitionGraph().hasEdge(vState, i) && getModelParams().getToEnter()[i] == 1) {
-                exitStates.put(this.getModelParams().getTransitionGraph().getLabels().get(i), modelParams.getRatesMatrix()[vState][i]);
+        // Get neighbours of current vertex v
+        List<Vertex> neighbours = this.graph.getNeighbours(v);
+        // Loop through our found exit-inducing states
+        for (Character exitState : exitStates.keySet()) { // if rate of transition is non-zero
+            if (exitStates.get(exitState) != 0) {
+                // Loop through neighbours of v
+                for (Vertex w : neighbours) {
+                    // We could exit this state if any neighbours are in the exit-inducing state
+                    Vertex exitVertex = new Vertex(exitState, w.getLocation());
+                    boolean added = false; // So we know whether to remove the vertex later
+                    if (!otherTerms.contains(exitVertex)) {
+                        otherTerms.add(exitVertex);
+                        added = true;
+                    }
+                    if (!otherTerms.contains(v)) otherTerms.add(v);
+                    Tuple other = new Tuple(otherTerms);
+                    if (!terms.containsKey(other)) terms.put(other, new ArrayList<>());
+                    terms.get(new Tuple(otherTerms)).add(-exitStates.get(exitState));
+
+                    if (added) otherTerms.remove(exitVertex);
+                }
             }
         }
     }
@@ -164,42 +139,43 @@ public class Equation {
         }
     }
 
-    private void getNeighbourEntryStates(int vState, Map<Character, Double> entryStates) {
-        for (Vertex filterVertex : this.modelParams.getFilterGraph().getVertices()) {
-            if (this.modelParams.getFilterGraph().hasDirectedEdge(filterVertex.getLocation(), vState)) {
-                entryStates.put(modelParams.getFilterStates().get(filterVertex.getLocation()),
-                        modelParams.getRatesMatrix()[filterVertex.getLocation()][vState]);
+    public ModelParams getModelParams() {
+        return modelParams;
+    }
+
+    private void addIsolatedExitTransitions(Vertex v, List<Vertex> otherTerms, int vState) {
+        // Store a list of states that, if a neighbouring vertex is in them,
+        // would mean we leave the state represented by the current tuple.
+        Map<Character, Double> exitStates = new HashMap<>();
+        getIsolatedExitStates(vState, exitStates);
+        // Loop through our found exit-inducing states
+        for (Character exitState : exitStates.keySet()) {
+            if (exitStates.get(exitState) != 0) { // if rate of transition is non-zero
+                // We exit this state regardless of neighbours
+                if (!otherTerms.contains(v)) otherTerms.add(v);
+                Tuple other = new Tuple(otherTerms);
+                if (!terms.containsKey(other)) terms.put(other, new ArrayList<>());
+                terms.get(other).add(-exitStates.get(exitState));
             }
         }
     }
 
-    private void addNeighbourExitTransitions(Vertex v, List<Vertex> otherTerms, int vState) {
+    private void addIsolatedEntryTransitions(Vertex v, List<Vertex> otherTerms, int vState) {
         // Store a list of states that, if a neighbouring vertex is in them,
         // would mean we leave the state represented by the current tuple.
-        Map<Character, Double> exitStates = new HashMap<>();
-        getNeighbourExitStates(vState, exitStates);
-
-        // Get neighbours of current vertex v
-        List<Vertex> neighbours = this.graph.getNeighbours(v);
+        Map<Character, Double> entryStates = new HashMap<>();
+        getIsolatedEntryStates(vState, entryStates);
         // Loop through our found exit-inducing states
-        for (Character exitState : exitStates.keySet()) { // if rate of transition is non-zero
-            if (exitStates.get(exitState) != 0) {
-                // Loop through neighbours of v
-                for (Vertex w : neighbours) {
-                    // We could exit this state if any neighbours are in the exit-inducing state
-                    Vertex exitVertex = new Vertex(exitState, w.getLocation());
-                    boolean added = false; // So we know whether to remove the vertex later
-                    if (!otherTerms.contains(exitVertex)) {
-                        otherTerms.add(exitVertex);
-                        added = true;
-                    }
-                    if (!otherTerms.contains(v)) otherTerms.add(v);
-                    Tuple other = new Tuple(otherTerms);
-                    if (!terms.containsKey(other)) terms.put(other, new ArrayList<>());
-                    terms.get(new Tuple(otherTerms)).add(-exitStates.get(exitState));
+        for (Character entryState : entryStates.keySet()) {
+            if (entryStates.get(entryState) != 0) { // if rate of transition is non-zero
+                Vertex vComp = new Vertex(entryState, v.getLocation());
+                otherTerms.add(vComp);// We enter this state regardless of neighbours
 
-                    if (added) otherTerms.remove(exitVertex);
-                }
+                Tuple other = new Tuple(otherTerms);
+                if (!terms.containsKey(other)) terms.put(other, new ArrayList<>());
+                terms.get(other).add(entryStates.get(entryState));
+
+                otherTerms.remove(vComp);
             }
         }
     }
@@ -213,6 +189,33 @@ public class Equation {
         }
     }
 
+    private void getNeighbourEntryStates(int vState, Map<Character, Double> entryStates) {
+        for (Vertex filterVertex : this.modelParams.getFilterGraph().getVertices()) {
+            if (this.modelParams.getFilterGraph().hasDirectedEdge(filterVertex.getLocation(), vState)) {
+                entryStates.put(modelParams.getFilterStates().get(filterVertex.getLocation()),
+                        modelParams.getRatesMatrix()[filterVertex.getLocation()][vState]);
+            }
+        }
+    }
+
+    private void getIsolatedExitStates(int vState, Map<Character, Double> exitStates) {
+        for (int i = 0; i < this.getModelParams().getTransitionGraph().getNumVertices(); i++) {
+            if (this.getModelParams().getTransitionGraph().hasEdge(vState, i) && getModelParams().getToEnter()[i] == 1) {
+                exitStates.put(this.getModelParams().getTransitionGraph().getLabels().get(i), modelParams.getRatesMatrix()[vState][i]);
+            }
+        }
+    }
+
+    private void getIsolatedEntryStates(int vState, Map<Character, Double> entryStates) {
+        for (int i = 0; i < getModelParams().getTransitionGraph().getNumVertices(); i++) {
+            if (getModelParams().getTransitionGraph().hasDirectedEdge(i, vState) &&
+                    getModelParams().getToEnter()[i] == 1) {
+                entryStates.put(getModelParams().getTransitionGraph().getLabels().get(i),
+                        modelParams.getRatesMatrix()[i][vState]);
+            }
+        }
+    }
+
     public static void main(String[] args) {
         // Model Parameters
         ModelParams m = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
@@ -222,36 +225,18 @@ public class Equation {
         // Graph (lollipop)
         Graph g = GraphGenerator.getLollipop();
 
-        // Tuples
-        Tuple I1 = new Tuple(new Vertex('I', 0));
-        Tuple I2 = new Tuple(new Vertex('I', 1));
-        Tuple I3 = new Tuple(new Vertex('I', 2));
-        Tuple I4 = new Tuple(new Vertex('I', 3));
-        Tuple S1 = new Tuple(new Vertex('S', 0));
-        Tuple S2 = new Tuple(new Vertex('S', 1));
-        Tuple S3 = new Tuple(new Vertex('S', 2));
-        Tuple S4 = new Tuple(new Vertex('S', 3));
+    }
 
-        Tuple I1S2 = new Tuple(List.of(new Vertex('I', 0), new Vertex('S', 1)));
+    public Tuple getTuple() {
+        return tuple;
+    }
 
-        // Generate equation
-        Equation eqnI1 = new Equation(I1, m, g);
-        Equation eqnI1S2 = new Equation(I1S2, m, g);
-
-        System.out.println(eqnI1);
-        System.out.println(eqnI1S2);
+    public Map<Tuple, List<Double>> getTerms() {
+        return terms;
     }
 
     public Graph getGraph() {
         return graph;
-    }
-
-    private void removeUnbiologicalTerms() {
-        List<Tuple> unbiological = new ArrayList<>();
-        for (Tuple t : terms.keySet()) {
-            if (!t.locationsAreDifferent()) unbiological.add(t);
-        }
-        unbiological.forEach(terms::remove);
     }
 
     @Override

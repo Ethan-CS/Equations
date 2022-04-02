@@ -1,12 +1,13 @@
 package io.github.ethankelly.model;
 
 import io.github.ethankelly.graph.Graph;
-import io.github.ethankelly.results.ODEUtils;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.exception.MaxCountExceededException;
 import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,7 +31,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
     /** Mapping of requiredTuples to unique integers. */
     private Map<Tuple, Integer> indicesMapping = new HashMap<>();
     /** String representation of the system of equations. */
-    private String equations;
+    private List<Equation> equations;
 
     /**
      * Class constructor.
@@ -44,6 +45,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
         this.dimension = requiredTuples.size();
         this.tMax = tMax;
         this.modelParamsParameters = modelParamsParameters;
+        this.equations = new ArrayList<>();
     }
 
     /**
@@ -102,28 +104,30 @@ public class ODESystem implements FirstOrderDifferentialEquations {
      */
     @Override
     public void computeDerivatives(double v, double[] y, double[] yDot) throws MaxCountExceededException, DimensionMismatchException {
-        this.getEquations(y, yDot);
+        this.getEquations(); // gets mappings of tuples to terms in their differential equations
+        for (Equation eqn : equations) {
+            int index = indicesMapping.get(eqn.getTuple());
+            for (Tuple t : eqn.getTerms().keySet()) {
+                for (double rate : eqn.getTerms().get(t)) {
+                    yDot[index] += (y[indicesMapping.get(t)] * rate);
+                }
+            }
+        }
     }
 
     /**
      * Generates the system of equations given the parameters provided for the current model.
      *
-     * @param y    double array containing the current value of the state vector
-     * @param yDot placeholder double array to contain the time derivative of the state vector
+     * @return the list of equations in this system.
      */
-    public void getEquations(double[] y, double[] yDot) {
-        RequiredTuples tuples = this.getTuples();
-        if (this.equations == null || this.equations.length() == 0) {
-            StringBuilder s = new StringBuilder();
+    public List<Equation> getEquations() {
+        if (this.equations == null || this.equations.isEmpty()) {
+            RequiredTuples tuples = this.getTuples();
             for (Tuple t : tuples.getTuples()) {
-                s.append(t).append(" = ").append(ODEUtils.getEquation(this, y, yDot, t)).append("\n");
-            }
-            this.equations = String.valueOf(s);
-        } else {
-            for (Tuple t : tuples.getTuples()) {
-                ODEUtils.getEquation(this, y, yDot, t);
+                this.equations.add(new Equation(t, this.getModelParameters(), this.getG()));
             }
         }
+        return this.equations;
     }
 
     public ModelParams getModelParameters() {
@@ -140,21 +144,5 @@ public class ODESystem implements FirstOrderDifferentialEquations {
                 "\nREQUIRED TUPLES:\n" + requiredTuples +
                 "\nNUMBER OF TUPLES: " + dimension +
                 "\nEQUATIONS:" + getEquations();
-    }
-
-    /**
-     * @return a string representation of the current system of differential equations.
-     */
-    public String getEquations() {
-        if (this.equations == null || this.equations.length() == 0) {
-            StringBuilder s = new StringBuilder();
-            RequiredTuples tuples = this.getTuples();
-            tuples.getTuples().stream().map(t -> ODEUtils.getEquation(this, new double[this.getTuples().size()],
-                    new double[this.getTuples().size()], t)).forEach(s::append);
-            this.equations = String.valueOf(s);
-            return String.valueOf(s);
-        } else {
-            return this.equations;
-        }
     }
 }
