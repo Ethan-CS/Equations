@@ -11,7 +11,7 @@ import java.util.stream.IntStream;
 /**
  * A tuple represents the probability of one or more vertices of the graph being in particular states.
  */
-public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tuple> {
+public class Tuple implements Cloneable, Comparable<Tuple> {
     /** List of all state-vertex pairs that make up this tuple */
     private List<Vertex> vertices;
 
@@ -33,7 +33,7 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
     public Tuple(List<Vertex> tuple) {
         List<Vertex> t = new ArrayList<>(tuple);
         t.sort(new Vertex.VertexComparator());
-        this.vertices = tuple;
+        this.vertices = t;
     }
 
     /**
@@ -112,7 +112,6 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
         return String.valueOf(s);
     }
 
-    @Override
     public boolean add(Vertex v) {
         Tuple copy = new Tuple(this.vertices);
         this.vertices.add(v);
@@ -120,7 +119,6 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
         return !this.getVertices().equals(copy.getVertices());
     }
 
-    @Override
     public boolean remove(Object o) {
         Tuple copy = new Tuple(this.vertices);
         this.vertices.remove(o);
@@ -144,12 +142,10 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
         return Integer.compare(this.size(), o.size());
     }
 
-    @Override
     public int size() {
         return this.getVertices().size();
     }
 
-    @Override
     public boolean contains(Object o) {
         Vertex v;
         try {
@@ -160,14 +156,20 @@ public class Tuple extends ArrayList<Vertex> implements Cloneable, Comparable<Tu
         return this.getVertices().contains(v);
     }
 
-    @Override
     public Vertex get(int i) {
         return this.getVertices().get(i);
     }
 
     @Override
     public Tuple clone() {
-        Tuple clone = (Tuple) super.clone();
+        Tuple clone = null;
+        try {
+            clone = (Tuple) super.clone();
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        assert clone != null;
+
         clone.vertices = new ArrayList<>();
         clone.vertices.addAll(this.getVertices());
         return clone;

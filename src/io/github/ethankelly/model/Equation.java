@@ -8,7 +8,12 @@ import java.util.*;
 
 public class Equation {
     private final Tuple tuple;
-    private final Map<Tuple, Double> terms;
+
+    public Map<Tuple, List<Double>> getTerms() {
+        return terms;
+    }
+
+    private final Map<Tuple, List<Double>> terms;
     private final ModelParams modelParams;
     private final Graph graph;
 
@@ -29,11 +34,11 @@ public class Equation {
         for (Vertex v : tuple.getVertices()) {
             Tuple t = tuple.clone();
             t.remove(v);
-            derive(v, t);
+            derive(v, t.getVertices());
         }
     }
 
-    private void derive(Vertex vDot, Tuple otherTerms) {
+    private void derive(Vertex vDot, List<Vertex> otherTerms) {
         findTerms(vDot, otherTerms);
         /*
          Get neighbours and filter graph
@@ -78,8 +83,9 @@ public class Equation {
                 Vertex vComp = new Vertex(entryState, v.getLocation());
                 otherTerms.add(vComp);// We enter this state regardless of neighbours
 
-                System.out.println("ADDING +" + entryStates.get(entryState) + otherTerms);
-                terms.put(new Tuple(otherTerms), entryStates.get(entryState));
+                Tuple other = new Tuple(otherTerms);
+                if (!terms.containsKey(other)) terms.put(other, new ArrayList<>());
+                terms.get(other).add(entryStates.get(entryState));
 
                 otherTerms.remove(vComp);
             }
@@ -87,9 +93,11 @@ public class Equation {
     }
 
     private void getIsolatedEntryStates(int vState, Map<Character, Double> entryStates) {
-        for (int i = 0; i < this.getModelParams().getTransitionGraph().getNumVertices(); i++) {
-            if (this.getModelParams().getTransitionGraph().hasDirectedEdge(i, vState) && getModelParams().getToEnter()[i] == 1) {
-                entryStates.put(this.getModelParams().getTransitionGraph().getLabels().get(i), modelParams.getRatesMatrix()[i][vState]);
+        for (int i = 0; i < getModelParams().getTransitionGraph().getNumVertices(); i++) {
+            if (getModelParams().getTransitionGraph().hasDirectedEdge(i, vState) &&
+                    getModelParams().getToEnter()[i] == 1) {
+                entryStates.put(getModelParams().getTransitionGraph().getLabels().get(i),
+                        modelParams.getRatesMatrix()[i][vState]);
             }
         }
     }
@@ -104,8 +112,9 @@ public class Equation {
             if (exitStates.get(exitState) != 0) { // if rate of transition is non-zero
                 // We exit this state regardless of neighbours
                 if (!otherTerms.contains(v)) otherTerms.add(v);
-                System.out.println("ADDING -" + exitStates.get(exitState) + otherTerms);
-                terms.put(new Tuple(otherTerms), -exitStates.get(exitState));
+                Tuple other = new Tuple(otherTerms);
+                if (!terms.containsKey(other)) terms.put(other, new ArrayList<>());
+                terms.get(other).add(-exitStates.get(exitState));
             }
         }
     }
@@ -118,13 +127,12 @@ public class Equation {
         }
     }
 
-    private void addNeighbourEntryTransitions(Vertex v, List<Vertex> otherTerms,
-                                              int vState) {
+    private void addNeighbourEntryTransitions(Vertex v, List<Vertex> otherTerms, int vState) {
         // Store a list of states that, if a neighbouring vertex is in them,
         // would mean we enter the state represented by the current tuple.
         Map<Character, Double> entryStates = new HashMap<>();
-
         getNeighbourEntryStates(vState, entryStates);
+
         // Get neighbours of current vertex v
         List<Vertex> neighbours = this.graph.getNeighbours(v);
         // Loop through our found entry-inducing states
@@ -143,9 +151,10 @@ public class Equation {
                             otherTerms.add(entryVertex);
                             added = true;
                         }
-
-                        System.out.println("ADDING +" + entryStates.get(entryState) + otherTerms);
-                        terms.put(new Tuple(otherTerms), entryStates.get(entryState));
+                        // Add the found terms
+                        Tuple other = new Tuple(otherTerms);
+                        if (!terms.containsKey(other)) terms.put(other, new ArrayList<>());
+                        terms.get(other).add(entryStates.get(entryState));
 
                         if (added) otherTerms.remove(entryVertex);
                     }
@@ -168,7 +177,6 @@ public class Equation {
         // Store a list of states that, if a neighbouring vertex is in them,
         // would mean we leave the state represented by the current tuple.
         Map<Character, Double> exitStates = new HashMap<>();
-
         getNeighbourExitStates(vState, exitStates);
 
         // Get neighbours of current vertex v
@@ -186,9 +194,9 @@ public class Equation {
                         added = true;
                     }
                     if (!otherTerms.contains(v)) otherTerms.add(v);
-
-                    System.out.println("ADDING -" + exitStates.get(exitState) + otherTerms);
-                    terms.put(new Tuple(otherTerms), -exitStates.get(exitState));
+                    Tuple other = new Tuple(otherTerms);
+                    if (!terms.containsKey(other)) terms.put(other, new ArrayList<>());
+                    terms.get(new Tuple(otherTerms)).add(-exitStates.get(exitState));
 
                     if (added) otherTerms.remove(exitVertex);
                 }
@@ -206,9 +214,6 @@ public class Equation {
     }
 
     public static void main(String[] args) {
-        // Tuple
-        Tuple t = new Tuple(List.of(new Vertex('I', 0), new Vertex('S', 1)));
-
         // Model Parameters
         ModelParams m = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
         m.addTransition('S', 'I', 0.6);
@@ -217,10 +222,24 @@ public class Equation {
         // Graph (lollipop)
         Graph g = GraphGenerator.getLollipop();
 
-        // Generate equation
-        Equation eqn = new Equation(t, m, g);
+        // Tuples
+        Tuple I1 = new Tuple(new Vertex('I', 0));
+        Tuple I2 = new Tuple(new Vertex('I', 1));
+        Tuple I3 = new Tuple(new Vertex('I', 2));
+        Tuple I4 = new Tuple(new Vertex('I', 3));
+        Tuple S1 = new Tuple(new Vertex('S', 0));
+        Tuple S2 = new Tuple(new Vertex('S', 1));
+        Tuple S3 = new Tuple(new Vertex('S', 2));
+        Tuple S4 = new Tuple(new Vertex('S', 3));
 
-        System.out.println(eqn);
+        Tuple I1S2 = new Tuple(List.of(new Vertex('I', 0), new Vertex('S', 1)));
+
+        // Generate equation
+        Equation eqnI1 = new Equation(I1, m, g);
+        Equation eqnI1S2 = new Equation(I1S2, m, g);
+
+        System.out.println(eqnI1);
+        System.out.println(eqnI1S2);
     }
 
     public Graph getGraph() {
@@ -237,12 +256,9 @@ public class Equation {
 
     @Override
     public String toString() {
-        System.out.println(terms);
         StringBuilder s = new StringBuilder();
         s.append(tuple).append(" = ");
-        for (Tuple t : terms.keySet()) {
-            s.append(terms.get(t)).append(t).append(" ");
-        }
+        terms.keySet().forEach(t -> s.append(terms.get(t)).append(t).append(" "));
         return String.valueOf(s);
     }
 }
