@@ -5,7 +5,6 @@ import io.github.ethankelly.graph.GraphGenerator;
 import io.github.ethankelly.graph.Vertex;
 import io.github.ethankelly.model.ModelParams;
 import io.github.ethankelly.model.ODESystem;
-import io.github.ethankelly.model.RequiredTuples;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -26,9 +25,10 @@ public class UpperBound {
 
 		long firstTerm = 0;
 		for (Graph subG : g.getSpliced()) {
-			RequiredTuples rq = new RequiredTuples(subG, mp, true);
-			calc.append(rq.size()).append("*").append(subGraphFrequencies.get(subG)).append(" + ");
-			firstTerm += (long) rq.size() * subGraphFrequencies.get(subG);
+			// TODO no rq class anymore
+//			RequiredTuples rq = new RequiredTuples(subG, mp, true);
+//			calc.append(rq.size()).append("*").append(subGraphFrequencies.get(subG)).append(" + ");
+//			firstTerm += (long) rq.size() * subGraphFrequencies.get(subG);
 		}
 		calc.deleteCharAt(calc.length()-1).deleteCharAt(calc.length()-1).deleteCharAt(calc.length()-1);
 

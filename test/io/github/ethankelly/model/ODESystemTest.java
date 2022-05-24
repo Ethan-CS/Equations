@@ -1,10 +1,15 @@
 package io.github.ethankelly.model;
 
+import io.github.ethankelly.graph.GraphGenerator;
+import io.github.ethankelly.graph.Vertex;
 import io.github.ethankelly.symbols.Greek;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ODESystemTest {
     private static ModelParams SIR;
@@ -21,87 +26,133 @@ class ODESystemTest {
 
     @Test
     void triangleEquations() {
-        String expected = """
-                〈S1〉=-τ〈S1 I2〉-τ〈S1 I3〉
-                〈S2〉=-τ〈I1 S2〉-τ〈S2 I3〉
-                〈S3〉=-τ〈I1 S3〉-τ〈I2 S3〉
-                〈I1〉=τ〈S1 I2〉+τ〈S1 I3〉-γ〈I1〉
-                〈I2〉=τ〈I1 S2〉+τ〈S2 I3〉-γ〈I2〉
-                〈I3〉=τ〈I1 S3〉+τ〈I2 S3〉-γ〈I3〉
-                〈I1 S2〉=τ〈S1 S2 I3〉-γ〈I1 S2〉-τ〈I1 S2〉-τ〈I1 S2 I3〉
-                〈S1 I2〉=-τ〈S1 I2〉-τ〈S1 I2 I3〉+τ〈S1 S2 I3〉-γ〈S1 I2〉
-                〈I1 S3〉=τ〈S1 I2 S3〉-γ〈I1 S3〉-τ〈I1 S3〉-τ〈I1 I2 S3〉
-                〈S1 I3〉=-τ〈S1 I2 I3〉-τ〈S1 I3〉+τ〈S1 I2 S3〉-γ〈S1 I3〉
-                〈I2 S3〉=τ〈I1 S2 S3〉-γ〈I2 S3〉-τ〈I1 I2 S3〉-τ〈I2 S3〉
-                〈S2 I3〉=-τ〈I1 S2 I3〉-τ〈S2 I3〉+τ〈I1 S2 S3〉-γ〈S2 I3〉
-                〈I1 S2 I3〉=τ〈S1 S2 I3〉-γ〈I1 S2 I3〉-τ〈I1 S2 I3〉-τ〈I1 S2 I3〉+τ〈I1 S2 S3〉-γ〈I1 S2 I3〉
-                〈S1 I2 S3〉=-τ〈S1 I2 S3〉-γ〈S1 I2 S3〉-τ〈S1 I2 S3〉
-                〈I1 I2 S3〉=τ〈S1 I2 S3〉-γ〈I1 I2 S3〉+τ〈I1 S2 S3〉-γ〈I1 I2 S3〉-τ〈I1 I2 S3〉-τ〈I1 I2 S3〉
-                〈S1 S2 I3〉=-τ〈S1 S2 I3〉-τ〈S1 S2 I3〉-γ〈S1 S2 I3〉
-                〈S1 I2 I3〉=-τ〈S1 I2 I3〉-τ〈S1 I2 I3〉+τ〈S1 S2 I3〉-γ〈S1 I2 I3〉+τ〈S1 I2 S3〉-γ〈S1 I2 I3〉
-                〈I1 S2 S3〉=-γ〈I1 S2 S3〉-τ〈I1 S2 S3〉-τ〈I1 S2 S3〉
-                """;
+        // Expected tuples
+        List<Tuple> expectedTuples = new ArrayList<>(Arrays.asList(
+                // Singles
+                new Tuple(new Vertex('S', 0)), new Tuple(new Vertex('I', 0)),
+                new Tuple(new Vertex('S', 1)), new Tuple(new Vertex('I', 1)),
+                new Tuple(new Vertex('S', 2)), new Tuple(new Vertex('I', 2)),
+                // Doubles
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S', 0), new Vertex('I', 1)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I', 0), new Vertex('S', 1)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S', 1), new Vertex('I', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I', 1), new Vertex('S', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S', 0), new Vertex('I', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I', 0), new Vertex('S', 2)))),
+                // Triples
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S', 0), new Vertex('S',1), new Vertex('I', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I', 0), new Vertex('S', 1), new Vertex('S',2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 1), new Vertex('S', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I',0), new Vertex('I', 1), new Vertex('S', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I',0), new Vertex('S', 1), new Vertex('I', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 1), new Vertex('I', 2))))
+                ));
+
+        // Actual tuples
+        ODESystem system = new ODESystem(GraphGenerator.getTriangle(), 10, SIR);
+        List<Equation> equations = system.getEquations();
+        List<Tuple> actual = new ArrayList<>();
+        for(Equation e : equations) actual.add(e.getTuple());
+
+        assertTrue(actual.containsAll(expectedTuples), "actual:\n"+actual+"\nexpected:\n"+expectedTuples);
+        assertTrue(expectedTuples.containsAll(actual), "actual:\n"+actual+"\nexpected:\n"+expectedTuples);
     }
 
     @Test
     void lollipopEquations() {
-        // Hard-coded actual singles for triangle network (from original Kiss et al. paper)
-        String[] expectedSingles = new String[]{
-                "〈S1〉=-τ〈S1 I2〉-τ〈S1 I3〉-τ〈S1 I4〉",
-                "〈S2〉=-τ〈I1 S2〉",
-                "〈S3〉=-τ〈I1 S3〉-τ〈S3 I4〉",
-                "〈S4〉=-τ〈I1 S4〉-τ〈I3 S4〉",
-                "〈I1〉=τ〈S1 I2〉+τ〈S1 I3〉+τ〈S1 I4〉-γ〈I1〉",
-                "〈I2〉=τ〈I1 S2〉-γ〈I2〉",
-                "〈I3〉=τ〈I1 S3〉+τ〈S3 I4〉-γ〈I3〉",
-                "〈I4〉=τ〈I1 S4〉+τ〈I3 S4〉-γ〈I4〉"
-        };
+        // Expected tuples - no closures
+        List<Tuple> expectedTuples = new ArrayList<>(Arrays.asList(
+                // Singles
+                new Tuple(new Vertex('S', 0)), new Tuple(new Vertex('I', 0)),
+                new Tuple(new Vertex('S', 1)), new Tuple(new Vertex('I', 1)),
+                new Tuple(new Vertex('S', 2)), new Tuple(new Vertex('I', 2)),
+                new Tuple(new Vertex('S', 3)), new Tuple(new Vertex('I', 3)),
+                // Doubles
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S', 0), new Vertex('I', 1)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I', 0), new Vertex('S', 1)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S', 0), new Vertex('I', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I', 0), new Vertex('S', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S', 0), new Vertex('I', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I', 0), new Vertex('S', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S', 2), new Vertex('I', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I', 2), new Vertex('S', 3)))),
+                // Triples
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S', 0), new Vertex('I',2), new Vertex('I', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S', 0), new Vertex('S', 2), new Vertex('I',3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 2), new Vertex('S', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I',0), new Vertex('S', 2), new Vertex('I', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I',0), new Vertex('I', 2), new Vertex('S', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I',0), new Vertex('S', 2), new Vertex('S', 3)))),
+                // Can be closed:
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 1), new Vertex('I', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 1), new Vertex('I', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('S', 1), new Vertex('I', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('S', 1), new Vertex('I', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 1), new Vertex('S', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 1), new Vertex('S', 3)))),
+                // Quads
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 1), new Vertex('I', 2), new Vertex('I',3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 1), new Vertex('I', 2), new Vertex('S',3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 1), new Vertex('S', 2), new Vertex('I',3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('S', 1), new Vertex('I', 2), new Vertex('I',3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('S', 1), new Vertex('I', 2), new Vertex('S',3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('S', 1), new Vertex('S', 2), new Vertex('I',3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 1), new Vertex('S', 2), new Vertex('S',3))))
+        ));
+        // Actual tuples
+        ODESystem system = new ODESystem(GraphGenerator.getLollipop(), 10, SIR);
+        List<Equation> equations = system.getEquations();
+        List<Tuple> actual = new ArrayList<>();
+        for(Equation e : equations) actual.add(e.getTuple());
+        // Get any terms in expected output not in the actual output
+        List<Tuple> missingFromActual = new ArrayList<>(expectedTuples);
+        missingFromActual.removeAll(actual);
 
-        String[] expectedDoubles = new String[]{
-                "〈I1 S2〉=-γ〈I1 S2〉-τ〈I1 S2〉+τ〈S1 S2 I3〉+τ〈S1 S2 I4〉",
-                "〈S1 I2〉=-τ〈S1 I2〉-τ〈S1 I2 I3〉-τ〈S1 I2 I4〉-γ〈S1 I2〉",
-                "〈I1 S3〉=τ〈S1 S3 I4〉-γ〈I1 S3〉-τ〈I1 S3〉-τ〈I1 S3 I4〉+τ〈S1 I2 S3〉",
-                "〈S1 I3〉=-τ〈S1 I2 I3〉-τ〈S1 I3〉-τ〈S1 I3 I4〉+τ〈S1 S3 I4〉-γ〈S1 I3〉",
-                "〈I1 S4〉=τ〈S1 I3 S4〉-γ〈I1 S4〉-τ〈I1 S4〉-τ〈I1 I3 S4〉+τ〈S1 I2 S4〉",
-                "〈S1 I4〉=-τ〈S1 I2 I4〉-τ〈S1 I3 I4〉-τ〈S1 I4〉+τ〈S1 I3 S4〉-γ〈S1 I4〉",
-                "〈I3 S4〉=τ〈I1 S3 S4〉-γ〈I3 S4〉-τ〈I1 I3 S4〉-τ〈I3 S4〉",
-                "〈S3 I4〉=-τ〈I1 S3 I4〉-τ〈S3 I4〉+τ〈I1 S3 S4〉-γ〈S3 I4〉"
-        };
+        // Get any terms in actual output that weren't expected
+        List<Tuple> extraInActual = new ArrayList<>(actual);
+        extraInActual.removeAll(expectedTuples);
 
-//        String[] expectedTriples = new String[]{
-//                "〈I1 S3 I4〉=τ〈S1 I2 S3 I4〉+τ〈S1 S3 I4〉-γ〈I1 S3 I4〉-τ〈I1 S3 I4〉-τ〈I1 S3 I4〉+τ〈I1 S3 S4〉-γ〈I1 S3 I4〉",
-//                "〈S1 I3 S4〉=-τ〈S1 I2 I3 S4〉-τ〈S1 I3 S4〉-γ〈S1 I3 S4〉-τ〈S1 I3 S4〉",
-//                "〈I1 I3 S4〉=τ〈S1 I2 I3 S4〉+τ〈S1 I3 S4〉-γ〈I1 I3 S4〉+τ〈I1 S3 S4〉-γ〈I1 I3 S4〉-τ〈I1 I3 S4〉-τ〈I1 I3 S4〉",
-//                "〈S1 S3 I4〉=-τ〈S1 I2 S3 I4〉-τ〈S1 S3 I4〉-τ〈S1 S3 I4〉-γ〈S1 S3 I4〉",
-//                "〈S1 I2 I3〉=-τ〈S1 I2 I3〉-τ〈S1 I2 I3〉-γ〈S1 I2 I3〉+τ〈S1 I2 S3 I4〉-γ〈S1 I2 I3〉",
-//                "〈I1 S2 S3〉=-γ〈I1 S2 S3〉-τ〈I1 S2 S3〉-τ〈I1 S2 S3〉-τ〈I1 S2 S3 I4〉",
-//                "〈S1 I2 I4〉=-τ〈S1 I2 I4〉-τ〈S1 I2 I4〉-γ〈S1 I2 I4〉+τ〈S1 I2 I3 S4〉-γ〈S1 I2 I4〉",
-//                "〈I1 S2 S4〉=-γ〈I1 S2 S4〉-τ〈I1 S2 S4〉-τ〈I1 S2 S4〉-τ〈I1 S2 I3 S4〉",
-//                "〈S1 I3 I4〉=-τ〈S1 I3 I4〉-τ〈S1 I3 I4〉+τ〈S1 S3 I4〉-γ〈S1 I3 I4〉+τ〈S1 I3 S4〉-γ〈S1 I3 I4〉",
-//                "〈I1 S3 S4〉=-γ〈I1 S3 S4〉-τ〈I1 S3 S4〉-τ〈I1 S3 S4〉"
-//        };
-//        String[] actualTriples = Arrays.copyOfRange(actualSplit,16,26);
-//
-//        StringBuilder expectedTriplesSB = new StringBuilder(), actualTriplesSB = new StringBuilder();
-//        for (String s : expectedTriples) expectedTriplesSB.append(s).append("\n");
-//        for (String s : actualTriples) actualTriplesSB.append(s).append("\n");
-//        assertEquals(String.valueOf(expectedTriplesSB), String.valueOf(actualTriplesSB),
-//                "Incorrect triples produced.");
-//
-//        String[] expectedQuads = new String[]{
-//                "〈S1 I2 I3 S4〉=-τ〈S1 I2 I3 S4〉-τ〈S1 I2 I3 S4〉-γ〈S1 I2 I3 S4〉-γ〈S1 I2 I3 S4〉-τ〈S1 I2 I3 S4〉",
-//                "〈I1 S2 S3 I4〉=-γ〈I1 S2 S3 I4〉-τ〈I1 S2 S3 I4〉-τ〈I1 S2 S3 I4〉-τ〈I1 S2 S3 I4〉-γ〈I1 S2 S3 I4〉",
-//                "〈S1 I2 S3 I4〉=-τ〈S1 I2 S3 I4〉-τ〈S1 I2 S3 I4〉-γ〈S1 I2 S3 I4〉-τ〈S1 I2 S3 I4〉-γ〈S1 I2 S3 I4〉",
-//                "〈I1 S2 I3 S4〉=-γ〈I1 S2 I3 S4〉-τ〈I1 S2 I3 S4〉-γ〈I1 S2 I3 S4〉-τ〈I1 S2 I3 S4〉-τ〈I1 S2 I3 S4〉"
-//
-//        };
-//        String[] actualQuads = Arrays.copyOfRange(actualSplit,26,30);
-//
-//        StringBuilder expectedQuadsSB = new StringBuilder(), actualQuadsSB = new StringBuilder();
-//        for (String s : expectedQuads) expectedQuadsSB.append(s).append("\n");
-//        for (String s : actualQuads) actualQuadsSB.append(s).append("\n");
-//        assertEquals(String.valueOf(expectedQuadsSB), String.valueOf(actualQuadsSB),
-//                "Incorrect triples produced.");
+        assertTrue(missingFromActual.isEmpty(), "Didn't get all the tuples expected.\n"+missingFromActual.stream().map(m -> m + "\n").collect(Collectors.joining()));
+        assertTrue(extraInActual.isEmpty(), "Got more tuples than expected:\n"+extraInActual.stream().map(m -> m + "\n").collect(Collectors.joining()));
     }
 
     @Test

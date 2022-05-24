@@ -20,12 +20,17 @@ public class Equation {
         findTerms();
     }
 
+    /**
+     * First uses the chain rule to take derivatives and then goes through obtained terms to remove anything that does
+     * not make biological sense in the context of the model.
+     */
     public void findTerms() {
         chainRule();
         removeUnbiologicalTerms();
     }
 
     private void chainRule() {
+        // d(vw)/dt = (dv/dt)w + v(dw/dt)
         for (Vertex v : tuple.getVertices()) {
             Tuple t = tuple.clone();
             t.remove(v);
@@ -35,14 +40,12 @@ public class Equation {
 
     private void removeUnbiologicalTerms() {
         List<Tuple> unbiological = new ArrayList<>();
-        for (Tuple t : terms.keySet()) {
-            if (!t.locationsAreDifferent()) unbiological.add(t);
-        }
+        // Remove all terms that contain the same vertex location referenced more than once
+        for (Tuple t : terms.keySet()) if (!t.locationsAreDifferent()) unbiological.add(t);
         unbiological.forEach(terms::remove);
     }
 
     private void derive(Vertex vDot, List<Vertex> otherTerms) {
-        findTerms(vDot, otherTerms);
         /*
          Get neighbours and filter graph
          Apply adjacent pairs of states in filter to tuples of v-dot and neighbours
@@ -51,6 +54,7 @@ public class Equation {
             + -> leads into state represented by tuple field
             - -> leads out of this state
         */
+        findTerms(vDot, otherTerms);
     }
 
     private void findTerms(Vertex v, List<Vertex> otherTerms) {
@@ -67,8 +71,6 @@ public class Equation {
             addIsolatedExitTransitions(v, otherTerms, vState);
             addIsolatedEntryTransitions(v, otherTerms, vState);
         }
-
-//        removeUnbiologicalTerms();
     }
 
     private void addNeighbourExitTransitions(Vertex v, List<Vertex> otherTerms, int vState) {

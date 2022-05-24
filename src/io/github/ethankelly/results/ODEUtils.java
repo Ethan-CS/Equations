@@ -26,7 +26,7 @@ import java.util.stream.IntStream;
 public class ODEUtils {
 	public static Map<List<Tuple>, double[][]> getResultsByLength(ODESystem system, double[][] results, int tMax) {
 		Map<List<Tuple>, double[][]> map = new HashMap<>();
-		List<Tuple> tuples = system.getTuples().getTuples();
+		List<Tuple> tuples = system.getTuples();
 		int maxLength = 0;
 		for (Tuple t : tuples) if (t.size() > maxLength) maxLength = t.size();
 
@@ -50,7 +50,7 @@ public class ODEUtils {
 	}
 
 	public static void setInitialConditions(ODESystem system, double[] y0) {
-		for (Tuple t : system.getTuples().getTuples()) {
+		for (Tuple t : system.getTuples()) {
 			y0[system.getIndicesMapping().get(t)] = y0[system.getIndicesMapping().get(new Tuple(t.getVertices().get(0)))];
 			IntStream.range(1, t.size())
 					.mapToObj(t::get)
@@ -76,7 +76,7 @@ public class ODEUtils {
 			integrator.integrate(system, t - 1, y0, t, y0);
 			// Add computed results to summary data structure
 			// Since we're dealing with probabilities, we need to ensure solutions are between 0 and 1
-			for (Tuple tup : system.getTuples().getTuples()) {
+			for (Tuple tup : system.getTuples()) {
 				double thisResult = y0[system.getIndicesMapping().get(tup)];
 				if (thisResult <= 0) { // Less than 0 or very small
 					results[t][system.getIndicesMapping().get(tup)] = 0;

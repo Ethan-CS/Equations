@@ -25,7 +25,7 @@ public class Graph implements Cloneable {
     /** The number of edges in the graph. */
     private int numEdges;
     /** A linked-list representation of the graph (adjacency list). */
-    private List<List<Vertex>> adjList;
+    private List<Map<Vertex, Double>> adjList;
     /** Labels for vertices, if required (otherwise null entries). */
     private List<Character> labels;
     /** The list of connected components after cut-vertex-based splicing. */
@@ -45,7 +45,7 @@ public class Graph implements Cloneable {
         this.vertices = new ArrayList<>();
         this.adjList = new ArrayList<>();
         IntStream.range(0, numVertices).forEach(i -> {
-            adjList.add(i, new ArrayList<>());
+            adjList.add(i, new HashMap<>());
             vertices.add(new Vertex(i));
         });
         this.labels = new ArrayList<>();
@@ -64,13 +64,16 @@ public class Graph implements Cloneable {
         this.vertices = new ArrayList<>();
         this.adjList = new ArrayList<>();
         // Initialise a new list for each vertex in the graph for the adjacency list
-        List<List<Vertex>> list = IntStream.range(0, adjMatrix.length)
-                .<List<Vertex>>mapToObj(i -> new ArrayList<>()).collect(Collectors.toList());
+        List<Map<Vertex, Double>> list = new ArrayList<>();
+        for (int i1 = 0; i1 < adjMatrix.length; i1++) {
+            Map<Vertex, Double> vertexList = new HashMap<>();
+            list.add(vertexList);
+        }
         for (int i = 0; i < adjMatrix.length; i++) {
             vertices.add(new Vertex(i));
             for (int j = 0; j < adjMatrix[0].length; j++) {
-                if (adjMatrix[i][j] && !list.get(i).contains(new Vertex(j))) {
-                    list.get(i).add(new Vertex(j));
+                if (adjMatrix[i][j] && !list.get(i).containsKey(new Vertex(j))) {
+                    list.get(i).put(new Vertex(j), 1.0);
                     this.numEdges++;
                 }
             }
@@ -199,7 +202,8 @@ public class Graph implements Cloneable {
         subGraph.vertices = vertices;
         for (Vertex v : vertices) {
             for (Vertex w : vertices) {
-                if (!v.equals(w) && adjList.get(v.getLocation()).contains(w) || adjList.get(w.getLocation()).contains(v)) {
+                if (!v.equals(w) && adjList.get(v.getLocation()).containsKey(w) ||
+                        adjList.get(w.getLocation()).containsKey(v)) {
                     subGraph.addEdge(v, w);
                 }
 /*				TODO implement this in future, but leads to incorrect walk calculations for time being
@@ -222,30 +226,35 @@ public class Graph implements Cloneable {
     }
 
     /**
-     * Adds a bidirectional edge between two vertices v and j in a graph
+     * Adds a bidirectional edge between two vertices v and j in a graph with specified weight.
      *
      * @param v first vertex
      * @param w second vertex
+     * @param d the weight of the edge.
      */
-    public void addEdge(Vertex v, Vertex w) {
+    public void addEdge(Vertex v, Vertex w, Double d) {
         // Ensure we aren't trying to add an edge between a vertex and itself
         assert !v.equals(w) : "Cannot add an edge between a vertex and itself";
         if (!this.hasEdge(v, w)) {
             // Update adjacency list
-            if (!adjList.get(vertices.indexOf(v)).contains(w)) {
+            if (!adjList.get(vertices.indexOf(v)).containsKey(w)) {
                 adjList
                         .get(vertices.indexOf(v))
-                        .add(w);
+                        .put(w, d);
             }
-            if (!adjList.get(vertices.indexOf(w)).contains(v)) {
+            if (!adjList.get(vertices.indexOf(w)).containsKey(v)) {
                 adjList
                         .get(vertices.indexOf(w))
-                        .add(v);
+                        .put(v, d);
             }
             // Increment the number of edges
             this.numEdges++;
             clearSpliceFields();
         }
+    }
+
+    public void addEdge(Vertex v, Vertex w) {
+        addEdge(v, w, 1.0);
     }
 
     /**
@@ -257,7 +266,7 @@ public class Graph implements Cloneable {
      */
     public boolean hasEdge(Vertex v, Vertex w) {
         if (!vertices.contains(v) || !vertices.contains(w)) return false;
-        else return (adjList.get(vertices.indexOf(v)).contains(w) || adjList.get(vertices.indexOf(w)).contains(v));
+        else return (adjList.get(vertices.indexOf(v)).containsKey(w) || adjList.get(vertices.indexOf(w)).containsKey(v));
     }
 
     /** Number of walks of each length in the graph. */
@@ -333,7 +342,7 @@ public class Graph implements Cloneable {
         if (index < 0) {
             index = v.getLocation();
         }
-        return this.getAdjList().get(index);
+        return new ArrayList<>(this.getAdjList().get(index).keySet());
     }
 
     /**
@@ -414,11 +423,11 @@ public class Graph implements Cloneable {
         this.numVertices--;
         int i = vertices.indexOf(v);
         // Iterate through all vertices in each list
-        for (List<Vertex> list : adjList) {
-            for (Vertex w : list) {
+        for (Map<Vertex, Double> map : adjList) {
+            for (Vertex w : map.keySet()) {
                 // If the current vertex is v, remove it and decrement the number of edges
                 if (w.equals(v)) {
-                    list.remove(w);
+                    map.remove(w);
                     numEdges--;
                     break;
                 }
@@ -466,28 +475,32 @@ public class Graph implements Cloneable {
      * @param i integer location of the first vertex of the edge.
      * @param j integer location of the second vertex of the edge.
      */
-    public void addEdge(int i, int j) {
+    public void addEdge(int i, int j, Double d) {
         // Ensure we aren't trying to add an edge between a vertex and itself
         assert i != j : "Cannot add an edge between a vertex and itself";
         // Update adjacency list
-        if (!adjList.get(i).contains(new Vertex(j))) adjList.get(i).add(new Vertex(j));
-        if (!adjList.get(j).contains(new Vertex(i))) adjList.get(j).add(new Vertex(i));
+        if (!adjList.get(i).containsKey(new Vertex(j))) adjList.get(i).put(new Vertex(j), d);
+        if (!adjList.get(j).containsKey(new Vertex(i))) adjList.get(j).put(new Vertex(i), d);
         // Increment the number of edges
         this.numEdges++;
         clearSpliceFields();
     }
 
+    public void addEdge(int i, int j) {
+        addEdge(i, j, 1.0);
+    }
+
     /**
      * @return the adjacency list representing the current graph
      */
-    public List<List<Vertex>> getAdjList() {
+    public List<Map<Vertex, Double>> getAdjList() {
         return this.adjList;
     }
 
     /**
      * @param adjList the adjacency list to assign to the current graph
      */
-    void setAdjList(List<List<Vertex>> adjList) {
+    void setAdjList(List<Map<Vertex, Double>> adjList) {
         assert adjList.size() == this.getNumVertices() : "The provided adjacency list does not contain enough lists." +
                 " Expected " + this.getNumVertices() + " but got " + adjList.size() +
                 "\n" + adjList;
@@ -546,37 +559,53 @@ public class Graph implements Cloneable {
         return minConnected;
     }
 
-    public void addDirectedEdge(int i, int j) {
+    public void addWeight(int i, int j, double d) {
+        if (hasDirectedEdge(i, j)) adjList.get(i).replace(new Vertex(j), d);
+    }
+
+    public void addWeight(Vertex v, Vertex w, double d) {
+        if (hasDirectedEdge(v, w)) adjList.get(v.getLocation()).replace(w, d);
+    }
+
+    public void addDirectedEdge(int i, int j, double d) {
         // Ensure we aren't trying to add an edge between a vertex and itself
         assert i != j : "Cannot add an edge between a vertex and itself";
         // Update adjacency list
-        adjList.get(i).add(new Vertex(j));
+        adjList.get(i).put(new Vertex(j), d);
         // Increment the number of edges
-        if (!this.adjList.get(j).contains(new Vertex(i))) this.numEdges++;
+        if (!this.adjList.get(j).containsKey(new Vertex(i))) this.numEdges++;
         clearSpliceFields();
     }
 
+    public void addDirectedEdge(int i, int j) {
+        addDirectedEdge(i, j, 1.0);
+    }
+
     @SuppressWarnings("unused")
-    public void addDirectedEdge(Vertex v, Vertex w) {
+    public void addDirectedEdge(Vertex v, Vertex w, Double d) {
         // Ensure we aren't trying to add an edge between a vertex and itself
         assert !v.equals(w) : "Cannot add an edge between a vertex and itself";
 
-        if (!adjList.get(getVertices().indexOf(v)).contains(w)) {
+        if (!adjList.get(getVertices().indexOf(v)).containsKey(w)) {
             // Update adjacency list
-            adjList.get(getVertices().indexOf(v)).add(w);
+            adjList.get(getVertices().indexOf(v)).put(w, d);
             // Increment the number of edges if appropriate
-            if (!this.adjList.get(getVertices().indexOf(w)).contains(v)) this.numEdges++;
+            if (!this.adjList.get(getVertices().indexOf(w)).containsKey(v)) this.numEdges++;
         }
         clearSpliceFields();
     }
 
+    public void addDirectedEdge(Vertex v, Vertex w) {
+        addDirectedEdge(v, w, 1.0);
+    }
+
     public boolean hasDirectedEdge(int i, int j) {
-        return this.adjList.get(i).contains(new Vertex(j));
+        return this.adjList.get(i).containsKey(new Vertex(j));
     }
 
     @SuppressWarnings("unused")
     public boolean hasDirectedEdge(Vertex v, Vertex w) {
-        return this.adjList.get(this.vertices.indexOf(v)).contains(w);
+        return this.adjList.get(this.vertices.indexOf(v)).containsKey(w);
     }
 
     public boolean hasEdge(int i, int j) {
@@ -637,12 +666,12 @@ public class Graph implements Cloneable {
             cloned = new Graph(this.getNumVertices(), this.getName());
         }
 
-        List<List<Vertex>> newList = new ArrayList<>();
+        List<Map<Vertex, Double>> newList = new ArrayList<>();
         int i = 0;
-        for (List<Vertex> list : this.getAdjList()) {
-            newList.add(new ArrayList<>());
-            for (Vertex v : list) {
-                newList.get(i).add(v);
+        for (Map<Vertex, Double> map : this.getAdjList()) {
+            newList.add(new HashMap<>());
+            for (Vertex v : map.keySet()) {
+                newList.get(i).put(v, map.get(v));
             }
             i++;
         }
@@ -665,10 +694,11 @@ public class Graph implements Cloneable {
             if (labels == null || labels.equals(allBlank)) s.append(vertices.get(i));
             else s.append(labels.get(i));
             s.append(" ->");
-            for (Vertex vertex : adjList.get(i)) {
-                s.append(" ");
+            for (Vertex vertex : adjList.get(i).keySet()) {
+                s.append(" ").append("(");
                 if (labels == null || labels.equals(allBlank)) s.append(vertex);
                 else s.append(labels.get(vertex.getLocation()));
+                s.append(",").append(adjList.get(i).get(vertex)).append(")");
             }
             s.append("\n");
         }

@@ -3,7 +3,6 @@ package io.github.ethankelly.experiments;
 import io.github.ethankelly.graph.Graph;
 import io.github.ethankelly.graph.GraphGenerator;
 import io.github.ethankelly.model.ModelParams;
-import io.github.ethankelly.model.RequiredTuples;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -35,11 +34,11 @@ public class Main {
                 prob[col] = Double.parseDouble(twoDecimalPlaces.format(p));
                 for (int i = 0; i < iterations; i++) {
                     Graph er = GraphGenerator.erdosRenyi(numVertices,p);
-                    RequiredTuples rq = new RequiredTuples(er, m, false);
-                    int numTuples = rq.genTuples().size();
-                    results[col][i] = numTuples;
-                    sb.append((i+1)).append(",").append(twoDecimalPlaces.format(p))
-                            .append(",").append(numTuples).append("\n");
+//                    RequiredTuples rq = new RequiredTuples(er, m, false);
+//                    int numTuples = rq.getTuples().size();
+//                    results[col][i] = numTuples;
+//                    sb.append((i+1)).append(",").append(twoDecimalPlaces.format(p))
+//                            .append(",").append(numTuples).append("\n");
                 }
                 p=Float.parseFloat(twoDecimalPlaces.format(p+0.01));
             }

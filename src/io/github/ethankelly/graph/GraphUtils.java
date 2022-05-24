@@ -84,7 +84,7 @@ public class GraphUtils {
         int children = 0; // Counter for children in the DFS Tree
         visited[u] = true; // Mark the current node visited
         times[u] = low[u] = ++g.time; // Initialise discovery time and low value
-        List<Vertex> adj = g.getAdjList().get(u);
+        List<Vertex> adj = new ArrayList<>(g.getAdjList().get(u).keySet());
         // v is current adjacent of u
         for (Vertex otherVertex : adj) {
 			if (!v.equals(otherVertex)) {
@@ -173,4 +173,5 @@ public class GraphUtils {
             }
         }
     }
+
 }

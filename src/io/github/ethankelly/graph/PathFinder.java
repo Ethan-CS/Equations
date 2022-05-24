@@ -92,7 +92,8 @@ public class PathFinder {
     protected List<List<Vertex>> generator(List<Vertex> currentState) {
         List<List<Vertex>> children = new ArrayList<>();
         Vertex v  = currentState.get(currentState.size()-1);
-        List<Vertex> neighbours = this.graph.getAdjList().get(this.graph.getVertices().indexOf(v));
+        List<Vertex> neighbours = new ArrayList<>(
+                this.graph.getAdjList().get(this.graph.getVertices().indexOf(v)).keySet());
         for (Vertex w : neighbours) {
             if (!currentState.contains(w)) {
                 List<Vertex> child = new ArrayList<>(currentState);
@@ -189,7 +190,7 @@ public class PathFinder {
             allPaths.get(thisPath.size() - 1).add(thisPath);
         } else {
             // Consider all neighbors that would continue path without repeating a node
-            for (Vertex u : G.getAdjList().get(v)) {
+            for (Vertex u : G.getAdjList().get(v).keySet()) {
                 int i = G.getVertices().indexOf(u);
                 if (!onPath[i])
                     dfs(G, i, w);
