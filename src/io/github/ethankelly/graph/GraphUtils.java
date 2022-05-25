@@ -53,6 +53,7 @@ public class GraphUtils {
 	static void spliceUtil(List<Graph> subGraphs, List<Vertex> cutVertices, Graph clone, Graph original) {
 		// Arbitrarily start with first cut vertex in the list
 		Vertex cutVertex = cutVertices.get(0);
+		// Increase frequency of cut-vertex by 1
 		original.addCutVertex(cutVertex);
 		// Remove the cut vertex from the graph
 		clone.removeVertex(cutVertex);
@@ -70,7 +71,6 @@ public class GraphUtils {
 				// Otherwise, send it back through the util method to obtain its connected components
 				if (cutVerticesOfSubgraph.isEmpty()) {
 					int prevCount = original.getCutVertexFreq().get(cutVertex);
-					System.out.println("USED TO BE: " + prevCount);
 					original.getCutVertexFreq().replace(cutVertex, prevCount + 1);
 					subGraphs.add(subGraph);
 				} else spliceUtil(subGraphs, cutVerticesOfSubgraph, subGraph.clone(), original);

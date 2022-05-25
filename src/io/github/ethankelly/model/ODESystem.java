@@ -8,6 +8,7 @@ import org.apache.commons.math3.exception.MaxCountExceededException;
 import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Represents a system of differential equations that describe a compartmental model of disease on a given graph. This
@@ -17,9 +18,9 @@ import java.util.*;
 public class ODESystem implements FirstOrderDifferentialEquations {
     /** Contact network. */
     private final Graph g;
-    private List<Graph> subGraphs;
+    private final List<Graph> subGraphs;
     /** Tuples requiring equations in the ODE system. */
-    private final List<Tuple> requiredTuples;
+    private List<Tuple> requiredTuples;
     /** Parameters of the model. */
     private final ModelParams modelParams;
     /** Maximum value of t (time), for equation solving. */
@@ -61,8 +62,64 @@ public class ODESystem implements FirstOrderDifferentialEquations {
     }
 
     public void reduce() {
+        this.requiredTuples = this.getEquations().stream().map(Equation::getTuple).collect(Collectors.toList());
         if (this.subGraphs.contains(g) && this.subGraphs.size() == 1) this.subGraphs.remove(g);
         this.subGraphs.addAll(this.g.getSpliced());
+
+        // for required tuples in list of required tuples
+        //  if tuple contains cut-vertex (in susceptible state)
+        //    split into separate terms
+        List<Vertex> cutVertices = this.g.getCutVertices();
+        List<Tuple> noLongerRequired = new ArrayList<>();
+        List<Tuple> possiblyRequired = new ArrayList<>();
+        for (Tuple t : requiredTuples) {
+            if (t.size() > 2) {
+                for (Vertex cut : cutVertices) {
+                    if (t.contains(cut)) {
+                        // Mapping of vertex locations to original states, for restoring after splicing
+                        Map<Integer, Character> originalStates = new HashMap<>();
+                        for (Vertex v : t.getVertices()) originalStates.put(v.getLocation(), v.getState());
+                        originalStates.put(cut.getLocation(), 'S'); // Only consider cut-vertices as susceptible
+                        // Yes -> split, can close if > 1 connected component
+                        List<List<Vertex>> components = g.splice(cut);
+                        for (List<Vertex> component : components) {
+                            component.removeIf(v -> !t.contains(v));
+                        }
+
+                        List<List<Vertex>> toGetRid = new ArrayList<>();
+                        for (List<Vertex> component : components) {
+                            if (component.equals(new ArrayList<>(Collections.singletonList(cut))))
+                                toGetRid.add(component);
+                        }
+                        components.removeAll(toGetRid);
+
+                        if (components.size() > 1) {
+                            noLongerRequired.add(t);
+                            Set<Tuple> split = new HashSet<>();
+
+                            // Make sure we still have original model states
+                            for (List<Vertex> component : components) {
+                                for (Vertex v : component) {
+                                    v.setState(originalStates.get(v.getLocation()));
+                                }
+                            }
+
+                            for (List<Vertex> list : components) split.add(new Tuple(list));
+                            System.out.println("     ===============");
+                            System.out.println("Started with " + t + ", cut-vertex " + cut);
+                            System.out.println("About to split into " + split);
+                            System.out.println("Want to get rid of " + noLongerRequired);
+                            possiblyRequired.addAll(split);
+                        }
+                    }
+                }
+            }
+        }
+        // Get rid of the tuples we can replace with closures
+        requiredTuples.removeAll(noLongerRequired);
+        for (Tuple t : possiblyRequired) if (!requiredTuples.contains(t)) requiredTuples.add(t);
+        requiredTuples.forEach(System.out::println);
+        this.equations = getEquationsForTuples(requiredTuples);
     }
 
     /**
@@ -197,19 +254,25 @@ public class ODESystem implements FirstOrderDifferentialEquations {
     }
 
     private List<Equation> findEquations() {
-        List<Equation> eq = new ArrayList<>();
-        for (Graph graph : this.subGraphs) {
+        List<Equation> eq;
+        if (requiredTuples == null || requiredTuples.isEmpty()){
             // Get equations for singles
-            List<Tuple> singles = findSingles(graph);
+            List<Tuple> singles = findSingles(g);
             // Add singles to list of required tuples
             requiredTuples.addAll(singles);
             // Get equations for singles
             eq = getEquationsForTuples(singles);
-            // Get equations for higher-order terms
-            eq.addAll(getNextTuples(graph, eq, 2));
-
-            eq.stream().map(Equation::getTuple).forEach(requiredTuples::add);
+            for (Graph graph : this.subGraphs) {
+                // Get equations for higher-order terms
+                for (Equation e : getNextTuples(graph, eq, 2)) {
+                    if (!eq.contains(e)) eq.add(e);
+                }
+                eq.stream().map(Equation::getTuple).forEach(requiredTuples::add);
+            }
+        } else {
+            eq = getEquationsForTuples(requiredTuples);
         }
+
         return eq;
     }
 

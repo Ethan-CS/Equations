@@ -11,6 +11,11 @@ import java.util.Comparator;
  */
 public class Vertex implements Comparable<Vertex> {
 	private final int location;
+
+	public void setState(char state) {
+		this.state = state;
+	}
+
 	private char state;
 
 	public static class VertexComparator implements Comparator<Vertex> {

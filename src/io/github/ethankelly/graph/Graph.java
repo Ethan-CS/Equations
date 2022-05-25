@@ -193,11 +193,24 @@ public class Graph implements Cloneable {
         return subGraphs;
     }
 
+    public List<List<Vertex>> splice(Vertex cut) {
+        // Clone of this graph that we can safely remove edges and vertices from
+        Graph clone = this.clone();
+        // Remove the cut-vertex
+        clone.removeVertex(cut);
+        // Get the remaining connected components
+        List<List<Vertex>> CCs = clone.getCCs();
+        for (List<Vertex> cc : CCs) {
+            if (!cc.contains(cut)) cc.add(cut);
+        }
+        // Return a list of remaining components
+        return CCs;
+    }
+
     // Given a list of vertices, creates a sub-graph from them with all relevant edges from the original graph
     public Graph makeSubGraph(List<Vertex> subList) {
         List<Vertex> vertices = new ArrayList<>(subList);
         vertices.sort(null);
-        System.out.println("ORIGINAL FOR SUBGRAPH:"+this);
         // Make a new graph with appropriate number of vertices, name and adjacency matrices
         Graph subGraph = new Graph(vertices.size(), getName().equals("") ? "" : getName() + " Subgraph");
         subGraph.vertices = vertices;
@@ -367,7 +380,6 @@ public class Graph implements Cloneable {
                 components.add(GraphUtils.DFS_CC_Util(this, v, visited, new ArrayList<>()));
             }
         }
-        System.out.println("COMPONENTS:" + components);
         return components;
     }
 
@@ -401,7 +413,7 @@ public class Graph implements Cloneable {
     }
 
     public void removeVertex(Vertex v) {
-        System.out.println("GRAPH BEFORE REMOVAL:\n"+this);
+
         // Iterate through all vertices in each list
         for (Map<Vertex, Double> map : adjList) {
             List<Vertex> toRemove = new ArrayList<>();
@@ -412,7 +424,6 @@ public class Graph implements Cloneable {
                     numEdges--;
                 }
             }
-            System.out.println("REMOVING " + toRemove + " FROM " + map.keySet());
             toRemove.forEach(map::remove);
         }
 
@@ -423,7 +434,6 @@ public class Graph implements Cloneable {
         this.numVertices--;
 
         clearSpliceFields();
-        System.out.println("GRAPH AFTER REMOVAL: " + this);
     }
 
     /**

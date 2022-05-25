@@ -1,5 +1,6 @@
 package io.github.ethankelly.model;
 
+import io.github.ethankelly.graph.Graph;
 import io.github.ethankelly.graph.Vertex;
 import io.github.ethankelly.symbols.Maths;
 
@@ -138,8 +139,16 @@ public class Tuple implements Cloneable, Comparable<Tuple> {
      */
     @Override
     public int compareTo(Tuple o) {
+        if (this.equals(o)) return 0; // if they're the same, no need to compare
         // We want to sort in size order, so if o is bigger it should come later
-        return Integer.compare(this.size(), o.size());
+        int result;
+        if (this.size() == o.size()) { // If sizes are same, compare vertex locations
+            for (int i = 0; i < this.size(); i++) {
+                result = (this.getVertices().get(i).compareTo(o.getVertices().get(i)));
+                if (result != 0) return result;
+            }
+        } else return Integer.compare(this.size(), o.size());
+        return 0;
     }
 
     public int size() {
@@ -173,5 +182,13 @@ public class Tuple implements Cloneable, Comparable<Tuple> {
         clone.vertices = new ArrayList<>();
         clone.vertices.addAll(this.getVertices());
         return clone;
+    }
+
+    public static List<Tuple> split(Tuple t, Graph g, Vertex cutVertex) {
+        List<Tuple> newTuples = new ArrayList<>();
+        newTuples.add(new Tuple(new Vertex('S', cutVertex.getLocation())));
+
+        return newTuples;
+
     }
 }
