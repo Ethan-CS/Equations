@@ -45,7 +45,7 @@ public class Graph implements Cloneable {
         this.vertices = new ArrayList<>();
         this.adjList = new ArrayList<>();
         IntStream.range(0, numVertices).forEach(i -> {
-            adjList.add(i, new HashMap<>());
+            adjList.add(i, new LinkedHashMap<>());
             vertices.add(new Vertex(i));
         });
         this.labels = new ArrayList<>();
@@ -88,7 +88,7 @@ public class Graph implements Cloneable {
 
     public static void main(String[] args) {
         Graph g = GraphGenerator.getBowTieWithBridge();
-        System.out.println("BOWTIE WITH BRIDGE" + g);
+        System.out.println("BOWTIE" + g);
         Map<Graph, Integer> freq = g.getSubGraphFreq();
         System.out.println("FREQUENCY MAP\n" + freq);
         System.out.println("CUT VERTEX FREQUENCIES:\n" + g.cutVertexFreq);
@@ -151,7 +151,7 @@ public class Graph implements Cloneable {
     }
 
     public Map<Vertex, Integer> getCutVertexFreq() {
-        if (this.spliced == null || this.spliced.isEmpty()) this.splice();
+        if (this.cutVertexFreq.isEmpty()) this.splice();
         return cutVertexFreq;
     }
 
@@ -172,7 +172,7 @@ public class Graph implements Cloneable {
         List<Vertex> cutVertices = clone.getCutVertices();
         if (!cutVertices.isEmpty()) {
             cutVertices.forEach(cv -> this.cutVertexFreq.put(cv, 0));
-            GraphUtils.spliceUtil(subGraphs, cutVertices, this.clone(), this.clone());
+            GraphUtils.spliceUtil(subGraphs, cutVertices, this.clone(), this);
         } else subGraphs.add(this);
 
         for (int i = 0; i < subGraphs.size(); i++) {
@@ -197,22 +197,13 @@ public class Graph implements Cloneable {
     public Graph makeSubGraph(List<Vertex> subList) {
         List<Vertex> vertices = new ArrayList<>(subList);
         vertices.sort(null);
+        System.out.println("ORIGINAL FOR SUBGRAPH:"+this);
         // Make a new graph with appropriate number of vertices, name and adjacency matrices
         Graph subGraph = new Graph(vertices.size(), getName().equals("") ? "" : getName() + " Subgraph");
         subGraph.vertices = vertices;
         for (Vertex v : vertices) {
             for (Vertex w : vertices) {
-                if (!v.equals(w) && adjList.get(v.getLocation()).containsKey(w) ||
-                        adjList.get(w.getLocation()).containsKey(v)) {
-                    subGraph.addEdge(v, w);
-                }
-/*				TODO implement this in future, but leads to incorrect walk calculations for time being
-				else if (!v.equals(w) && (adjList.get(v.getLocation()).contains(w))) {
-					subGraph.addDirectedEdge(v, w);
-				} else if (!v.equals(w) && (adjList.get(w.getLocation()).contains(v))) {
-					subGraph.addDirectedEdge(w, v);
-				}
-*/
+                if (this.hasEdge(v, w)) subGraph.addEdge(v, w);
             }
         }
         return subGraph;
@@ -235,17 +226,20 @@ public class Graph implements Cloneable {
     public void addEdge(Vertex v, Vertex w, Double d) {
         // Ensure we aren't trying to add an edge between a vertex and itself
         assert !v.equals(w) : "Cannot add an edge between a vertex and itself";
+
+        int indexOfV = this.vertices.indexOf(v);
+        int indexOfW = this.vertices.indexOf(w);
+
+        assert indexOfV >= 0 : "The vertex " + v + " does not exist in the graph";
+        assert indexOfW >= 0 : "The vertex " + w + " does not exist in the graph";
+
         if (!this.hasEdge(v, w)) {
             // Update adjacency list
-            if (!adjList.get(vertices.indexOf(v)).containsKey(w)) {
-                adjList
-                        .get(vertices.indexOf(v))
-                        .put(w, d);
+            if (!adjList.get(indexOfV).containsKey(w)) {
+                adjList.get(indexOfV).put(w, d);
             }
-            if (!adjList.get(vertices.indexOf(w)).containsKey(v)) {
-                adjList
-                        .get(vertices.indexOf(w))
-                        .put(v, d);
+            if (!adjList.get(indexOfW).containsKey(v)) {
+                adjList.get(indexOfW).put(v, d);
             }
             // Increment the number of edges
             this.numEdges++;
@@ -272,6 +266,18 @@ public class Graph implements Cloneable {
     /** Number of walks of each length in the graph. */
     public List<Integer[][]> getNumWalks() {
         return numWalks;
+    }
+
+    public List<List<Vertex>> getAdjListAsLists() {
+        List<List<Vertex>> adj = new ArrayList<>();
+        for (Vertex v : this.getVertices()) {
+            adj.add(this.getNeighbours(v));
+        }
+        return adj;
+    }
+
+    public void addCutVertex(Vertex cutVertex) {
+        this.cutVertexFreq.put(cutVertex, 0);
     }
 
     private void clearSpliceFields() {
@@ -361,6 +367,7 @@ public class Graph implements Cloneable {
                 components.add(GraphUtils.DFS_CC_Util(this, v, visited, new ArrayList<>()));
             }
         }
+        System.out.println("COMPONENTS:" + components);
         return components;
     }
 
@@ -373,33 +380,7 @@ public class Graph implements Cloneable {
      * @return the cut-vertices present in the graph, if any.
      */
     public List<Vertex> getCutVertices() {
-        int NIL = -1;
-        int numVertices = this.getNumVertices();
-        // Mark all the vertices as not visited
-        boolean[] visited = new boolean[numVertices];
-        int[] disc = new int[numVertices];
-        int[] low = new int[numVertices];
-        int[] parent = new int[numVertices];
-        boolean[] cutVertices = new boolean[numVertices]; // To store found cut-vertices
-
-        // Initialize parent and visited and cut-vertices(articulation point) arrays
-        for (int i = 0; i < numVertices; i++) {
-            parent[i] = NIL;
-            visited[i] = false;
-            cutVertices[i] = false;
-        }
-
-        // Call the recursive helper function to find articulation points in DFS_ConnectedUtil tree rooted with vertex 'i'
-        for (int i = 0; i < getNumVertices(); i++)
-            if (!visited[i]) GraphUtils.findCutVertices(this, vertices.get(i), visited, disc, low, parent, cutVertices);
-
-        List<Vertex> list = new ArrayList<>();
-        for (int i = 0; i < cutVertices.length; i++) {
-            if (cutVertices[i]) {
-                list.add(vertices.get(i));
-            }
-        }
-        return list;
+        return GraphUtils.AP(this);
     }
 
     /**
@@ -411,7 +392,7 @@ public class Graph implements Cloneable {
     public void removeEdge(Vertex v, Vertex w) {
         if (this.hasEdge(v, w)) {
             // Update adjacency list
-            adjList.get(v.getLocation()).remove(w);
+            adjList.get(vertices.indexOf(v)).remove(w);
             adjList.get(w.getLocation()).remove(v);
             // Decrement number of edges
             this.numEdges--;
@@ -420,23 +401,29 @@ public class Graph implements Cloneable {
     }
 
     public void removeVertex(Vertex v) {
-        this.numVertices--;
-        int i = vertices.indexOf(v);
+        System.out.println("GRAPH BEFORE REMOVAL:\n"+this);
         // Iterate through all vertices in each list
         for (Map<Vertex, Double> map : adjList) {
+            List<Vertex> toRemove = new ArrayList<>();
             for (Vertex w : map.keySet()) {
                 // If the current vertex is v, remove it and decrement the number of edges
                 if (w.equals(v)) {
-                    map.remove(w);
+                    toRemove.add(w);
                     numEdges--;
-                    break;
                 }
             }
+            System.out.println("REMOVING " + toRemove + " FROM " + map.keySet());
+            toRemove.forEach(map::remove);
         }
+
         // Empty the adjacency list for the given vertex
-        adjList.remove(i);
+        adjList.remove(vertices.indexOf(v));
+        labels.remove(vertices.indexOf(v));
         this.vertices.remove(v);
+        this.numVertices--;
+
         clearSpliceFields();
+        System.out.println("GRAPH AFTER REMOVAL: " + this);
     }
 
     /**
@@ -501,10 +488,11 @@ public class Graph implements Cloneable {
      * @param adjList the adjacency list to assign to the current graph
      */
     void setAdjList(List<Map<Vertex, Double>> adjList) {
-        assert adjList.size() == this.getNumVertices() : "The provided adjacency list does not contain enough lists." +
-                " Expected " + this.getNumVertices() + " but got " + adjList.size() +
-                "\n" + adjList;
+//        assert adjList.size() == this.getNumVertices() : "The provided adjacency list does not contain enough lists." +
+//                " Expected " + this.getNumVertices() + " but got " + adjList.size() +
+//                "\n" + adjList;
         this.adjList = adjList;
+        this.numVertices = adjList.size();
         clearSpliceFields();
     }
 
@@ -513,7 +501,6 @@ public class Graph implements Cloneable {
      *
      * @param numVertices the number of vertices to be included in the graph.
      */
-    @SuppressWarnings("unused")
     public void setNumVertices(int numVertices) {
         for (int i = this.numVertices; i < numVertices; i++) {
             this.vertices.add(new Vertex(i));
@@ -659,25 +646,42 @@ public class Graph implements Cloneable {
      */
     @Override
     public Graph clone() {
-        Graph cloned;
         try {
-            cloned = (Graph) super.clone();
+            super.clone();
         } catch (CloneNotSupportedException e) {
-            cloned = new Graph(this.getNumVertices(), this.getName());
+            e.printStackTrace();
+        }
+        Graph cloned = new Graph(this.numVertices, this.name);
+        // Copy across vertices for the clone
+        List<Vertex> newVertices = new ArrayList<>();
+        for (Vertex v : this.getVertices())
+            newVertices.add(v.getState()==' ' ? new Vertex(v.getLocation()) : new Vertex(v.getState(), v.getLocation()));
+
+        List<Character> newLabels = new ArrayList<>(this.getLabels());
+
+        // For each edge between vertices in original, add edge in clone
+        List<Map<Vertex, Double>> newAdjList = new ArrayList<>();
+        for (int i = 0; i < newVertices.size(); i++) newAdjList.add(new LinkedHashMap<>());
+        for (Vertex v : newVertices) {
+            int i = newVertices.indexOf(v);
+            for (Vertex neighbour : this.getNeighbours(v)) {
+                // TODO directed?
+                if (newVertices.contains(neighbour)) {
+                    newAdjList.get(i).put(neighbour, this.getAdjList().get(this.vertices.indexOf(v)).get(neighbour));
+                }
+            }
         }
 
-        List<Map<Vertex, Double>> newList = new ArrayList<>();
-        int i = 0;
-        for (Map<Vertex, Double> map : this.getAdjList()) {
-            newList.add(new HashMap<>());
-            for (Vertex v : map.keySet()) {
-                newList.get(i).put(v, map.get(v));
-            }
-            i++;
-        }
         cloned.setName(this.getName());
-        cloned.setAdjList(newList);
+        cloned.setVertices(newVertices);
+        cloned.setNumVertices(newVertices.size());
+        cloned.setLabels(newLabels);
+        cloned.setAdjList(newAdjList);
         return cloned;
+    }
+
+    private void setVertices(List<Vertex> vertices) {
+        this.vertices = vertices;
     }
 
     /**

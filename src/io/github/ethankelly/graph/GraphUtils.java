@@ -1,18 +1,18 @@
 package io.github.ethankelly.graph;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class GraphUtils {
+	private static int time;
+
 	/*
-	 Dynamic programming-based method to count walks on k edges in given graph
-	 Time Complexity: O(V^3) for V - number of vertices in the graph
-	 Three nested loops are needed to fill the table, so the time complexity is O(V^3).
-	 Auxiliary Space: O(V^3).
-	 To store the table, O(V^3) space is needed.
-	*/
+         Dynamic programming-based method to count walks on k edges in given graph
+         Time Complexity: O(V^3) for V - number of vertices in the graph
+         Three nested loops are needed to fill the table, so the time complexity is O(V^3).
+         Auxiliary Space: O(V^3).
+         To store the table, O(V^3) space is needed.
+        */
 	public static void countWalks(Graph graph, int k) {
 		// Loop for number of edges from 0 to k
 		for (int e = 0; e <= k; e++) {
@@ -51,7 +51,9 @@ public class GraphUtils {
 
 	// Recursive helper method - used to decompose the given graph into sub-graphs by cut-vertices
 	static void spliceUtil(List<Graph> subGraphs, List<Vertex> cutVertices, Graph clone, Graph original) {
+		// Arbitrarily start with first cut vertex in the list
 		Vertex cutVertex = cutVertices.get(0);
+		original.addCutVertex(cutVertex);
 		// Remove the cut vertex from the graph
 		clone.removeVertex(cutVertex);
 		// Get the remaining connected components
@@ -67,85 +69,13 @@ public class GraphUtils {
 				// If the graph cannot be spliced further, then add it to the list to return
 				// Otherwise, send it back through the util method to obtain its connected components
 				if (cutVerticesOfSubgraph.isEmpty()) {
-					original.getCutVertexFreq().put(cutVertex, original.getCutVertexFreq().get(cutVertex) + 1);
+					int prevCount = original.getCutVertexFreq().get(cutVertex);
+					System.out.println("USED TO BE: " + prevCount);
+					original.getCutVertexFreq().replace(cutVertex, prevCount + 1);
 					subGraphs.add(subGraph);
-				} else spliceUtil(subGraphs, cutVerticesOfSubgraph, subGraph, original);
+				} else spliceUtil(subGraphs, cutVerticesOfSubgraph, subGraph.clone(), original);
 			}
 		}
-	}
-
-    /*
-     * Recursive helper function that finds cut-vertices using the depth-first search algorithm.
-     */
-    static void findCutVertices(Graph g, Vertex v, boolean[] visited, int[] times, int[] low, int[] parent, boolean[] cutVertices) {
-		// TODO this method tends to lead to a stack overflow - easiest thing may be to rewrite
-        int NIL = -1;
-        int u = g.getVertices().indexOf(v);
-        int children = 0; // Counter for children in the DFS Tree
-        visited[u] = true; // Mark the current node visited
-        times[u] = low[u] = ++g.time; // Initialise discovery time and low value
-        List<Vertex> adj = new ArrayList<>(g.getAdjList().get(u).keySet());
-        // v is current adjacent of u
-        for (Vertex otherVertex : adj) {
-			if (!v.equals(otherVertex)) {
-				int w = g.getVertices().indexOf(otherVertex);
-				// If w is not visited yet, make it a child of u in DFS tree and recurse
-				if (!visited[w]) {
-					children++;
-					parent[w] = u;
-					findCutVertices(g, otherVertex, visited, times, low, parent, cutVertices);
-					// Check if the subtree rooted with w has a connection to one of the ancestors of u
-					low[u] = Math.min(low[u], low[w]);
-					// u is a cut vertex if either (1) it is a root of DFS tree and has two or more children,
-					// or (2) the low value of one of its children is more than its own discovery value.
-					if (parent[u] == NIL && children > 1) cutVertices[u] = true; // (1)
-					if (parent[u] != NIL && low[w] >= times[u])
-						cutVertices[u] = true; // (2)
-				} else if (w != parent[u]) {
-					// Update the low value of u for parent function calls.
-					low[u] = Math.min(low[u], times[w]);
-				}
-			}
-        }
-    }
-
-    // TODO replace power set with combinatorial search algorithm (better in general, not in worst-case)
-	public static <E> Set<List<E>> powerSet(List<E> originalSet) {
-		Set<List<E>> sets = new HashSet<>();
-		if (originalSet.isEmpty()) {
-			sets.add(new ArrayList<>());
-			return sets;
-		}
-		List<E> list = new ArrayList<>(originalSet);
-		E head = list.get(0);
-		List<E> rest = new ArrayList<>(list.subList(1, list.size()));
-		for (List<E> set : powerSet(rest)) {
-			List<E> newSet = new ArrayList<>();
-			newSet.add(head);
-			newSet.addAll(set);
-			sets.addAll(getListPerm(newSet));
-			sets.add(set);
-		}
-		return sets;
-	}
-
-	public static <E> List<List<E>> getListPerm(List<E> original) {
-		if (original.isEmpty()) {
-			List<List<E>> result = new ArrayList<>();
-			result.add(new ArrayList<>());
-			return result;
-		}
-		E firstElement = original.remove(0);
-		List<List<E>> returnValue = new ArrayList<>();
-		List<List<E>> permutations = getListPerm(original);
-		for (List<E> smallerPermutation : permutations) {
-			for (int index = 0; index <= smallerPermutation.size(); index++) {
-				List<E> temp = new ArrayList<>(smallerPermutation);
-				temp.add(index, firstElement);
-				returnValue.add(temp);
-			}
-		}
-		return returnValue;
 	}
 
 	// Recursive helper method that uses a depth-first search to find connected components
@@ -166,12 +96,83 @@ public class GraphUtils {
         // Mark the vertex visited as True
         visited[source] = true;
         // Travel the adjacent neighbours
-        for (int i = 0; i < graph.getAdjList().get(source).size() ; i++) {
-            int neighbour = graph.getVertices().indexOf(graph.getAdjList().get(source).get(i));
+//        for (int i = 0; i < graph.getAdjList().get(source).size() ; i++) {
+		for (Vertex v : graph.getNeighbours(graph.getVertices().get(source))) {
+			int neighbour = graph.getVertices().indexOf(v);
             if(!visited[neighbour]) { // Call DFS_ConnectedUtil from neighbour
                 DFS_ConnectedUtil(graph, neighbour, visited);
             }
         }
     }
 
+	static void APUtil(Graph g, int u, boolean[] visited, int[] disc, int[] low, int parent, List<Vertex> cutVertices) {
+		List<List<Vertex>> adj = g.getAdjListAsLists();
+		// Count of children in DFS Tree
+		int children = 0;
+
+		// Mark the current node as visited
+		visited[u] = true;
+
+		// Initialize discovery time and low value
+		disc[u] = low[u] = ++time;
+
+		// Go through all vertices adjacent to this
+		for (Vertex ver : adj.get(u)) {
+			int v = g.getVertices().indexOf(ver);
+			// If v is not visited yet, then make it a child of u in DFS tree and recur for it
+			if( !visited[v]) {
+				children++;
+				APUtil(g, v, visited, disc, low, u, cutVertices);
+				// Check if the subtree rooted with v has a connection to one of the ancestors of u
+				low[u] = Math.min(low[u], low[v]);
+				// If u is not root and low value of one of its child is more than discovery value of u.
+				if (parent != -1 && low[v] >= disc[u]) cutVertices.add(g.getVertices().get(u));
+			}
+			// Update low value of u for parent function calls.
+			else if (v != parent) low[u] = Math.min(low[u], disc[v]);
+		}
+
+		// If u is root of DFS tree and has two or more children.
+		if (parent == -1 && children > 1) cutVertices.add(g.getVertices().get(u));
+	}
+
+	static List<Vertex> AP(Graph g)
+	{
+		int V = g.getNumVertices();
+		boolean[] visited = new boolean[V];
+		int[] disc = new int[V];
+		int[] low = new int[V];
+		List<Vertex> cutVertices = new ArrayList<>();
+		int par = -1;
+		// Adding this loop so that the
+		// code works even if we are given
+		// disconnected graph
+		for (int u = 0; u < V; u++) if (!visited[u]) APUtil(g, u, visited, disc, low, par, cutVertices);
+
+		cutVertices.sort(null);
+		return cutVertices;
+	}
+
+	public static void main(String[] args) {
+		// Creating first example graph
+		int V = 5;
+		Graph g = new Graph(V);
+		g.addEdge(1, 0);
+		g.addEdge(0, 2);
+		g.addEdge(2, 1);
+		g.addEdge(0, 3);
+		g.addEdge(3, 4);
+		System.out.println("Articulation points in first graph");
+		AP(g).forEach(System.out::println);
+
+		// Creating second example graph
+		V = 4;
+		Graph g2 = new Graph(V);
+		g2.addEdge(0, 1);
+		g2.addEdge(1, 2);
+		g2.addEdge(2, 3);
+
+		System.out.println("Articulation points in second graph");
+		AP(g2).forEach(System.out::println);
+	}
 }

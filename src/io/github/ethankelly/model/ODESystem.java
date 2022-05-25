@@ -17,6 +17,7 @@ import java.util.*;
 public class ODESystem implements FirstOrderDifferentialEquations {
     /** Contact network. */
     private final Graph g;
+    private List<Graph> subGraphs;
     /** Tuples requiring equations in the ODE system. */
     private final List<Tuple> requiredTuples;
     /** Parameters of the model. */
@@ -40,6 +41,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
         this.g = g;
         this.tMax = tMax;
         this.modelParams = modelParams;
+        this.subGraphs = new ArrayList<>(Collections.singletonList(g));
         this.requiredTuples = new ArrayList<>();
         this.equations = new ArrayList<>();
         this.indicesMapping = new HashMap<>();
@@ -53,6 +55,14 @@ public class ODESystem implements FirstOrderDifferentialEquations {
         ODESystem system = new ODESystem(GraphGenerator.getLollipop(), 10, SIR);
         List<Equation> equations = system.findEquations();
         equations.forEach(System.out::println);
+
+        ODESystem reducedSystem = new ODESystem(GraphGenerator.getLollipop(), 10, SIR);
+        reducedSystem.reduce();
+    }
+
+    public void reduce() {
+        if (this.subGraphs.contains(g) && this.subGraphs.size() == 1) this.subGraphs.remove(g);
+        this.subGraphs.addAll(this.g.getSpliced());
     }
 
     /**
@@ -61,7 +71,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
      *
      * @return the number of single-probability tuples required by the model.
      */
-    public List<Tuple> findSingles() {
+    public List<Tuple> findSingles(Graph graph) {
         List<Character> statesToGenerateFor = new ArrayList<>(this.getModelParameters().getStates());
         for (Character state : this.getModelParameters().getStates()) {
             int i = this.getModelParameters().getStates().indexOf(state);
@@ -69,7 +79,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
             // Singles containing the state are not dynamically significant
             if (this.getModelParameters().getToExit()[i] == 0) statesToGenerateFor.remove(state);
         }
-        List<Vertex> vertexList = this.getG().getVertices();
+        List<Vertex> vertexList = graph.getVertices();
         int[] vertices = new int[vertexList.size()];
         for (int i = 0; i < vertexList.size(); i++) vertices[i] = vertexList.get(i).getLocation();
 
@@ -187,23 +197,25 @@ public class ODESystem implements FirstOrderDifferentialEquations {
     }
 
     private List<Equation> findEquations() {
-        // Get equations for singles
-        List<Tuple> singles = findSingles();
-        // Add singles to list of required tuples
-        requiredTuples.addAll(singles);
-        // Get equations for singles
-        List<Equation> equations = getEquationsForTuples(singles);
-        // Get equations for higher-order terms
-        equations.addAll(getNextTuples(equations, 2));
+        List<Equation> eq = new ArrayList<>();
+        for (Graph graph : this.subGraphs) {
+            // Get equations for singles
+            List<Tuple> singles = findSingles(graph);
+            // Add singles to list of required tuples
+            requiredTuples.addAll(singles);
+            // Get equations for singles
+            eq = getEquationsForTuples(singles);
+            // Get equations for higher-order terms
+            eq.addAll(getNextTuples(graph, eq, 2));
 
-        equations.stream().map(Equation::getTuple).forEach(requiredTuples::add);
-
-        return equations;
+            eq.stream().map(Equation::getTuple).forEach(requiredTuples::add);
+        }
+        return eq;
     }
 
-    private List<Equation> getNextTuples(List<Equation> prevEquations, int length) {
+    private List<Equation> getNextTuples(Graph graph, List<Equation> prevEquations, int length) {
         // Stop recurring if specified length is longer than the number of vertices in the graph
-        if (length <= g.getNumVertices()) {
+        if (length <= graph.getNumVertices()) {
             List<Tuple> nextSizeTuples = new ArrayList<>();
             // Go through previous equations and add any tuples of this
             // length for which we have not yet generated equations.
@@ -213,7 +225,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
                 }
             }
             List<Equation> equations = getEquationsForTuples(nextSizeTuples);
-            equations.addAll(getNextTuples(equations, length+1));
+            equations.addAll(getNextTuples(graph, equations, length+1));
             return equations;
         } else return new ArrayList<>();
     }

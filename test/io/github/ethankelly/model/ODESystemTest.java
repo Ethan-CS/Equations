@@ -13,6 +13,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ODESystemTest {
     private static ModelParams SIR;
+    private static List<Tuple> expectedFullLollipopTuples;
+    private static List<Tuple> expectedReducedLollipopTuples;
 
     @BeforeAll
     static void setUp() {
@@ -22,6 +24,91 @@ class ODESystemTest {
         SIR.addTransition('I', 'R', Greek.GAMMA.uni());
         SIR.addTransition('S', 'I', 0.8);
         SIR.addTransition('I', 'R', 0.1);
+
+        List<Tuple> cannotBeClosed = new ArrayList<>(Arrays.asList(
+                // Singles
+                new Tuple(new Vertex('S', 0)), new Tuple(new Vertex('I', 0)),
+                new Tuple(new Vertex('S', 1)), new Tuple(new Vertex('I', 1)),
+                new Tuple(new Vertex('S', 2)), new Tuple(new Vertex('I', 2)),
+                new Tuple(new Vertex('S', 3)), new Tuple(new Vertex('I', 3)),
+                // Doubles
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S', 0), new Vertex('I', 1)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I', 0), new Vertex('S', 1)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S', 0), new Vertex('I', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I', 0), new Vertex('S', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S', 0), new Vertex('I', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I', 0), new Vertex('S', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S', 2), new Vertex('I', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I', 2), new Vertex('S', 3)))),
+                // Triples
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S', 0), new Vertex('I',2), new Vertex('I', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S', 0), new Vertex('S', 2), new Vertex('I',3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 2), new Vertex('S', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I',0), new Vertex('S', 2), new Vertex('I', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I',0), new Vertex('I', 2), new Vertex('S', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I',0), new Vertex('S', 2), new Vertex('S', 3))))
+        ));
+
+        List<Tuple> canBeClosed = new ArrayList<>(Arrays.asList(new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 1), new Vertex('I', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 1), new Vertex('I', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('S', 1), new Vertex('I', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('S', 1), new Vertex('I', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 1), new Vertex('S', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 1), new Vertex('S', 3)))),
+                // Quads
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 1), new Vertex('I', 2), new Vertex('I',3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 1), new Vertex('I', 2), new Vertex('S',3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 1), new Vertex('S', 2), new Vertex('I',3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('S', 1), new Vertex('I', 2), new Vertex('I',3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('S', 1), new Vertex('I', 2), new Vertex('S',3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('S', 1), new Vertex('S', 2), new Vertex('I',3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 1), new Vertex('S', 2), new Vertex('S',3))))
+        ));
+
+        List<Tuple> extrasForClosures = new ArrayList<>(new ArrayList<>(Arrays.asList(
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('S', 1)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('S', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('S', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('S', 2), new Vertex('S', 3))))
+        )));
+
+        expectedFullLollipopTuples = new ArrayList<>(cannotBeClosed);
+        expectedFullLollipopTuples.addAll(canBeClosed);
+
+        expectedReducedLollipopTuples = new ArrayList<>(cannotBeClosed);
+        expectedReducedLollipopTuples.addAll(extrasForClosures);
+
     }
 
     @Test
@@ -71,8 +158,36 @@ class ODESystemTest {
     }
 
     @Test
-    void lollipopEquations() {
-        // Expected tuples - no closures
+    void lollipopFullEquations() {
+        // Actual tuples
+        ODESystem lollipopFullSystem = new ODESystem(GraphGenerator.getLollipop(), 10, SIR);
+        List<Tuple> actual = lollipopFullSystem.getEquations().stream().map(Equation::getTuple).collect(Collectors.toList());
+
+        // Get any terms in expected output not in the actual output
+        List<Tuple> missingFromActual = new ArrayList<>(expectedFullLollipopTuples);
+        missingFromActual.removeAll(actual);
+
+        // Get any terms in actual output that weren't expected
+        List<Tuple> extraInActual = new ArrayList<>(actual);
+        extraInActual.removeAll(expectedFullLollipopTuples);
+
+        assertTrue(missingFromActual.isEmpty(), "Didn't get all the tuples expected.\n"+missingFromActual.stream().map(m -> m + "\n").collect(Collectors.joining()));
+        assertTrue(extraInActual.isEmpty(), "Got more tuples than expected:\n"+extraInActual.stream().map(m -> m + "\n").collect(Collectors.joining()));
+    }
+
+    @Test
+    void lollipopReducedEquations() {
+        // Actual tuples
+        ODESystem lollipopReducedSystem = new ODESystem(GraphGenerator.getLollipop(), 10, SIR);
+        lollipopReducedSystem.reduce();
+        List<Tuple> actual = lollipopReducedSystem.getEquations().stream().map(Equation::getTuple).collect(Collectors.toList());
+        actual.forEach(System.out::println);
+    }
+
+
+    @Test
+    void toastEquations() {
+        // Expected tuples
         List<Tuple> expectedTuples = new ArrayList<>(Arrays.asList(
                 // Singles
                 new Tuple(new Vertex('S', 0)), new Tuple(new Vertex('I', 0)),
@@ -81,39 +196,32 @@ class ODESystemTest {
                 new Tuple(new Vertex('S', 3)), new Tuple(new Vertex('I', 3)),
                 // Doubles
                 new Tuple(new ArrayList<>(Arrays.asList(
-                        new Vertex('S', 0), new Vertex('I', 1)))),
-                new Tuple(new ArrayList<>(Arrays.asList(
                         new Vertex('I', 0), new Vertex('S', 1)))),
                 new Tuple(new ArrayList<>(Arrays.asList(
-                        new Vertex('S', 0), new Vertex('I', 2)))),
+                        new Vertex('S', 0), new Vertex('I', 1)))),
                 new Tuple(new ArrayList<>(Arrays.asList(
                         new Vertex('I', 0), new Vertex('S', 2)))),
                 new Tuple(new ArrayList<>(Arrays.asList(
-                        new Vertex('S', 0), new Vertex('I', 3)))),
+                        new Vertex('S', 0), new Vertex('I', 2)))),
                 new Tuple(new ArrayList<>(Arrays.asList(
                         new Vertex('I', 0), new Vertex('S', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S', 0), new Vertex('I', 3)))),
                 new Tuple(new ArrayList<>(Arrays.asList(
                         new Vertex('S', 2), new Vertex('I', 3)))),
                 new Tuple(new ArrayList<>(Arrays.asList(
                         new Vertex('I', 2), new Vertex('S', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S', 1), new Vertex('I', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I', 1), new Vertex('S', 2)))),
                 // Triples
                 new Tuple(new ArrayList<>(Arrays.asList(
-                        new Vertex('S', 0), new Vertex('I',2), new Vertex('I', 3)))),
+                        new Vertex('S', 0), new Vertex('I',1), new Vertex('I', 3)))),
                 new Tuple(new ArrayList<>(Arrays.asList(
-                        new Vertex('S', 0), new Vertex('S', 2), new Vertex('I',3)))),
+                        new Vertex('S', 0), new Vertex('I', 1), new Vertex('I',2)))),
                 new Tuple(new ArrayList<>(Arrays.asList(
-                        new Vertex('S',0), new Vertex('I', 2), new Vertex('S', 3)))),
-                new Tuple(new ArrayList<>(Arrays.asList(
-                        new Vertex('I',0), new Vertex('S', 2), new Vertex('I', 3)))),
-                new Tuple(new ArrayList<>(Arrays.asList(
-                        new Vertex('I',0), new Vertex('I', 2), new Vertex('S', 3)))),
-                new Tuple(new ArrayList<>(Arrays.asList(
-                        new Vertex('I',0), new Vertex('S', 2), new Vertex('S', 3)))),
-                // Can be closed:
-                new Tuple(new ArrayList<>(Arrays.asList(
-                        new Vertex('S',0), new Vertex('I', 1), new Vertex('I', 3)))),
-                new Tuple(new ArrayList<>(Arrays.asList(
-                        new Vertex('S',0), new Vertex('I', 1), new Vertex('I', 2)))),
+                        new Vertex('S',0), new Vertex('I', 2), new Vertex('I', 3)))),
                 new Tuple(new ArrayList<>(Arrays.asList(
                         new Vertex('S',0), new Vertex('S', 1), new Vertex('I', 2)))),
                 new Tuple(new ArrayList<>(Arrays.asList(
@@ -121,14 +229,36 @@ class ODESystemTest {
                 new Tuple(new ArrayList<>(Arrays.asList(
                         new Vertex('S',0), new Vertex('I', 1), new Vertex('S', 2)))),
                 new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('S', 2), new Vertex('I', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I',0), new Vertex('S', 2), new Vertex('I', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
                         new Vertex('S',0), new Vertex('I', 1), new Vertex('S', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 2), new Vertex('S', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I',0), new Vertex('I', 2), new Vertex('S', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I',0), new Vertex('S', 2), new Vertex('S', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I',0), new Vertex('S', 1), new Vertex('I', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I',0), new Vertex('I', 1), new Vertex('S', 2)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I',1), new Vertex('S', 2), new Vertex('I', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I',1), new Vertex('S', 2), new Vertex('S', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',1), new Vertex('S', 2), new Vertex('I', 3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I',0), new Vertex('S', 1), new Vertex('S', 2)))),
                 // Quads
                 new Tuple(new ArrayList<>(Arrays.asList(
                         new Vertex('S',0), new Vertex('I', 1), new Vertex('I', 2), new Vertex('I',3)))),
                 new Tuple(new ArrayList<>(Arrays.asList(
-                        new Vertex('S',0), new Vertex('I', 1), new Vertex('I', 2), new Vertex('S',3)))),
-                new Tuple(new ArrayList<>(Arrays.asList(
                         new Vertex('S',0), new Vertex('I', 1), new Vertex('S', 2), new Vertex('I',3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('S',0), new Vertex('I', 1), new Vertex('I', 2), new Vertex('S',3)))),
                 new Tuple(new ArrayList<>(Arrays.asList(
                         new Vertex('S',0), new Vertex('S', 1), new Vertex('I', 2), new Vertex('I',3)))),
                 new Tuple(new ArrayList<>(Arrays.asList(
@@ -136,10 +266,18 @@ class ODESystemTest {
                 new Tuple(new ArrayList<>(Arrays.asList(
                         new Vertex('S',0), new Vertex('S', 1), new Vertex('S', 2), new Vertex('I',3)))),
                 new Tuple(new ArrayList<>(Arrays.asList(
-                        new Vertex('S',0), new Vertex('I', 1), new Vertex('S', 2), new Vertex('S',3))))
+                        new Vertex('S',0), new Vertex('I', 1), new Vertex('S', 2), new Vertex('S',3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I',0), new Vertex('S', 1), new Vertex('S', 2), new Vertex('S',3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I',0), new Vertex('S', 1), new Vertex('S', 2), new Vertex('I',3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I',0), new Vertex('I', 1), new Vertex('S', 2), new Vertex('S',3)))),
+                new Tuple(new ArrayList<>(Arrays.asList(
+                        new Vertex('I',0), new Vertex('I', 1), new Vertex('S', 2), new Vertex('I',3))))
         ));
         // Actual tuples
-        ODESystem system = new ODESystem(GraphGenerator.getLollipop(), 10, SIR);
+        ODESystem system = new ODESystem(GraphGenerator.getToast(), 10, SIR);
         List<Equation> equations = system.getEquations();
         List<Tuple> actual = new ArrayList<>();
         for(Equation e : equations) actual.add(e.getTuple());
@@ -155,8 +293,4 @@ class ODESystemTest {
         assertTrue(extraInActual.isEmpty(), "Got more tuples than expected:\n"+extraInActual.stream().map(m -> m + "\n").collect(Collectors.joining()));
     }
 
-    @Test
-    void getEquations() {
-
-    }
 }
