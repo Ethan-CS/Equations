@@ -62,29 +62,23 @@ public class ODESystem implements FirstOrderDifferentialEquations {
     }
 
     public void reduce() {
-        this.requiredTuples = this.getEquations().stream().map(Equation::getTuple).collect(Collectors.toList());
-        if (this.subGraphs.contains(g) && this.subGraphs.size() == 1) this.subGraphs.remove(g);
-        this.subGraphs.addAll(this.g.getSpliced());
+        decomposeGraph();
 
         // for required tuples in list of required tuples
         //  if tuple contains cut-vertex (in susceptible state)
         //    split into separate terms
         List<Vertex> cutVertices = this.g.getCutVertices();
         List<Tuple> noLongerRequired = new ArrayList<>();
-        List<Tuple> possiblyRequired = new ArrayList<>();
+        List<Tuple> nowRequired = new ArrayList<>();
         for (Tuple t : requiredTuples) {
             if (t.size() > 2) {
                 for (Vertex cut : cutVertices) {
                     if (t.contains(cut)) {
-                        // Mapping of vertex locations to original states, for restoring after splicing
-                        Map<Integer, Character> originalStates = new HashMap<>();
-                        for (Vertex v : t.getVertices()) originalStates.put(v.getLocation(), v.getState());
-                        originalStates.put(cut.getLocation(), 'S'); // Only consider cut-vertices as susceptible
                         // Yes -> split, can close if > 1 connected component
+                        Map<Integer, Character> originalStates = getOriginalStateMap(t, cut); // Original vertex states
+
                         List<List<Vertex>> components = g.splice(cut);
-                        for (List<Vertex> component : components) {
-                            component.removeIf(v -> !t.contains(v));
-                        }
+                        components.forEach(component -> component.removeIf(v -> !t.contains(v)));
 
                         List<List<Vertex>> toGetRid = new ArrayList<>();
                         for (List<Vertex> component : components) {
@@ -105,11 +99,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
                             }
 
                             for (List<Vertex> list : components) split.add(new Tuple(list));
-                            System.out.println("     ===============");
-                            System.out.println("Started with " + t + ", cut-vertex " + cut);
-                            System.out.println("About to split into " + split);
-                            System.out.println("Want to get rid of " + noLongerRequired);
-                            possiblyRequired.addAll(split);
+                            nowRequired.addAll(split);
                         }
                     }
                 }
@@ -117,9 +107,23 @@ public class ODESystem implements FirstOrderDifferentialEquations {
         }
         // Get rid of the tuples we can replace with closures
         requiredTuples.removeAll(noLongerRequired);
-        for (Tuple t : possiblyRequired) if (!requiredTuples.contains(t)) requiredTuples.add(t);
+        for (Tuple t : nowRequired) if (!requiredTuples.contains(t)) requiredTuples.add(t);
         requiredTuples.forEach(System.out::println);
         this.equations = getEquationsForTuples(requiredTuples);
+    }
+
+    private Map<Integer, Character> getOriginalStateMap(Tuple t, Vertex cut) {
+        // Mapping of vertex locations to original states, for restoring after splicing
+        Map<Integer, Character> originalStates = new HashMap<>();
+        for (Vertex v : t.getVertices()) originalStates.put(v.getLocation(), v.getState());
+        originalStates.put(cut.getLocation(), 'S'); // Only consider cut-vertices as susceptible
+        return originalStates;
+    }
+
+    private void decomposeGraph() {
+        this.requiredTuples = this.getEquations().stream().map(Equation::getTuple).collect(Collectors.toList());
+        if (this.subGraphs.contains(g) && this.subGraphs.size() == 1) this.subGraphs.remove(g);
+        this.subGraphs.addAll(this.g.getSpliced());
     }
 
     /**
