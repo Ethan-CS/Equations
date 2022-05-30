@@ -156,7 +156,7 @@ public class ModelParams {
             }
         } else {
             this.ratesMatrix[indexFrom][indexTo] = rate;
-            this.transitionGraph.addDirectedEdge(indexFrom, indexTo);
+            this.transitionGraph.addDirectedEdge(indexFrom, indexTo, rate);
         }
     }
 
@@ -193,6 +193,23 @@ public class ModelParams {
             filter.setLabels(filterStates);
         }
         return filter;
+    }
+
+    public double getRate(char a, char b) {
+        int indexOfA = this.getStates().indexOf(a);
+        int indexOfB = this.getStates().indexOf(b);
+        if (indexOfA == -1 || indexOfB == -1) return 0;
+        else return this.getRatesMatrix()[indexOfA][indexOfB];
+    }
+
+    public double getRate(char a) {
+        int indexOfA = this.getStates().indexOf(a);
+        double exit = 0;
+        for (int i = 0; i < ratesMatrix.length; i++) {
+            exit = ratesMatrix[indexOfA][i];
+            if (exit > 0) return exit;
+        }
+        return exit;
     }
 
     private List<Character> getStatesOfTransitionGraph() {

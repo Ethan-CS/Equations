@@ -94,6 +94,10 @@ public class Graph implements Cloneable {
         System.out.println("CUT VERTEX FREQUENCIES:\n" + g.cutVertexFreq);
     }
 
+    public double getWeight(Vertex v, Vertex w) {
+        return this.adjList.get(this.vertices.indexOf(new Vertex(v.getLocation()))).get(new Vertex(w.getLocation()));
+    }
+
     /**
      * Uses the walks of the current graph to produce lists of states corresponding to the labels of the walks of vertices.
      *

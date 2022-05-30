@@ -6,6 +6,10 @@ import io.github.ethankelly.graph.Vertex;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.exception.MaxCountExceededException;
 import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
+import org.apache.commons.math3.ode.FirstOrderIntegrator;
+import org.apache.commons.math3.ode.nonstiff.ClassicalRungeKuttaIntegrator;
+import org.apache.commons.math3.ode.nonstiff.DormandPrince54Integrator;
+import org.apache.commons.math3.ode.nonstiff.DormandPrince853Integrator;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,6 +35,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
     private Map<Tuple, Integer> indicesMapping;
     /** String representation of the system of equations. */
     private List<Equation> equations;
+    private Map<Double, double[]> yDotResults;
 
     /**
      * Class constructor.
@@ -46,19 +51,95 @@ public class ODESystem implements FirstOrderDifferentialEquations {
         this.requiredTuples = new ArrayList<>();
         this.equations = new ArrayList<>();
         this.indicesMapping = new HashMap<>();
+        this.yDotResults = new LinkedHashMap<>();
     }
 
     public static void main(String[] args) {
-        ModelParams SIR = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
+        ModelParams SIR = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[] {0, 2, 1}, new int[] {2, 1, 0});
         SIR.addTransition('S', 'I', 0.6);
         SIR.addTransition('I', 'R', 0.1);
 
-        ODESystem system = new ODESystem(GraphGenerator.getLollipop(), 10, SIR);
-        List<Equation> equations = system.findEquations();
-        equations.forEach(System.out::println);
+        Graph[] graphs = new Graph[]{
+                GraphGenerator.path(3),
+//                GraphGenerator.path(30),
+                GraphGenerator.getLollipop(),
+                GraphGenerator.getBowTieWithBridge()
+        };
 
-        ODESystem reducedSystem = new ODESystem(GraphGenerator.getLollipop(), 10, SIR);
-        reducedSystem.reduce();
+        for (Graph graph : graphs) {
+            System.out.println("=========="+graph.getName()+" with vertices: " + graph.getNumVertices());
+            ODESystem reducedSystem = new ODESystem(graph, 10, SIR);
+            System.out.println("BEFORE:\nNum equations: "+reducedSystem.getTuples().size());
+//            reducedSystem.getTuples().forEach(System.out::println);
+            reducedSystem.reduce();
+            System.out.print("Cut-vertices: ");
+            reducedSystem.getG().getCutVertices().forEach(System.out::print);
+            System.out.println("\nAFTER:\nNum equations: "+reducedSystem.getTuples().size());
+        }
+
+
+
+//        double[] y = new double[reducedSystem.getDimension()];
+//        List<Vertex> infected = new ArrayList<>(List.of(new Vertex('I', 2)));
+//        reducedSystem.setInitialConditions(y, infected);
+//        System.out.println("BEFORE");
+//        reducedSystem.printResults(y);
+//        FirstOrderIntegrator dp853 = new DormandPrince54Integrator(1.0e-8, 100.0, 1.0e-5, 1.0e-5);
+//        dp853.integrate(reducedSystem, 0, y, 10, y); // now y contains final state
+//        System.out.println("AFTER");
+//        reducedSystem.printResults(y);
+    }
+
+    private void setInitialConditions(double[] y, List<Vertex> infected) {
+        // SINGLES
+        for (Vertex v : getG().getVertices()) {
+            int I = getIndicesMapping().get(new Tuple(new Vertex('I', v.getLocation())));
+            int S = getIndicesMapping().get(new Tuple(new Vertex('S', v.getLocation())));
+            if (infected.contains(new Vertex(v.getLocation()))) {
+                // This vertex is infected - prob it is infected = 1, prob susceptible = 0
+                y[I] = 1;
+                y[S] = 0;
+            } else {
+                // This is not infected - prob susceptible = 1, prob infected = 0
+                y[I] = 0;
+                y[S] = 1;
+            }
+        }
+
+        for (Tuple t : getTuples()) {
+            int index = getIndicesMapping().get(t);
+            y[index] = 1;
+
+            List<Integer> infectedLocations = new ArrayList<>();
+            for (Vertex v : infected) infectedLocations.add(v.getLocation());
+
+            for (Vertex v : t.getVertices()) {
+                int indexOfStateV = this.getModelParameters().getStates().indexOf(v.getState());
+                if (indexOfStateV >= 0 && this.getModelParameters().getToEnter()[indexOfStateV] > 1) {
+                    if (!infected.contains(v)) {
+                        y[index] = 0;
+                        break;
+                    }
+                } else if (infectedLocations.contains(v.getLocation()) && this.getModelParameters().getToEnter()[indexOfStateV] < 2) {
+                    y[index] = 0;
+                    break;
+                }
+            }
+        }
+
+        // Final check that no probability is less than 0 or greater than 1
+        for (int index = 0; index < y.length; index++) {
+            if (y[index] > 1) y[index] = 1;
+            if (y[index] < 0) y[index] = 0;
+        }
+    }
+
+    private void printResults(double[] y) {
+        assert y.length == this.indicesMapping.size();
+        for (Tuple t : this.getIndicesMapping().keySet()) {
+            System.out.println(t + "=" + y[this.getIndicesMapping().get(t)]);
+        }
+        System.out.println();
     }
 
     public void reduce() {
@@ -68,7 +149,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
         //  if tuple contains cut-vertex (in susceptible state)
         //    split into separate terms
         List<Vertex> cutVertices = this.g.getCutVertices();
-        List<Tuple> noLongerRequired = new ArrayList<>();
+        Map<Tuple, List<Tuple>> replaceWithCutVertex = new HashMap<>();
         List<Tuple> nowRequired = new ArrayList<>();
         for (Tuple t : requiredTuples) {
             if (t.size() > 2) {
@@ -87,8 +168,8 @@ public class ODESystem implements FirstOrderDifferentialEquations {
                         }
                         components.removeAll(toGetRid);
 
+                        // We can replace equation for this tuple with terms we already have equations for
                         if (components.size() > 1) {
-                            noLongerRequired.add(t);
                             Set<Tuple> split = new HashSet<>();
 
                             // Make sure we still have original model states
@@ -100,16 +181,27 @@ public class ODESystem implements FirstOrderDifferentialEquations {
 
                             for (List<Vertex> list : components) split.add(new Tuple(list));
                             nowRequired.addAll(split);
+                            replaceWithCutVertex.put(t, new ArrayList<>(split));
                         }
                     }
                 }
             }
         }
         // Get rid of the tuples we can replace with closures
-        requiredTuples.removeAll(noLongerRequired);
+        requiredTuples.removeAll(replaceWithCutVertex.keySet());
+        // Add any new terms into the system of equations if they weren't previously required
         for (Tuple t : nowRequired) if (!requiredTuples.contains(t)) requiredTuples.add(t);
-        requiredTuples.forEach(System.out::println);
-        this.equations = getEquationsForTuples(requiredTuples);
+        // Replace any now-closed terms in equations with the closures
+        List<Equation> eq = getEquationsForTuples(requiredTuples);
+        for (Equation e : eq) {
+            for (Tuple term : e.getTerms().keySet()) {
+                if (replaceWithCutVertex.containsKey(term)) {
+                    // we have identified a term we need to replace with closures
+                    e.addClosureTerm(term, replaceWithCutVertex.get(term));
+                }
+            }
+        }
+        this.equations = eq;
     }
 
     private Map<Integer, Character> getOriginalStateMap(Tuple t, Vertex cut) {
@@ -166,7 +258,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
         // If we have already created a mapping, return it;
         // Else, create a mapping and store to class attribute
         if (this.indicesMapping.size() != this.requiredTuples.size()) {
-            Map<Tuple, Integer> indices = new HashMap<>(); //  The mapping we will return
+            Map<Tuple, Integer> indices = new LinkedHashMap<>(); //  The mapping we will return
             List<Tuple> requiredTuples = this.getTuples(); // The required requiredTuples to assign unique integers to each
             int i = 0; // Counter, to make sure we use a systematic mapping
             for (Tuple list : requiredTuples) indices.put(list, i++);
@@ -181,6 +273,10 @@ public class ODESystem implements FirstOrderDifferentialEquations {
      * @return the requiredTuples for which we are required to generate equations.
      */
     public List<Tuple> getTuples() {
+        if (requiredTuples == null || requiredTuples.isEmpty()){
+            this.findEquations();
+        }
+//        this.requiredTuples.sort(null);
         return this.requiredTuples;
     }
 
@@ -189,8 +285,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
      */
     @Override
     public int getDimension() {
-        this.dimension = this.getTuples().size();
-        return this.dimension;
+        return this.getTuples().size();
     }
 
     /**
@@ -204,12 +299,32 @@ public class ODESystem implements FirstOrderDifferentialEquations {
      */
     @Override
     public void computeDerivatives(double v, double[] y, double[] yDot) throws MaxCountExceededException, DimensionMismatchException {
-        this.getEquations(); // gets mappings of tuples to terms in their differential equations
-        for (Equation eqn : equations) {
-            int index = indicesMapping.get(eqn.getTuple());
+        for (Equation eqn : this.getEquations()) { // iterate over mappings of tuples to terms in their differential equations
+            // Index of the equation (specifically, the tuple on the LHS of the equation)
+            int index = getIndicesMapping().get(eqn.getTuple());
+            // Iterate over tuples in the equation
             for (Tuple t : eqn.getTerms().keySet()) {
                 for (double rate : eqn.getTerms().get(t)) {
-                    yDot[index] += (y[indicesMapping.get(t)] * rate);
+                    try {
+                        yDot[index] += (y[getIndicesMapping().get(t)] * rate);
+                    } catch (NullPointerException e) {
+                        // No mapping! Must be a closure term\
+                        List<Tuple> closed = eqn.getClosures().get(t);
+                        List<Vertex> cuts = new ArrayList<>(closed.get(0).getVertices());
+                        cuts.removeAll(new ArrayList<>(closed.get(1).getVertices())); // Only ever two terms, so this is okay
+                        Vertex cut = cuts.get(0);
+
+                        double toAdd = rate;
+                        for (Tuple term : eqn.getClosures().get(t)) {
+                            try {
+                                toAdd *= (y[getIndicesMapping().get(term)]);
+                            } catch (NullPointerException e1) {
+                                // No mapping here either! Genuine issue
+                                System.err.println("Can't find index for " + term);
+                            }
+                        }
+                        yDot[index] += toAdd / y[getIndicesMapping().get(new Tuple(new Vertex('S', cut.getLocation())))];
+                    }
                 }
             }
         }
@@ -271,7 +386,10 @@ public class ODESystem implements FirstOrderDifferentialEquations {
                 for (Equation e : getNextTuples(graph, eq, 2)) {
                     if (!eq.contains(e)) eq.add(e);
                 }
-                eq.stream().map(Equation::getTuple).forEach(requiredTuples::add);
+                for (Equation equation : eq) {
+                    Tuple tuple = equation.getTuple();
+                    if (!requiredTuples.contains(tuple)) requiredTuples.add(tuple);
+                }
             }
         } else {
             eq = getEquationsForTuples(requiredTuples);
@@ -288,7 +406,7 @@ public class ODESystem implements FirstOrderDifferentialEquations {
             // length for which we have not yet generated equations.
             for (Equation eq : prevEquations) {
                 for (Tuple t : eq.getTerms().keySet()) {
-                    if (!nextSizeTuples.contains(t) && t.size() == length) nextSizeTuples.add(t);
+                    if (t.size() == length && !nextSizeTuples.contains(t)) nextSizeTuples.add(t);
                 }
             }
             List<Equation> equations = getEquationsForTuples(nextSizeTuples);

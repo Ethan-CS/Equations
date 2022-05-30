@@ -12,12 +12,23 @@ public class Equation implements Comparable<Equation> {
     private final ModelParams modelParams;
     private final Graph graph;
 
+    public Map<Tuple, List<Tuple>> getClosures() {
+        return closures;
+    }
+
+    private Map<Tuple, List<Tuple>> closures;
+
     public Equation(Tuple tuple, ModelParams modelParams, Graph graph) {
         this.tuple = tuple;
         this.terms = new HashMap<>();
         this.modelParams = modelParams;
         this.graph = graph;
+        this.closures = new HashMap<>();
         findTerms();
+    }
+
+    public void addClosureTerm(Tuple original, List<Tuple> closed) {
+        this.closures.put(original, closed);
     }
 
     /**
