@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 
-data_filepath = "/Users/ethankelly/IdeaProjects/Equations/data_adjusted.csv"
+data_filepath = "/Users/ethankelly/IdeaProjects/Equations/data.csv"
 font = {'family': 'serif', 'color': 'black', 'weight': 'normal', 'size': 24}
 num_v = 12
 

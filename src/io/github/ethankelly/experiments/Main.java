@@ -18,7 +18,7 @@ public class Main {
 
         int iterations = 50;
         int numVertices = 15;
-        double pMax = 0.20;
+        double pMax = 0.10;
 
         Integer[][] regResults = new Integer[(int) (pMax*100)][iterations];
         Integer[][] redResults = new Integer[(int) (pMax*100)][iterations];
