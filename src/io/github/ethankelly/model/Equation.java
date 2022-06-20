@@ -130,8 +130,7 @@ public class Equation implements Comparable<Equation> {
     }
 
     private void findTerms(Vertex v, List<Vertex> otherTerms) {
-        int vState = modelParams.getFilterStates().indexOf(v.getState());
-
+        int vState = modelParams.getStates().indexOf(v.getState());
         // How do we exit this state?
         // Option 1: state needs another vertex to leave, i.e. state is in filter graph
         if (modelParams.getFilterStates().contains(v.getState())) {

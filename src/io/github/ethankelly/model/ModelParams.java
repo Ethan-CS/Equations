@@ -183,8 +183,7 @@ public class ModelParams {
             // Only include vertices that either need at least another vertex being in another state to enter
             // or if this is a condition of vertices exiting the given state.
             for (Vertex v : contactNetwork.getVertices()) {
-                if (this.getToEnter()[contactNetwork.getVertices().indexOf(v)] > 1 ||
-                        this.getToExit()[contactNetwork.getVertices().indexOf(v)] > 1) {
+                if (this.getToExit()[contactNetwork.getVertices().indexOf(v)] > 0) {
                     filterVertices.add(v);
                     filterStates.add(contactNetwork.getLabels().get(contactNetwork.getVertices().indexOf(v)));
                 }

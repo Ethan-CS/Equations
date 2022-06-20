@@ -264,7 +264,7 @@ public class ODEUtils {
 
 	private static void getEntryTerms(ODESystem ode, double[] y, double[] yDot, Tuple tuple, StringBuilder s, Vertex v) {
 		ModelParams modelParams = ode.getModelParameters();
-		List<Character> modelStates = modelParams.getFilterStates();
+		List<Character> modelStates = modelParams.getStates();
 		int indexOfState = modelStates.indexOf(v.getState());
 		List<Vertex> otherTerms = getOtherTerms(tuple, v, false);
 		int numNeighboursToEnter = modelParams.getToEnter()[indexOfState];

@@ -6,10 +6,6 @@ import io.github.ethankelly.graph.Vertex;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.exception.MaxCountExceededException;
 import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
-import org.apache.commons.math3.ode.FirstOrderIntegrator;
-import org.apache.commons.math3.ode.nonstiff.ClassicalRungeKuttaIntegrator;
-import org.apache.commons.math3.ode.nonstiff.DormandPrince54Integrator;
-import org.apache.commons.math3.ode.nonstiff.DormandPrince853Integrator;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -55,27 +51,42 @@ public class ODESystem implements FirstOrderDifferentialEquations {
     }
 
     public static void main(String[] args) {
-        ModelParams SIR = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[] {0, 2, 1}, new int[] {2, 1, 0});
-        SIR.addTransition('S', 'I', 0.6);
+        ModelParams SIR = new ModelParams(Arrays.asList('S', 'E', 'I', 'R'), new int[] {0, 1, 1, 2}, new int[] {1, 2, 1, 0});
+        SIR.addTransition('S', 'E', 0.9);
+        SIR.addTransition('E', 'I', 0.5);
+        SIR.addTransition('E', 'R', 0.3);
         SIR.addTransition('I', 'R', 0.1);
 
-        Graph[] graphs = new Graph[]{
-                GraphGenerator.path(3),
-//                GraphGenerator.path(30),
-                GraphGenerator.getLollipop(),
-                GraphGenerator.getBowTieWithBridge()
-        };
+//        List<Graph> graphs = new ArrayList<>();
+//        for (int i = 3; i < 10; i++) {
+//            graphs.add(GraphGenerator.path(i));
+//        }
+//
+//        for (Graph graph : graphs) {
+//            System.out.println("=========="+graph.getName()+" with vertices: " + graph.getNumVertices());
+//            ODESystem reducedSystem = new ODESystem(graph, 10, SIR);
+//            System.out.println("BEFORE:\nNum equations: "+reducedSystem.getTuples().size());
+////            reducedSystem.getTuples().forEach(System.out::println);
+//            reducedSystem.reduce();
+//            System.out.print("Cut-vertices: ");
+//            reducedSystem.getG().getCutVertices().forEach(System.out::print);
+//            System.out.println("\nAFTER:\nNum equations: "+reducedSystem.getTuples().size());
+//        }
 
-        for (Graph graph : graphs) {
-            System.out.println("=========="+graph.getName()+" with vertices: " + graph.getNumVertices());
-            ODESystem reducedSystem = new ODESystem(graph, 10, SIR);
-            System.out.println("BEFORE:\nNum equations: "+reducedSystem.getTuples().size());
-//            reducedSystem.getTuples().forEach(System.out::println);
-            reducedSystem.reduce();
-            System.out.print("Cut-vertices: ");
-            reducedSystem.getG().getCutVertices().forEach(System.out::print);
-            System.out.println("\nAFTER:\nNum equations: "+reducedSystem.getTuples().size());
+        for (int i = 1; i <= 10; i++) {
+            System.out.println();
+            ODESystem system = new ODESystem(GraphGenerator.path(i),10,SIR);
+            int[] sizes = new int[system.getG().getNumVertices()];
+            for (Tuple t : system.getTuples()) {
+                sizes[t.size()-1]++;
+            }
+            for (int size : sizes) {
+                System.out.print(size+",");
+            }
+//            System.out.println(system.getTuples());
         }
+
+
 
 
 

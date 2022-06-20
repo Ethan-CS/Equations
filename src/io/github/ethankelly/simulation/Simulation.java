@@ -22,6 +22,10 @@ public class Simulation {
     /** Mapping of time-steps to the percentage of the transmission graph in each model state at that time. */
     private final List<Map<State, Double>> resultsSummary;
 
+    private final double weightBound = 0.5;
+
+    private final double poissonLambda = 3;
+
     /**
      * Enumerated class containing model states.
      */
@@ -46,7 +50,7 @@ public class Simulation {
 
         // Uniformly random probability of infection and recovery for each individual
         for (Vertex v : g.getVertices()) {
-            getRecovery().put(v, Rand.poisson((double) 7));
+            getRecovery().put(v, Rand.poisson(poissonLambda));
         }
     }
 
@@ -88,13 +92,18 @@ public class Simulation {
         Random r = new Random();
         for (int i = 0; i < g.getNumVertices(); i++) {
             for (int j = 0; j < g.getNumVertices(); j++) {
-                if (g.hasDirectedEdge(i, j)) g.addWeight(i, j, r.nextDouble());
+                if (g.hasDirectedEdge(i, j)) g.addWeight(i, j, Rand.uniform(0, weightBound));
             }
         }
     }
 
     public Graph getG() {
         return g;
+    }
+
+    public void beginSimulation(List<Vertex> infected) {
+        infected.forEach(this::infect);
+        beginSimulation();
     }
 
     public void beginSimulation(int numInitialInfected) {
@@ -111,6 +120,10 @@ public class Simulation {
                 count++;
             }
         }
+        beginSimulation();
+    }
+
+    private void beginSimulation() {
         // Deep copy of current state map field value for initial state of simulation
         HashMap<State, List<Vertex>> copy = new HashMap<>();
         getStateMap().forEach((key, value) -> copy.put(key, new ArrayList<>(value)));
@@ -187,11 +200,6 @@ public class Simulation {
         boolean removed = infected.remove(v);
         this.getStateMap().replace(State.INFECTED, infected);
         if (removed) this.getStateMap().get(State.RECOVERED).add(v);
-    }
-
-    public void beginSimulation(List<Vertex> infected) {
-        infected.forEach(this::infect);
-        simulate();
     }
 
     /**

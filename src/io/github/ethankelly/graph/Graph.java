@@ -601,6 +601,7 @@ public class Graph implements Cloneable {
     }
 
     public boolean hasDirectedEdge(int i, int j) {
+        if (i>this.getNumVertices() || j > this.getNumVertices()) return false;
         return this.adjList.get(i).containsKey(new Vertex(j));
     }
 
@@ -610,6 +611,7 @@ public class Graph implements Cloneable {
     }
 
     public boolean hasEdge(int i, int j) {
+        if (i>this.getNumVertices() || j > this.getNumVertices()) return false;
         return this.hasEdge(this.vertices.get(i), this.vertices.get(j));
     }
 
@@ -685,7 +687,6 @@ public class Graph implements Cloneable {
                 }
             }
         }
-
         cloned.setName(this.getName());
         cloned.setVertices(newVertices);
         cloned.setNumVertices(newVertices.size());
@@ -696,6 +697,19 @@ public class Graph implements Cloneable {
 
     private void setVertices(List<Vertex> vertices) {
         this.vertices = vertices;
+    }
+
+    public String toStringCSV(){
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < this.numVertices; i++) {
+            for (int j = 0; j < this.numVertices; j++) {
+                Double neighbour = this.getAdjList().get(i).get(this.getVertices().get(j));
+                sb.append(neighbour == null ? "0" : "1").append(",");
+            }
+            sb.deleteCharAt(sb.length()-1);
+            sb.append("\n");
+        }
+        return sb.toString();
     }
 
     /**
