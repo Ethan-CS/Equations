@@ -6,6 +6,7 @@ import io.github.ethankelly.graph.Vertex;
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.exception.MaxCountExceededException;
 import org.apache.commons.math3.ode.FirstOrderDifferentialEquations;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -51,54 +52,32 @@ public class ODESystem implements FirstOrderDifferentialEquations {
     }
 
     public static void main(String[] args) {
-        ModelParams SIR = new ModelParams(Arrays.asList('S', 'E', 'I', 'R'), new int[] {0, 1, 1, 2}, new int[] {1, 2, 1, 0});
-        SIR.addTransition('S', 'E', 0.9);
-        SIR.addTransition('E', 'I', 0.5);
-        SIR.addTransition('E', 'R', 0.3);
+        ModelParams SIR = new ModelParams(Arrays.asList('S', 'I', 'R'), new int[]{0, 2, 1}, new int[]{2, 1, 0});
+        SIR.addTransition('S', 'I', 0.6);
         SIR.addTransition('I', 'R', 0.1);
+        System.out.println(SIR.getFilterGraph().getLabels());
 
-//        List<Graph> graphs = new ArrayList<>();
-//        for (int i = 3; i < 10; i++) {
-//            graphs.add(GraphGenerator.path(i));
+        ODESystem ode = new ODESystem(GraphGenerator.getEdge(), 1, SIR);
+        ode.getEquations().forEach(System.out::println);
+
+//        for (int i = 3; i <= 10; i++) {
+//            System.out.println("\n==="+i+"===");
+//            ODESystem system = new ODESystem(GraphGenerator.path(i),10,SIR);
+//            system.reduce();
+//            system.getTuples().forEach(System.out::println);
+//            int[] sizes = new int[system.getG().getNumVertices()];
+//            for (Tuple t : system.getTuples()) {
+//                try {
+//                    sizes[t.size()-1]++;
+//                } catch (ArrayIndexOutOfBoundsException e) {
+//                    System.err.println("A tuple has no size: " + t);
+//                }
+//            }
+//            for (int size : sizes) {
+//                System.out.print(size+",");
+//            }
+//            System.out.println(" total: " + system.getTuples().size());
 //        }
-//
-//        for (Graph graph : graphs) {
-//            System.out.println("=========="+graph.getName()+" with vertices: " + graph.getNumVertices());
-//            ODESystem reducedSystem = new ODESystem(graph, 10, SIR);
-//            System.out.println("BEFORE:\nNum equations: "+reducedSystem.getTuples().size());
-////            reducedSystem.getTuples().forEach(System.out::println);
-//            reducedSystem.reduce();
-//            System.out.print("Cut-vertices: ");
-//            reducedSystem.getG().getCutVertices().forEach(System.out::print);
-//            System.out.println("\nAFTER:\nNum equations: "+reducedSystem.getTuples().size());
-//        }
-
-        for (int i = 1; i <= 10; i++) {
-            System.out.println();
-            ODESystem system = new ODESystem(GraphGenerator.path(i),10,SIR);
-            int[] sizes = new int[system.getG().getNumVertices()];
-            for (Tuple t : system.getTuples()) {
-                sizes[t.size()-1]++;
-            }
-            for (int size : sizes) {
-                System.out.print(size+",");
-            }
-//            System.out.println(system.getTuples());
-        }
-
-
-
-
-
-//        double[] y = new double[reducedSystem.getDimension()];
-//        List<Vertex> infected = new ArrayList<>(List.of(new Vertex('I', 2)));
-//        reducedSystem.setInitialConditions(y, infected);
-//        System.out.println("BEFORE");
-//        reducedSystem.printResults(y);
-//        FirstOrderIntegrator dp853 = new DormandPrince54Integrator(1.0e-8, 100.0, 1.0e-5, 1.0e-5);
-//        dp853.integrate(reducedSystem, 0, y, 10, y); // now y contains final state
-//        System.out.println("AFTER");
-//        reducedSystem.printResults(y);
     }
 
     private void setInitialConditions(double[] y, List<Vertex> infected) {
@@ -153,66 +132,142 @@ public class ODESystem implements FirstOrderDifferentialEquations {
         System.out.println();
     }
 
+
+
+
     public void reduce() {
         decomposeGraph();
 
-        // for required tuples in list of required tuples
-        //  if tuple contains cut-vertex (in susceptible state)
-        //    split into separate terms
-        List<Vertex> cutVertices = this.g.getCutVertices();
-        Map<Tuple, List<Tuple>> replaceWithCutVertex = new HashMap<>();
-        List<Tuple> nowRequired = new ArrayList<>();
-        for (Tuple t : requiredTuples) {
-            if (t.size() > 2) {
-                for (Vertex cut : cutVertices) {
-                    if (t.contains(cut)) {
-                        // Yes -> split, can close if > 1 connected component
-                        Map<Integer, Character> originalStates = getOriginalStateMap(t, cut); // Original vertex states
+        List<Vertex> cutVertices = g.getCutVertices();
 
-                        List<List<Vertex>> components = g.splice(cut);
-                        components.forEach(component -> component.removeIf(v -> !t.contains(v)));
+        // List of components resulting from removing each cut vertex in turn mapped to cut-vertex
+        Map<Vertex, List<List<Vertex>>> subGraphsByCutVertex = new HashMap<>();
+        for (Vertex vertex : cutVertices) {
+            subGraphsByCutVertex.put(new Vertex(vertex.getLocation()), new ArrayList<>(g.splice(vertex)));
+        }
 
-                        List<List<Vertex>> toGetRid = new ArrayList<>();
-                        for (List<Vertex> component : components) {
-                            if (component.equals(new ArrayList<>(Collections.singletonList(cut))))
-                                toGetRid.add(component);
-                        }
-                        components.removeAll(toGetRid);
+        // List of all currently required tuples
+        List<Tuple> currentTuples = new ArrayList<>(requiredTuples);
 
-                        // We can replace equation for this tuple with terms we already have equations for
-                        if (components.size() > 1) {
-                            Set<Tuple> split = new HashSet<>();
+        // List of all tuples that can be replaced by closure terms
+        Map<Tuple, Vertex> canBeClosed = getTuplesToClose(cutVertices, currentTuples);
 
-                            // Make sure we still have original model states
-                            for (List<Vertex> component : components) {
-                                for (Vertex v : component) {
-                                    v.setState(originalStates.get(v.getLocation()));
-                                }
-                            }
+        Map<Tuple, Vertex> stillToClose = new HashMap<>(canBeClosed);
+        // Find the closure terms for each of tuples we can possibly close
+        Set<Tuple> closuresToAdd = new HashSet<>();
+        List<Tuple> closedToRemove = new ArrayList<>();
+        while (!stillToClose.isEmpty()){
+            for (Tuple toClose : canBeClosed.keySet()) {
+                if (stillToClose.containsKey(toClose)) {
 
-                            for (List<Vertex> list : components) split.add(new Tuple(list));
-                            nowRequired.addAll(split);
-                            replaceWithCutVertex.put(t, new ArrayList<>(split));
-                        }
+                List<List<Vertex>> filteredComponents = new ArrayList<>();
+
+                List<List<Vertex>> get = subGraphsByCutVertex.get(canBeClosed.get(toClose));
+                for (int i = 0; i < get.size(); i++) {
+                    filteredComponents.add(new ArrayList<>());
+                    for (Vertex v : get.get(i)) {
+                        filteredComponents.get(i).add(new Vertex(v.getState(), v.getLocation()));
                     }
                 }
-            }
-        }
-        // Get rid of the tuples we can replace with closures
-        requiredTuples.removeAll(replaceWithCutVertex.keySet());
-        // Add any new terms into the system of equations if they weren't previously required
-        for (Tuple t : nowRequired) if (!requiredTuples.contains(t)) requiredTuples.add(t);
-        // Replace any now-closed terms in equations with the closures
-        List<Equation> eq = getEquationsForTuples(requiredTuples);
-        for (Equation e : eq) {
-            for (Tuple term : e.getTerms().keySet()) {
-                if (replaceWithCutVertex.containsKey(term)) {
-                    // we have identified a term we need to replace with closures
-                    e.addClosureTerm(term, replaceWithCutVertex.get(term));
+
+                for (List<Vertex> component : filteredComponents) {
+                    component.removeIf(v -> !toClose.contains(v));
                 }
+
+                filteredComponents.removeIf(List::isEmpty);
+                // If there's still more than one non-empty component, we can replace this term with closures
+                if (filteredComponents.size() > 1) {
+                    closedToRemove.add(toClose);
+                    for (List<Vertex> component : filteredComponents) {
+                        List<Vertex> toCreate = new ArrayList<>(component);
+                        Map<Integer, Character> originalStates = getOriginalStateMap(toClose, canBeClosed.get(toClose));
+                        for (Vertex v : toCreate) {
+                            v.setState(originalStates.get(v.getLocation()));
+                        }
+                        Tuple candidate = new Tuple(toCreate);
+
+                        // If the tuple can be closed, don't add it to tuples yet
+                        // Add to the list to close and then add its closure terms instead
+                        boolean canClose = false;
+                        for (Vertex otherCut : cutVertices) {
+                            if (canClose(candidate, otherCut)) {
+                                stillToClose.put(candidate, otherCut);
+                                canClose = true;
+                                break;
+                            }
+                        }
+                        if (!canClose) {
+                            closuresToAdd.add(candidate);
+                            closedToRemove.add(toClose);
+                        }
+                    }
+                } else {
+                    System.err.println("Couldn't close " + toClose);
+                }
+                stillToClose.remove(toClose);
+            }
+            }
+            for (Tuple stillToDo : stillToClose.keySet()) {
+                canBeClosed.put(stillToDo, stillToClose.get(stillToDo));
+            }
+
+        }
+
+        for (Tuple toAdd : closuresToAdd) if (!currentTuples.contains(toAdd)) currentTuples.add(toAdd);
+        currentTuples.removeAll(closedToRemove);
+
+        this.requiredTuples = new ArrayList<>(currentTuples);
+        this.equations = this.getEquationsForTuples(requiredTuples);
+    }
+
+    @NotNull
+    private Map<Tuple, Vertex> getTuplesToClose(List<Vertex> cutVertices, List<Tuple> currentTuples) {
+        Map<Tuple, Vertex> canBeClosed = new HashMap<>();
+        for (Tuple t : currentTuples) {
+            for (Vertex cut : cutVertices) {
+                if (canClose(t, cut)) canBeClosed.put(t, cut);
             }
         }
-        this.equations = eq;
+        return canBeClosed;
+    }
+
+    private boolean canClose(Tuple t, Vertex cut) {
+        return t.size() >= 3 && t.contains(cut);
+    }
+
+    private void setOriginalTupleStates(Tuple t, Vertex cut, List<List<Vertex>> components) {
+        // Make sure we still have original model states
+        Map<Integer, Character> originalStates = getOriginalStateMap(t, cut);
+        for (List<Vertex> component : components) {
+            for (Vertex v : component) {
+                v.setState(originalStates.get(v.getLocation()));
+            }
+        }
+    }
+
+    @NotNull
+    private List<List<Vertex>> induceSubGraphOnTupleVertices(List<List<Vertex>> components, Tuple t, Vertex cut) {
+        // Get the components remaining after splicing the graph on the cut-vertex
+        List<List<Vertex>> filteredComponents = new ArrayList<>();
+        for (List<Vertex> vertices : components) {
+            ArrayList<Vertex> vertexArrayList = new ArrayList<>(vertices);
+            filteredComponents.add(vertexArrayList);
+        }
+        for (int i = 0; i < components.size(); i++) {
+            for (Vertex v : components.get(i))
+                if (!t.contains(v))
+                    filteredComponents.get(i).remove(v);
+        }
+
+        // Remove any components that only contain cut-vertex, nothing else
+        List<List<Vertex>> onlyContainsCutVertex = new ArrayList<>();
+        for (List<Vertex> component : components) {
+            if (component.size() == 0 || component.equals(new ArrayList<>(Collections.singletonList(cut))))
+                onlyContainsCutVertex.add(component);
+        }
+        filteredComponents.removeAll(onlyContainsCutVertex);
+
+        return filteredComponents;
     }
 
     private Map<Integer, Character> getOriginalStateMap(Tuple t, Vertex cut) {
