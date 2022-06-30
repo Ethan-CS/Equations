@@ -80,7 +80,6 @@
     </orderEntry>
     <orderEntry type="library" name="mockito.core" level="project" />
     <orderEntry type="library" name="github.sh0nk.matplotlib4j" level="project" />
-    <orderEntry type="library" name="Python 3.8 (Equations) interpreter library" level="application" />
   </component>
   <component name="PyDocumentationSettings">
     <option name="renderExternalDocumentation" value="true" />
