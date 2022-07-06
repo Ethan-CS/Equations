@@ -152,7 +152,7 @@ public class Tuple implements Cloneable, Comparable<Tuple> {
     }
 
     public int size() {
-        return this.getVertices().size();
+        return this.vertices.size();
     }
 
     public boolean contains(Object o) {
