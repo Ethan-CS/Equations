@@ -12,3 +12,9 @@ logs/
 /.gradle-wrapper/
 gradlew
 gradlew.bat
+*.jar
+*.war
+*.zip
+*.tar
+*.tar.gz
+*.tgz

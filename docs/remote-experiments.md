@@ -6,9 +6,9 @@ This project now exposes a dedicated runtime harness that scales to larger graph
 
 - `src/io/github/ethankelly/experiments/RuntimeExperimentRunner.java`: configurable Java entry-point that builds graph workloads, executes both the full and reduced ODE systems, and captures rich metrics.
 - `config/runtime_plan.csv`: default experiment catalogue. Each row defines a graph family, vertex count, iteration budget, and any required parameters (for example `probability` for Erdos-Renyi graphs or `degree` for random regular graphs).
-- `target/equations-runtime.jar`: shaded jar produced by Maven containing the runner and dependencies.
+- `build/libs/equations-runtime.jar`: shaded jar produced by Gradle containing the runner and dependencies.
 - `scripts/run_remote_experiments.py`: SSH orchestrator that slices the plan across the compute nodes and launches the Java runner with consistent JVM flags for the cluster.
-- `scripts/build_runtime.sh`: helper that invokes Maven (`mvn -DskipTests package`) and confirms the runtime jar is ready.
+- `scripts/build_runtime.sh`: helper that invokes Gradle (`gradle runtimeJar`) and confirms the runtime jar is ready.
 
 ## Building locally
 
@@ -16,12 +16,12 @@ This project now exposes a dedicated runtime harness that scales to larger graph
 ./scripts/build_runtime.sh
 ```
 
-The command assembles `target/equations-runtime.jar`, a self-contained jar with dependencies and the manifest set to `io.github.ethankelly.experiments.RuntimeExperimentRunner`.
+The command assembles `build/libs/equations-runtime.jar`, a self-contained jar with dependencies and the manifest set to `io.github.ethankelly.experiments.RuntimeExperimentRunner`.
 
 ## Running an experiment locally
 
 ```bash
-java -Xms4g -Xmx32g -XX:-UseParallelGC -jar target/equations-runtime.jar \
+java -Xms4g -Xmx32g -XX:-UseParallelGC -jar build/libs/equations-runtime.jar \
   --config config/runtime_plan.csv \
   --output results/runtime \
   --run-id runtime-dev \

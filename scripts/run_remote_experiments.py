@@ -68,7 +68,7 @@ def parse_args(argv: Iterable[str]) -> argparse.Namespace:
 
 
 def ensure_jar(repo_root: Path) -> Path:
-    jar_path = repo_root / "target" / "equations-runtime.jar"
+    jar_path = repo_root / "build" / "libs" / "equations-runtime.jar"
     if not jar_path.exists():
         raise FileNotFoundError(
             f"Runtime jar not found at {jar_path}. Run scripts/build_runtime.sh before launching remote jobs.")
@@ -102,13 +102,12 @@ async def run_on_node(node: str,
                       remote_root: Path,
                       log_dir: Path) -> NodeResult:
     tag = f"{args.tag_prefix}{node}"
-    jar_remote = remote_root / "target" / "equations-runtime.jar"
+    jar_remote = remote_root / "build" / "libs" / "equations-runtime.jar"
     config_remote = remote_root / args.config
     output_remote = remote_root / args.output
     seed_for_node = args.seed + slice_index
 
-    command_parts = [
-        f"cd {shlex.quote(str(remote_root))}",
+    java_parts = [
         f"java {args.java_opts} -jar {shlex.quote(str(jar_remote))}",
         f"--config {shlex.quote(str(config_remote))}",
         f"--output {shlex.quote(str(output_remote))}",
@@ -122,6 +121,10 @@ async def run_on_node(node: str,
         f"--recovery-rate {args.recovery_rate}",
         f"--tag {shlex.quote(tag)}",
         f"--seed {seed_for_node}"
+    ]
+    command_parts = [
+        f"cd {shlex.quote(str(remote_root))}",
+        " ".join(java_parts)
     ]
     remote_sequence = " && ".join(command_parts)
     ssh_command = ["ssh"]
@@ -177,7 +180,7 @@ async def orchestrate(args: argparse.Namespace) -> int:
 
     log_dir = repo_root / "logs" / run_id
     tasks = [
-    run_on_node(node, idx % slice_count, slice_count, args, run_id, remote_root, log_dir)
+        run_on_node(node, idx % slice_count, slice_count, args, run_id, remote_root, log_dir)
         for idx, node in enumerate(nodes)
     ]
 
