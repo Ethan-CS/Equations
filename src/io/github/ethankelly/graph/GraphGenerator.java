@@ -3,8 +3,11 @@ package io.github.ethankelly.graph;
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.InputMismatchException;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.IntStream;
@@ -164,6 +167,7 @@ public final class GraphGenerator {
                      15. Star
                      16. Regular
                      17. Tree
+                     18. Barabasi-Albert
                     Please enter either the number corresponding to the desired graph type or the name of the graph.""");
         }
 
@@ -227,6 +231,16 @@ public final class GraphGenerator {
             // 16 needs a value for k
             } else if (arguments[1].equalsIgnoreCase("regular") || arguments[1].equals("16")) {
                 System.out.println("Please enter the value of k for the k-regular graph.");
+                try {
+                    arguments[3] = scan.nextLine();
+                } catch (InputMismatchException e) {
+                    System.out.println("You should have entered an integer number.");
+                    e.printStackTrace();
+                }
+            } else if (arguments[1].equalsIgnoreCase("barabasi albert") || arguments[1].equals("18") ||
+                       arguments[1].equalsIgnoreCase("barabási-albert") || arguments[1].equalsIgnoreCase("scale free") ||
+                       arguments[1].equalsIgnoreCase("scale-free")) {
+                System.out.println("Please enter the attachment parameter m for the Barabasi-Albert graph.");
                 try {
                     arguments[3] = scan.nextLine();
                 } catch (InputMismatchException e) {
@@ -316,6 +330,10 @@ public final class GraphGenerator {
                 // Requires number of vertices and value of k
                 int[] parsed = parseIntegers(new String[] {args[2], args[3]});
                 graph = regular(parsed[0], parsed[1]);
+            }
+            case "18", "barabasi albert", "barabási-albert", "scale-free", "scale free" -> {
+                int[] parsed = parseIntegers(new String[] {args[2], args[3]});
+                graph = barabasiAlbert(parsed[0], parsed[1]);
             }
             case "17", "tree" -> graph = tree(parseIntegers(new String[] {args[2]})[0]);
             default -> throw new IllegalStateException("Unexpected graph type: " + args[1].toLowerCase());
@@ -745,6 +763,51 @@ public final class GraphGenerator {
             if (degree[prufer[i]] == 1) pq.insert(prufer[i]);
         }
         g.addEdge(pq.delMin(), pq.delMin());
+        return g;
+    }
+
+    public static Graph barabasiAlbert(int numVertices, int attachment) {
+        assert attachment > 0 : "Attachment parameter must be positive";
+        assert numVertices > attachment : "Number of vertices must exceed attachment parameter";
+
+        Graph g = new Graph(numVertices, "Barabasi-Albert(" + attachment + ")");
+        int initialSize = Math.max(attachment + 1, 2);
+        initialSize = Math.min(initialSize, numVertices);
+
+        List<Integer> degreePool = new ArrayList<>();
+
+        for (int v = 0; v < initialSize; v++) {
+            for (int w = v + 1; w < initialSize; w++) {
+                g.addEdge(v, w);
+                degreePool.add(v);
+                degreePool.add(w);
+            }
+        }
+
+        for (int v = initialSize; v < numVertices; v++) {
+            Set<Integer> neighbours = new LinkedHashSet<>();
+            while (neighbours.size() < Math.min(attachment, v)) {
+                if (degreePool.isEmpty()) {
+                    neighbours.add(Rand.uniform(v));
+                } else {
+                    int targetIndex = Rand.uniform(degreePool.size());
+                    neighbours.add(degreePool.get(targetIndex));
+                }
+            }
+
+            for (int neighbour : neighbours) {
+                g.addEdge(v, neighbour);
+                degreePool.add(neighbour);
+                degreePool.add(v);
+            }
+
+            if (degreePool.isEmpty()) {
+                for (int i = 0; i <= v; i++) {
+                    degreePool.add(i);
+                }
+            }
+        }
+
         return g;
     }
 

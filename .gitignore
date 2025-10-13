@@ -3,3 +3,7 @@
 /.idea/
 /testoutput/
 *.DS_Store
+target/
+build/
+results/runtime/
+logs/

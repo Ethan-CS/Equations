@@ -1,0 +1,14 @@
+# graph_type,label,num_vertices,iterations,parameters
+graph_type,label,num_vertices,iterations,parameters
+erdos_renyi,er-256-p002,256,40,probability=0.02
+erdos_renyi,er-512-p0015,512,40,probability=0.015
+erdos_renyi,er-1024-p001,1024,30,probability=0.01
+random_regular,reg-256-d3,256,40,degree=3
+random_regular,reg-512-d4,512,40,degree=4
+random_regular,reg-1024-d6,1024,30,degree=6
+barabasi_albert,ba-512-m3,512,40,attachment=3
+barabasi_albert,ba-1024-m4,1024,30,attachment=4
+tree,tree-2048,2048,20,
+binary_tree,btree-2047,2047,20,
+cycle,cycle-512,512,25,
+complete,clique-64,64,15,
