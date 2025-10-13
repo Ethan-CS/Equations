@@ -7,12 +7,9 @@ target/
 build/
 results/runtime/
 logs/
-/.gradle/
-/gradle/
-/.gradle-wrapper/
-gradlew
-gradlew.bat
+.gradle/
 *.jar
+!gradle/wrapper/gradle-wrapper.jar
 *.war
 *.zip
 *.tar

@@ -56,11 +56,10 @@ tasks.register('runtimeJar', Jar) {
     manifest {
         attributes('Main-Class': 'io.github.ethankelly.experiments.RuntimeExperimentRunner')
     }
-    from(sourceSets.main.get().output)
-    dependsOn(configurations.runtimeClasspath)
+    from(sourceSets.main.output)
     dependsOn(tasks.named('classes'))
     from {
-        configurations.runtimeClasspath.get().collect { file ->
+        configurations.runtimeClasspath.collect { file ->
             file.isDirectory() ? file : zipTree(file)
         }
     }
