@@ -7,3 +7,8 @@ target/
 build/
 results/runtime/
 logs/
+/.gradle/
+/gradle/
+/.gradle-wrapper/
+gradlew
+gradlew.bat
