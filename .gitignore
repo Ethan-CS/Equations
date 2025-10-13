@@ -2,3 +2,4 @@
 /out/
 /.idea/
 /testoutput/
+*.DS_Store
