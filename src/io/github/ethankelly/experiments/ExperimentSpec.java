@@ -4,25 +4,55 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 
 /**
  * Immutable description of a single experiment workload.
  */
-public record ExperimentSpec(GraphType graphType,
-                             String label,
-                             int numVertices,
-                             int iterations,
-                             Map<String, String> parameters) {
+public final class ExperimentSpec {
 
-    public ExperimentSpec {
+    private final GraphType graphType;
+    private final String label;
+    private final int numVertices;
+    private final int iterations;
+    private final Map<String, String> parameters;
+
+    public ExperimentSpec(GraphType graphType,
+                          String label,
+                          int numVertices,
+                          int iterations,
+                          Map<String, String> parameters) {
         if (graphType == null) throw new IllegalArgumentException("Graph type is required");
         if (numVertices <= 0) throw new IllegalArgumentException("Number of vertices must be positive");
         if (iterations <= 0) throw new IllegalArgumentException("Iterations must be positive");
 
-        label = normaliseLabel(label, graphType, numVertices, parameters);
-        parameters = normaliseParameters(parameters);
+        this.graphType = graphType;
+        this.numVertices = numVertices;
+        this.iterations = iterations;
+        this.label = normaliseLabel(label, graphType, numVertices, parameters);
+        this.parameters = normaliseParameters(parameters);
+    }
+
+    public GraphType graphType() {
+        return graphType;
+    }
+
+    public String label() {
+        return label;
+    }
+
+    public int numVertices() {
+        return numVertices;
+    }
+
+    public int iterations() {
+        return iterations;
+    }
+
+    public Map<String, String> parameters() {
+        return parameters;
     }
 
     private static String normaliseLabel(String candidate,
@@ -93,5 +123,33 @@ public record ExperimentSpec(GraphType graphType,
         StringJoiner joiner = new StringJoiner(";");
         parameters.forEach((key, value) -> joiner.add(key + '=' + value));
         return joiner.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ExperimentSpec)) return false;
+        ExperimentSpec that = (ExperimentSpec) o;
+        return numVertices == that.numVertices
+                && iterations == that.iterations
+                && graphType == that.graphType
+                && Objects.equals(label, that.label)
+                && Objects.equals(parameters, that.parameters);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(graphType, label, numVertices, iterations, parameters);
+    }
+
+    @Override
+    public String toString() {
+        return "ExperimentSpec{" +
+                "graphType=" + graphType +
+                ", label='" + label + '\'' +
+                ", numVertices=" + numVertices +
+                ", iterations=" + iterations +
+                ", parameters=" + parameters +
+                '}';
     }
 }

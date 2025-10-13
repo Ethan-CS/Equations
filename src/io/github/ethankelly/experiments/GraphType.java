@@ -68,17 +68,47 @@ public enum GraphType {
             throw new IllegalArgumentException("Graph type must be provided");
         }
         String normalised = raw.trim().toLowerCase(Locale.ROOT);
-        return switch (normalised) {
-            case "er", "erdos", "erdos_renyi", "erdos-renyi", "erdös", "erdős", "erdős-rényi", "erdos renyi" -> ERDOS_RENYI;
-            case "regular", "k-regular", "random_regular", "random-regular" -> RANDOM_REGULAR;
-            case "barabasi", "barabasi_albert", "barabási", "barabási-albert", "barabasi-albert", "scale-free", "scalefree", "scale_free" -> BARABASI_ALBERT;
-            case "tree", "random_tree" -> TREE;
-            case "binary_tree", "binary-tree", "btree" -> BINARY_TREE;
-            case "complete", "clique" -> COMPLETE;
-            case "path" -> PATH;
-            case "cycle" -> CYCLE;
-            default -> throw new IllegalArgumentException("Unknown graph type: " + raw);
-        };
+        switch (normalised) {
+            case "er":
+            case "erdos":
+            case "erdos_renyi":
+            case "erdos-renyi":
+            case "erdös":
+            case "erdős":
+            case "erdős-rényi":
+            case "erdos renyi":
+                return ERDOS_RENYI;
+            case "regular":
+            case "k-regular":
+            case "random_regular":
+            case "random-regular":
+                return RANDOM_REGULAR;
+            case "barabasi":
+            case "barabasi_albert":
+            case "barabási":
+            case "barabási-albert":
+            case "barabasi-albert":
+            case "scale-free":
+            case "scalefree":
+            case "scale_free":
+                return BARABASI_ALBERT;
+            case "tree":
+            case "random_tree":
+                return TREE;
+            case "binary_tree":
+            case "binary-tree":
+            case "btree":
+                return BINARY_TREE;
+            case "complete":
+            case "clique":
+                return COMPLETE;
+            case "path":
+                return PATH;
+            case "cycle":
+                return CYCLE;
+            default:
+                throw new IllegalArgumentException("Unknown graph type: " + raw);
+        }
     }
 
     public String displayName() {

@@ -33,19 +33,30 @@ public enum Maths {
     }
 
     public String subFromVal(int i) {
-        return switch (i) {
-            case 0 -> SUB_0.uni();
-            case 1 -> SUB_1.uni();
-            case 2 -> SUB_2.uni();
-            case 3 -> SUB_3.uni();
-            case 4 -> SUB_4.uni();
-            case 5 -> SUB_5.uni();
-            case 6 -> SUB_6.uni();
-            case 7 -> SUB_7.uni();
-            case 8 -> SUB_8.uni();
-            case 9 -> SUB_9.uni();
-            default -> "";
-        };
+        switch (i) {
+            case 0:
+                return SUB_0.uni();
+            case 1:
+                return SUB_1.uni();
+            case 2:
+                return SUB_2.uni();
+            case 3:
+                return SUB_3.uni();
+            case 4:
+                return SUB_4.uni();
+            case 5:
+                return SUB_5.uni();
+            case 6:
+                return SUB_6.uni();
+            case 7:
+                return SUB_7.uni();
+            case 8:
+                return SUB_8.uni();
+            case 9:
+                return SUB_9.uni();
+            default:
+                return "";
+        }
     }
 
     /**

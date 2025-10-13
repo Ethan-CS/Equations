@@ -392,13 +392,17 @@ public final class RuntimeExperimentRunner {
             total++;
             edgeCounts.add(measurement.edgeCount());
             switch (measurement.status()) {
-                case SUCCESS -> {
+                case SUCCESS:
                     successes++;
                     successDurations.add(measurement.durationMillis());
                     successTuples.add(measurement.tupleCount());
-                }
-                case TIMEOUT -> timeouts++;
-                case ERROR -> errors++;
+                    break;
+                case TIMEOUT:
+                    timeouts++;
+                    break;
+                case ERROR:
+                    errors++;
+                    break;
             }
         }
 
@@ -443,21 +447,54 @@ public final class RuntimeExperimentRunner {
         }
     }
 
-    record CliOptions(Path configPath,
-                      Path outputDir,
-                      String runId,
-                      int parallelism,
-                      Duration timeout,
-                      int odeHorizon,
-                      int sliceIndex,
-                      int sliceCount,
-                      String modelKey,
-                      double infectionRate,
-                      double recoveryRate,
-                      String tag,
-                      long seed,
-                      boolean dryRun,
-                      boolean help) {
+    static final class CliOptions {
+        private final Path configPath;
+        private final Path outputDir;
+        private final String runId;
+        private final int parallelism;
+        private final Duration timeout;
+        private final int odeHorizon;
+        private final int sliceIndex;
+        private final int sliceCount;
+        private final String modelKey;
+        private final double infectionRate;
+        private final double recoveryRate;
+        private final String tag;
+        private final long seed;
+        private final boolean dryRun;
+        private final boolean help;
+
+        private CliOptions(Path configPath,
+                            Path outputDir,
+                            String runId,
+                            int parallelism,
+                            Duration timeout,
+                            int odeHorizon,
+                            int sliceIndex,
+                            int sliceCount,
+                            String modelKey,
+                            double infectionRate,
+                            double recoveryRate,
+                            String tag,
+                            long seed,
+                            boolean dryRun,
+                            boolean help) {
+            this.configPath = configPath;
+            this.outputDir = outputDir;
+            this.runId = runId;
+            this.parallelism = parallelism;
+            this.timeout = timeout;
+            this.odeHorizon = odeHorizon;
+            this.sliceIndex = sliceIndex;
+            this.sliceCount = sliceCount;
+            this.modelKey = modelKey;
+            this.infectionRate = infectionRate;
+            this.recoveryRate = recoveryRate;
+            this.tag = tag;
+            this.seed = seed;
+            this.dryRun = dryRun;
+            this.help = help;
+        }
 
         static CliOptions parse(String[] args) {
             Path config = DEFAULT_CONFIG;
@@ -479,22 +516,54 @@ public final class RuntimeExperimentRunner {
             for (int i = 0; i < args.length; i++) {
                 String arg = args[i];
                 switch (arg) {
-                    case "--config" -> config = Path.of(requireValue(args, ++i, "--config"));
-                    case "--output" -> output = Path.of(requireValue(args, ++i, "--output"));
-                    case "--run-id" -> runId = requireValue(args, ++i, "--run-id");
-                    case "--parallelism" -> parallelism = Integer.parseInt(requireValue(args, ++i, "--parallelism"));
-                    case "--timeout-seconds" -> timeout = Duration.ofSeconds(Long.parseLong(requireValue(args, ++i, "--timeout-seconds")));
-                    case "--ode-horizon" -> odeHorizon = Integer.parseInt(requireValue(args, ++i, "--ode-horizon"));
-                    case "--slice-index" -> sliceIndex = Integer.parseInt(requireValue(args, ++i, "--slice-index"));
-                    case "--slice-count" -> sliceCount = Integer.parseInt(requireValue(args, ++i, "--slice-count"));
-                    case "--model" -> modelKey = requireValue(args, ++i, "--model");
-                    case "--infection-rate" -> infectionRate = Double.parseDouble(requireValue(args, ++i, "--infection-rate"));
-                    case "--recovery-rate" -> recoveryRate = Double.parseDouble(requireValue(args, ++i, "--recovery-rate"));
-                    case "--tag" -> tag = requireValue(args, ++i, "--tag");
-                    case "--seed" -> seed = Long.parseLong(requireValue(args, ++i, "--seed"));
-                    case "--dry-run" -> dryRun = true;
-                    case "--help", "-h" -> help = true;
-                    default -> throw new IllegalArgumentException("Unknown option: " + arg);
+                    case "--config":
+                        config = Path.of(requireValue(args, ++i, "--config"));
+                        break;
+                    case "--output":
+                        output = Path.of(requireValue(args, ++i, "--output"));
+                        break;
+                    case "--run-id":
+                        runId = requireValue(args, ++i, "--run-id");
+                        break;
+                    case "--parallelism":
+                        parallelism = Integer.parseInt(requireValue(args, ++i, "--parallelism"));
+                        break;
+                    case "--timeout-seconds":
+                        timeout = Duration.ofSeconds(Long.parseLong(requireValue(args, ++i, "--timeout-seconds")));
+                        break;
+                    case "--ode-horizon":
+                        odeHorizon = Integer.parseInt(requireValue(args, ++i, "--ode-horizon"));
+                        break;
+                    case "--slice-index":
+                        sliceIndex = Integer.parseInt(requireValue(args, ++i, "--slice-index"));
+                        break;
+                    case "--slice-count":
+                        sliceCount = Integer.parseInt(requireValue(args, ++i, "--slice-count"));
+                        break;
+                    case "--model":
+                        modelKey = requireValue(args, ++i, "--model");
+                        break;
+                    case "--infection-rate":
+                        infectionRate = Double.parseDouble(requireValue(args, ++i, "--infection-rate"));
+                        break;
+                    case "--recovery-rate":
+                        recoveryRate = Double.parseDouble(requireValue(args, ++i, "--recovery-rate"));
+                        break;
+                    case "--tag":
+                        tag = requireValue(args, ++i, "--tag");
+                        break;
+                    case "--seed":
+                        seed = Long.parseLong(requireValue(args, ++i, "--seed"));
+                        break;
+                    case "--dry-run":
+                        dryRun = true;
+                        break;
+                    case "--help":
+                    case "-h":
+                        help = true;
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unknown option: " + arg);
                 }
             }
 
@@ -517,6 +586,66 @@ public final class RuntimeExperimentRunner {
                 throw new IllegalArgumentException("Missing value for " + option);
             }
             return args[index];
+        }
+
+        Path configPath() {
+            return configPath;
+        }
+
+        Path outputDir() {
+            return outputDir;
+        }
+
+        String runId() {
+            return runId;
+        }
+
+        int parallelism() {
+            return parallelism;
+        }
+
+        Duration timeout() {
+            return timeout;
+        }
+
+        int odeHorizon() {
+            return odeHorizon;
+        }
+
+        int sliceIndex() {
+            return sliceIndex;
+        }
+
+        int sliceCount() {
+            return sliceCount;
+        }
+
+        String modelKey() {
+            return modelKey;
+        }
+
+        double infectionRate() {
+            return infectionRate;
+        }
+
+        double recoveryRate() {
+            return recoveryRate;
+        }
+
+        String tag() {
+            return tag;
+        }
+
+        long seed() {
+            return seed;
+        }
+
+        boolean dryRun() {
+            return dryRun;
+        }
+
+        boolean help() {
+            return help;
         }
     }
 }

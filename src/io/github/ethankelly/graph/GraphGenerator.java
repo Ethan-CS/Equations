@@ -147,28 +147,29 @@ public final class GraphGenerator {
     private static void getUserGraphSelection(Scanner scan, String[] arguments) {
         System.out.println("Now, select a graph. Type \"help\" to see the list of graphs that can be randomly generated.");
 
-        if (scan.nextLine().equalsIgnoreCase("help")) {
-            System.out.println("""
-                    Enter any of the following currently available graph types for generation:
-                      1. Toast
-                      2. Triangle
-                      3. Lollipop
-                      4. Simple
-                      5. Erdős–Rényi
-                      6. Complete
-                      7. Bipartite
-                      8. Complete Bipartite
-                      9. Path
-                     10. Binary Tree
-                     11. Cycle
-                     12. Eulerian Path
-                     13. Eulerian Cycle
-                     14. Wheel
-                     15. Star
-                     16. Regular
-                     17. Tree
-                     18. Barabasi-Albert
-                    Please enter either the number corresponding to the desired graph type or the name of the graph.""");
+    if (scan.nextLine().equalsIgnoreCase("help")) {
+        System.out.println(
+            "Enter any of the following currently available graph types for generation:\n" +
+            "  1. Toast\n" +
+            "  2. Triangle\n" +
+            "  3. Lollipop\n" +
+            "  4. Simple\n" +
+            "  5. Erdős–Rényi\n" +
+            "  6. Complete\n" +
+            "  7. Bipartite\n" +
+            "  8. Complete Bipartite\n" +
+            "  9. Path\n" +
+            " 10. Binary Tree\n" +
+            " 11. Cycle\n" +
+            " 12. Eulerian Path\n" +
+            " 13. Eulerian Cycle\n" +
+            " 14. Wheel\n" +
+            " 15. Star\n" +
+            " 16. Regular\n" +
+            " 17. Tree\n" +
+            " 18. Barabasi-Albert\n" +
+            "Please enter either the number corresponding to the desired graph type or the name of the graph."
+        );
         }
 
         try {
@@ -261,19 +262,18 @@ public final class GraphGenerator {
     }
 
     private static void getUserStates(Scanner scan, String[] arguments) {
-        System.out.println("""
-                
-                *** COMPARTMENTAL GRAPH MODEL EQUATIONS GENERATOR ***
-                
-                Welcome to the Equations Generation program. This software generates the full system of differential
-                equations required to describe a particular compartmental model of disease on a specified graph. A text
-                file will be generated in the same directory as you are running this software from. If you choose to run
-                the jar again, this text file will be overwritten unless you move it elsewhere or delete it.
-                                
-                To begin, please enter the states required in the model. Currently, this can be either of:
-                 * SIR
-                 * SIRP
-                where S represents Susceptible, I is Infected, R is Recovered and P is Protected.""");
+    System.out.println(
+        "\n" +
+        "*** COMPARTMENTAL GRAPH MODEL EQUATIONS GENERATOR ***\n\n" +
+        "Welcome to the Equations Generation program. This software generates the full system of differential\n" +
+        "equations required to describe a particular compartmental model of disease on a specified graph. A text\n" +
+        "file will be generated in the same directory as you are running this software from. If you choose to run\n" +
+        "the jar again, this text file will be overwritten unless you move it elsewhere or delete it.\n\n" +
+        "To begin, please enter the states required in the model. Currently, this can be either of:\n" +
+        " * SIR\n" +
+        " * SIRP\n" +
+        "where S represents Susceptible, I is Infected, R is Recovered and P is Protected."
+    );
         try {
             arguments[0] = scan.nextLine();
         } catch (InputMismatchException e) {
@@ -285,58 +285,111 @@ public final class GraphGenerator {
     @SuppressWarnings("unused")
     public static Graph getGraph(String[] args) {
         Graph graph;
-        switch (args[1].toLowerCase()) {
-            case "1", "toast" -> graph = getToast();
-            case "2", "triangle" -> graph = getTriangle();
-            case "3", "lollipop" -> graph = getLollipop();
-            case "4", "simple" -> {
+        String selection = args[1].toLowerCase();
+        switch (selection) {
+            case "1":
+            case "toast":
+                graph = getToast();
+                break;
+            case "2":
+            case "triangle":
+                graph = getTriangle();
+                break;
+            case "3":
+            case "lollipop":
+                graph = getLollipop();
+                break;
+            case "4":
+            case "simple": {
                 // Requires number of vertices and number of edges
                 int[] parsed = parseIntegers(new String[] {args[2], args[3]});
                 graph = simple(parsed[0], parsed[1]);
+                break;
             }
-            case "5", "erdos renyi", "erdős rényi", "er" -> {
+            case "5":
+            case "erdos renyi":
+            case "erdős rényi":
+            case "er": {
                 // Requires number of vertices and a probability
                 int numVertices = parseIntegers(new String[] {args[2]})[0];
                 double p = parseDoubles(new String[] {args[3]})[0];
                 graph = erdosRenyi(numVertices, p);
+                break;
             }
-            case "6", "complete" -> graph = complete(parseIntegers(new String[] {args[2]})[0]);
-            case "7", "bipartite" -> {
+            case "6":
+            case "complete":
+                graph = complete(parseIntegers(new String[] {args[2]})[0]);
+                break;
+            case "7":
+            case "bipartite": {
                 // Requires 2 numbers of vertices and a number of edges
                 int[] parsed = parseIntegers(new String[] {args[2], args[3], args[4]});
                 graph = bipartite(parsed[0], parsed[1], parsed[2]);
+                break;
             }
-            case "8", "complete bipartite" -> {
+            case "8":
+            case "complete bipartite": {
                 // Requires 2 numbers of vertices
                 int[] parsed = parseIntegers(new String[] {args[2], args[3]});
                 graph = completeBipartite(parsed[0], parsed[1]);
+                break;
             }
-            case "9", "path" -> graph = path(parseIntegers(new String[] {args[2]})[0]);
-            case "10", "binary tree" -> graph = binaryTree(parseIntegers(new String[] {args[2]})[0]);
-            case "11", "cycle" -> graph = cycle(parseIntegers(new String[] {args[2]})[0]);
-            case "12", "eulerian path" -> {
+            case "9":
+            case "path":
+                graph = path(parseIntegers(new String[] {args[2]})[0]);
+                break;
+            case "10":
+            case "binary tree":
+                graph = binaryTree(parseIntegers(new String[] {args[2]})[0]);
+                break;
+            case "11":
+            case "cycle":
+                graph = cycle(parseIntegers(new String[] {args[2]})[0]);
+                break;
+            case "12":
+            case "eulerian path": {
                 // Requires number of vertices and number of edges
                 int[] parsed = parseIntegers(new String[] {args[2], args[3]});
                 graph = eulerianPath(parsed[0], parsed[1]);
+                break;
             }
-            case "13", "eulerian cycle" -> {
+            case "13":
+            case "eulerian cycle": {
                 // Requires number of vertices and number of edges
                 int[] parsed = parseIntegers(new String[] {args[2], args[3]});
                 graph = eulerianCycle(parsed[0], parsed[1]);
+                break;
             }
-            case "14", "wheel" -> graph = wheel(parseIntegers(new String[] {args[2]})[0]);
-            case "15", "star" -> graph = star(parseIntegers(new String[] {args[2]})[0]);
-            case "16", "regular" -> {
+            case "14":
+            case "wheel":
+                graph = wheel(parseIntegers(new String[] {args[2]})[0]);
+                break;
+            case "15":
+            case "star":
+                graph = star(parseIntegers(new String[] {args[2]})[0]);
+                break;
+            case "16":
+            case "regular": {
                 // Requires number of vertices and value of k
                 int[] parsed = parseIntegers(new String[] {args[2], args[3]});
                 graph = regular(parsed[0], parsed[1]);
+                break;
             }
-            case "18", "barabasi albert", "barabási-albert", "scale-free", "scale free" -> {
+            case "18":
+            case "barabasi albert":
+            case "barabási-albert":
+            case "scale-free":
+            case "scale free": {
                 int[] parsed = parseIntegers(new String[] {args[2], args[3]});
                 graph = barabasiAlbert(parsed[0], parsed[1]);
+                break;
             }
-            case "17", "tree" -> graph = tree(parseIntegers(new String[] {args[2]})[0]);
-            default -> throw new IllegalStateException("Unexpected graph type: " + args[1].toLowerCase());
+            case "17":
+            case "tree":
+                graph = tree(parseIntegers(new String[] {args[2]})[0]);
+                break;
+            default:
+                throw new IllegalStateException("Unexpected graph type: " + selection);
         }
         return graph;
     }
