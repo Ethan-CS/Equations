@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software, I'd be very grateful if you'd cite it as below please."
+authors:
+  - family-names: Hunter-Frankland
+    given-names: Ethan
+    orcid: https://orcid.org/0000-0002-4309-6861
+title: "Equations"
+version: 0.2.0-SNAPSHOT
+repository-code: https://github.com/Ethan-CS/Equations
+date-released: 2025-10-14
